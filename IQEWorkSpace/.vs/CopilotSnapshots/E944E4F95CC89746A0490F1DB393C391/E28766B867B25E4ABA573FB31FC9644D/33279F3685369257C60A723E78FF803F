@@ -1,0 +1,92 @@
+﻿-- Script: CloseVisitWithReference.sql
+-- Description: Stored procedure template to close a visit by referencing another visit that already has reports.
+-- IMPORTANT: adjust table/column names to match your database schema before deploying.
+-- This template assumes you have a Visits table (or similar) with columns: VisitId, VisitSeqId, VisitStatusId, Comments, ModifiedBy, ModifiedDate
+-- If you have a specific column to store the reference (e.g. ReferenceVisitSeqId), ensure it exists and uncomment the UPDATE line that sets it.
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
+
+CREATE PROCEDURE [dbo].[CloseVisitWithReference]
+    @VisitId INT,
+    @ReferenceVisitSeqId NVARCHAR(50),
+    @Comments NVARCHAR(500),
+    @ModifiedBy INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Defensive: ensure the expected Visits table exists; if not, return failure immediately
+    IF OBJECT_ID('dbo.Visits', 'U') IS NULL
+    BEGIN
+        -- Table not present in this schema. Adjust procedure to use the correct table name for your database.
+        SELECT CAST(0 AS BIT) AS [Success], 'Table dbo.Visits not found' AS [Message];
+        RETURN;
+    END
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Validate the target visit exists
+        IF NOT EXISTS (SELECT 1 FROM dbo.Visits WHERE VisitId = @VisitId)
+        BEGIN
+            -- Visit not found
+            ROLLBACK TRANSACTION;
+            SELECT CAST(0 AS BIT) AS [Success], 'Visit not found' AS [Message];
+            RETURN;
+        END
+
+        -- Optional: validate the referenced visit exists
+        DECLARE @RefVisitId INT = NULL;
+        IF @ReferenceVisitSeqId IS NOT NULL AND LEN(RTRIM(LTRIM(@ReferenceVisitSeqId))) > 0
+        BEGIN
+            SELECT TOP 1 @RefVisitId = VisitId FROM dbo.Visits WHERE VisitSeqId = @ReferenceVisitSeqId;
+            IF @RefVisitId IS NULL
+            BEGIN
+                -- Reference visit number not found. Treat as error (change behavior if desired).
+                ROLLBACK TRANSACTION;
+                SELECT CAST(0 AS BIT) AS [Success], 'Reference visit not found' AS [Message];
+                RETURN;
+            END
+        END
+
+        -- Business action: mark the visit as closed/abortive (example: VisitStatusId = 11)
+        -- Replace VisitStatusId value if you need a different status code.
+
+        -- If your Visits table contains a dedicated column for storing the reference visit seq id (e.g. ReferenceVisitSeqId), update it as well.
+        UPDATE dbo.Visits
+        SET VisitStatusId = 11,
+            Comments = CASE WHEN Comments IS NULL OR RTRIM(LTRIM(Comments)) = '' THEN @Comments
+                            ELSE CONCAT(Comments, ' | RefVisit:', ISNULL(@ReferenceVisitSeqId, ''), ' | ', @Comments)
+                       END,
+            ModifiedBy = @ModifiedBy,
+            ModifiedDate = GETDATE()
+            --, ReferenceVisitSeqId = @ReferenceVisitSeqId  -- uncomment if you have this column
+        WHERE VisitId = @VisitId;
+
+        -- Optional: insert an audit/link record into a VisitReferences table if you maintain relationships.
+        -- Example schema (you may need to create this table):
+        -- CREATE TABLE dbo.VisitReferences (Id INT IDENTITY(1,1) PRIMARY KEY, VisitId INT, ReferencedVisitId INT NULL, ReferencedVisitSeqId NVARCHAR(50), Comments NVARCHAR(500), CreatedBy INT, CreatedDate DATETIME)
+        -- If you created VisitReferences and have @RefVisitId, insert a record linking VisitId -> RefVisitId
+
+        IF OBJECT_ID('dbo.VisitReferences', 'U') IS NOT NULL
+        BEGIN
+            INSERT INTO dbo.VisitReferences (VisitId, ReferencedVisitId, ReferencedVisitSeqId, Comments, CreatedBy, CreatedDate)
+            VALUES (@VisitId, @RefVisitId, @ReferenceVisitSeqId, @Comments, @ModifiedBy, GETDATE());
+        END
+
+        COMMIT TRANSACTION;
+
+        SELECT CAST(1 AS BIT) AS [Success], 'OK' AS [Message];
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRANSACTION;
+
+        -- Return failure with error info
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        SELECT CAST(0 AS BIT) AS [Success], @ErrMsg AS [Message];
+    END CATCH
+END
+GO

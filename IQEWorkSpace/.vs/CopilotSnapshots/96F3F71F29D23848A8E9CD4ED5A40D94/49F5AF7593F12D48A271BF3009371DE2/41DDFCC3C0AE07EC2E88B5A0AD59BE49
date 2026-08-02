@@ -1,0 +1,174 @@
+﻿@using IQEApp.Domain
+@using WebIndiaApp.Web.Utils
+@model IQEApp.Web.Models.InvoiceModel.InvoiceDetailsModel
+@{
+    ViewBag.Title = "Edit Invoice";
+}
+<style>
+    body {
+        font-family: Arial;
+        font-size: 9.5pt;
+    }
+</style>
+<div>
+    <div class="box-header with-border row">
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <h3 class="box-title"> <span id="spnHeadTitle">Finance &#8667; Edit Invoice </span></h3>
+        </div>
+        <div class="col-sm-6 col-md-6 col-lg-6 form-group">
+            <label class="control-label">Invoice For : </label>
+            <label>
+                <input type="radio" name="InvoiceType" value="Customer" @(Model.InvoiceType == "Customer" || string.IsNullOrEmpty(Model.InvoiceType) ? "checked" : "") onclick="toggleInvoiceType()" /> Customer
+            </label>
+            <label style="margin-left:15px;">
+                <input type="radio" name="InvoiceType" value="Supplier" @(Model.InvoiceType == "Supplier" ? "checked" : "") onclick="toggleInvoiceType()" /> Supplier
+            </label>
+        </div>
+
+        <div class="col-sm-1 col-md-1 col-lg-1">
+            <div id="divLoadingIconId"></div>
+        </div>
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <button type='button' class="btn btn-outline-secondary pull-right mtn10" id="btnInvoiceList" onclick="javascript: openInvoiceList();"><i class="fa fa-list" aria-hidden="true"></i>&nbsp;Invoice</button>
+        </div>
+    </div>
+    <div class="clearfix "></div>
+
+    <div class="row" id="InvoiceVisitSearch" style="display:flex; flex-wrap:nowrap;">
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClients.FirstOrDefault().ClientName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientId, new SelectList(Model.LstClients.OrderBy(x=>x.ClientName), "ClientId", "ClientName"), "Select", new { @style = "width:150px", @class = "form-control dropDownStyle redborder", onchange = "getClientUnitsByClientId(this)" })
+            @Html.ValidationMessageFor(m => m.ClientId)
+            <span id="spnClientIdValidation" class="error" style="display: none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClientUnits.FirstOrDefault().ClientUnitName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientUnitId, new SelectList(Model.LstClientUnits, "ClientUnitId", "ClientUnitName"), "Select", new { @style = "width:150px", @class = "form-control dropDownStyle redborder", onchange = "getConrtolNumbersByClientUnitId(this)" })
+            @Html.ValidationMessageFor(m => m.ClientUnitId)
+            <span id="spnClientUnitIdValidation" class="error" style="display: none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group" id="manufacturerSection" style="display:none;">
+            @Html.Label("Supplier")
+            @Html.DropDownListFor(m => m.ManufacturerId, new SelectList(Model.LstManufacturer, "ManufacturerId", "ManufacturerName"), "Select", new { @style = "width:200px", @class = "form-control dropDownStyle redborder", onchange = "getConrtolNumbersByManufacturerId(this)" })
+            <span id="spnManufacturerValidation" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstControlNumbers, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.LstControlNumbers, new SelectList(Model.LstControlNumbers, "ControlId", "ControlNo"), "Select", new { @style = "width:150px", @class = "form-control dropDownStyle redborder", onchange = "getSONumbersByControlId(this)" })
+            @Html.ValidationMessageFor(m => m.LstControlNumbers)
+            <span id="spnControlNumber" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstServiceOrders.FirstOrDefault().SONumber, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.SOID, new SelectList(Model.LstServiceOrders, "SOId", "SONumber"), "Select", new { @style = "width:150px", @class = "form-control dropDownStyle redborder" })
+            @Html.ValidationMessageFor(m => m.SOID)
+            <span id="spnServiceOrderValidation" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.FromDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.FromDate, new { @style = "width:150px", @class = "form-control inputStyle redborder" })
+            @Html.ValidationMessageFor(m => m.FromDate)
+            <span id="spnFromDateValidation" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.ToDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.ToDate, new { @style = "width:150px", @class = "form-control inputStyle redborder" })
+            @Html.ValidationMessageFor(m => m.ToDate)
+            <span id="spnToDateValidation" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group" style="align-self:flex-end;">
+            <button onclick="GetVisitsListForInvoice();" class="btn btn-success form-control" id="btnSearchVisits">Search</button>
+        </div>
+
+    </div>
+
+    <div id="divInvoiceDetails" class="mb10">
+        <!-- visits partial will be loaded here via AJAX -->
+    </div>
+    <div id="divInvoiceConsolidatedDetails" class="mb10">
+        <!-- consolidated partial will be loaded here via AJAX -->
+    </div>
+
+    @Html.HiddenFor(m => m.InvoiceGuid)
+    @Html.HiddenFor(m => m.InvoiceID)
+</div>
+
+<script>
+    function toggleInvoiceType() {
+        var type = $("input[name='InvoiceType']:checked").val();
+        if (type === "Customer") {
+            $("#ClientId, #ClientUnitId").closest(".form-group").show();
+            $("#manufacturerSection").hide();
+        }
+        else {
+            $("#ClientId, #ClientUnitId").closest(".form-group").hide();
+            $("#manufacturerSection").show();
+        }
+    }
+
+    $(document).ready(function () {
+        // initialize datepickers
+        $('#FromDate').val('@(Model.FromDate == DateTime.MinValue ? string.Empty : Model.FromDate.ToString("dd-MMM-yyyy"))');
+        $('#ToDate').val('@(Model.ToDate == DateTime.MinValue ? string.Empty : Model.ToDate.ToString("dd-MMM-yyyy"))');
+        toggleInvoiceType();
+        $.validator.unobtrusive.parse(document);
+        $(function () { $("#FromDate, #ToDate").datepicker({ endDate: '+0d', autoclose: true }); });
+
+        // load visits and consolidated via AJAX for editing
+        var invoiceId = '@Model.InvoiceID';        var invoiceGuid = '@Model.InvoiceGuid';
+            $.ajax({ url: '../Invoice/GetVisitsListForInvoiceEdit', type: 'GET', data: { invoiceId: invoiceId }, success: function (resp) { if (resp) { $('#divInvoiceDetails').html(resp); } } });
+        }
+        if (invoiceGuid && invoiceGuid !== '00000000-0000-0000-0000-000000000000') {
+            $.ajax({ url: '../Invoice/GetConsolidatedChargesPartial', type: 'GET', data: { invoiceGuid: invoiceGuid }, success: function (resp) { if (resp) { $('#divInvoiceConsolidatedDetails').html(resp); } } });
+        }
+    });
+
+    function openInvoiceList() {
+        var currentUrl = '@System.Configuration.ConfigurationManager.AppSettings["HostUrl"].ToString()';        window.location.href = currentUrl + "/Invoice/Index";
+</script>
+
+<script>
+    // client-side helpers (copied/adapted from GenerateInvoice)
+    function getClientUnitsByClientId(obj) {
+        var clientId = $(obj).find('option:selected').val();
+        $.ajax({ url: '../PurchaseOrder/GetClientUnitsByClientId', type: 'POST', data: { clientId: clientId }, beforeSend: function () { BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" }); }, success: function (clientUnits) { var s = '<option value="-1">Select</option>'; for (var i = 0; i < clientUnits.length; i++) { s += '<option value="' + clientUnits[i].ClientUnitId + '">' + clientUnits[i].ClientUnitName + '</option>'; } $("#ClientUnitId").html(s); }, complete: function () { BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId')); } });
+    }
+
+    function getConrtolNumbersByClientUnitId(obj) {
+        $('#divControlNumberDetails').html('');
+        var clientUnitId = $(obj).find('option:selected').val();
+        $.ajax({ url: '../Common/GetControlNumbersByClientUnitId', type: 'POST', data: { clientUnitId: clientUnitId }, beforeSend: function () { BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divSOLoadingIconId'), position: "center" }); }, success: function (data) { var s = '<option value="-1">Select</option>'; for (var i = 0; i < data.length; i++) { s += '<option value="' + data[i].ControlId + '">' + data[i].ControlNo + '</option>'; } $("#LstControlNumbers").html(s); }, complete: function () { BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divSOLoadingIconId')); } });
+    }
+
+    function getConrtolNumbersByManufacturerId(obj) {
+        $('#divControlNumberDetails').html('');
+        var manufId = $(obj).find('option:selected').val();
+        $.ajax({ url: '../Common/GetControlNumbersByManufacturerId', type: 'POST', data: { manufacturerId: manufId }, beforeSend: function () { BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divSOLoadingIconId'), position: "center" }); }, success: function (data) { var s = '<option value="-1">Select</option>'; for (var i = 0; i < data.length; i++) { s += '<option value="' + data[i].ControlId + '">' + data[i].ControlNo + '</option>'; } $("#LstControlNumbers").html(s); }, complete: function () { BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divSOLoadingIconId')); } });
+    }
+
+    function getSONumbersByControlId(obj) {
+        var controlNumber = $(obj).children("option:selected").text();
+        $.ajax({ url: '../Common/GetSONumbersByControlId', type: 'POST', data: { controlNumber: controlNumber }, beforeSend: function () { BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divSOLoadingIconId'), position: "center" }); }, success: function (SONumbers) { var s = '<option value="-1">Select</option>'; for (var i = 0; i < SONumbers.LstServiceOrdersList.length; i++) { s += '<option value="' + SONumbers.LstServiceOrdersList[i].SOId + '">' + SONumbers.LstServiceOrdersList[i].SONumber + '</option>'; } $("#SOID").html(s); }, complete: function () { BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divSOLoadingIconId')); } });
+    }
+
+    function GetVisitsListForInvoice() {
+        var invoiceType = $("input[name='InvoiceType']:checked").val();
+        var validationRules = [ { elementVal: $("#SOID").val(), isRequired: true, errorElement: "spnServiceOrderValidation", errorString: "Service Number Required" }, { elementVal: $("#FromDate").val(), isRequired: true, errorElement: "spnFromDateValidation", errorString: "From Date Required" }, { elementVal: $("#ToDate").val(), isRequired: true, errorElement: "spnToDateValidation", errorString: "To Date Required" } ];
+        if (invoiceType === "Customer") {
+            validationRules.push({ elementVal: $("#ClientId").val(), isRequired: true, errorElement: "spnClientIdValidation", errorString: "Customer Required" }, { elementVal: $("#ClientUnitId").val(), isRequired: true, errorElement: "spnClientUnitIdValidation", errorString: "Customer Unit Required" });
+        } else {
+            validationRules.push({ elementVal: $("#ManufacturerId").val(), isRequired: true, errorElement: "spnManufacturerValidation", errorString: "Manufacturer Required" });
+        }
+        var isValidationRaised = window.validator.validate(validationRules);
+        if (isValidationRaised) return;
+        $.ajax({ url: '../Invoice/GetVisitListForInvoice', type: 'POST', data: { InvoiceType: invoiceType, ClientId: $("#ClientId").val(), ClientUnitId: $("#ClientUnitId").val(), ManufacturerId: $("#ManufacturerId").val(), SOID: $("#SOID").val(), FromDate: $("#FromDate").val(), ToDate: $("#ToDate").val() }, beforeSend: function () { BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" }); }, success: function (response) { $("#divInvoiceDetails").html(response); }, complete: function () { BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId')); } });
+    }
+</script>

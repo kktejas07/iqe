@@ -1,0 +1,813 @@
+﻿@using IQEApp.Domain
+@using WebIndiaApp.Web.Utils
+@model IQEApp.Web.Models.InvoiceModel.InvoiceDetailsModel
+@{
+    ViewBag.Title = "Edit Invoice";
+}
+<style>
+    .directory-table-row hr {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    .table {
+        border: 1px solid #ccc;
+        border-collapse: collapse;
+        background-color: #B8DBFD;
+        align-content: center;
+        color: #333;
+        height: 50px;
+        width: 95%;
+        /* line-height: 1em;*/
+        padding-top: 0;
+        line-height: 1em;
+    }
+    /* .adjust-line-height {
+        line-height: 1em;
+    }*/
+</style>
+<div>
+    <div class="box-header with-border row">
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <h3 class="box-title"> <span id="spnHeadTitle"> Edit Invoice </span></h3>
+        </div>
+        <div class="col-sm-6 col-md-6 col-lg-6 ">
+            <div id="divLoadingIconId"></div>
+        </div>
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <button type='button' class="btn btn-outline-secondary pull-right mtn10" id="btnInvoiceList" onclick="javascript: openInvoiceList();"><i class="fa fa-list" aria-hidden="true"></i>&nbsp;Invoice</button>
+        </div>
+    </div>
+    <div class="clearfix "></div>
+
+    <div class="row mt10">
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClients.FirstOrDefault().ClientName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientId, new SelectList(Model.LstClients, "ClientId", "ClientName"), "Select", new { @style = "width:200px", @class = "form-control dropDownStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientId), onchange = "getClientUnitsByClientId(this)", @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.ClientId)
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClientUnits.FirstOrDefault().ClientUnitName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientUnitId, new SelectList(Model.LstClientUnits, "ClientUnitId", "ClientUnitName"), "Select", new { @style = "width:200px", @class = "form-control dropDownStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientUnitId), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.ClientUnitId)
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstServiceOrders.FirstOrDefault().SONumber, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.SONumber, new { @style = "width:200px", @class = "form-control redborder", @placeholder = @Html.DisplayNameFor(model => model.SOID), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.SOID)
+            <span id="spnServiceOrderValidation" class="error" style="display: none;"></span>
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.FromDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.FromDate, "{0:dd-MMM-yyyy}", new { @style = "width:200px", @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.DateFormat), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.FromDate)
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.ToDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.ToDate, "{0:dd-MMM-yyyy}", new { @style = "width:200px", @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.DateFormat), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.ToDate)
+        </div>
+        @*<div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                <button onclick="javascript: GetVisitsListForInvoice();" class="btn btn-success pull-right">Search</button>
+            </div>*@
+    </div>
+    <div class="clearfix "></div>
+    <div id="divInvoiceDetails" class="mb10">
+        <div class="row mt10">
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.ClientContactName, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.ClientContactName, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientContactName) })
+                @Html.ValidationMessageFor(m => m.ClientContactName)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.ClientContactAddress, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.ClientContactAddress, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientContactAddress) })
+                @Html.ValidationMessageFor(m => m.ClientContactAddress)
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-6 form-group">
+                @Html.LabelFor(m => m.Encl, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Encl, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.Encl) })
+                @Html.ValidationMessageFor(m => m.ClientContactAddress)
+            </div>
+        </div>
+        <div class="clearfix "></div>
+        <div class="row mt10 mb10">
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.Subject, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Subject, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.Subject) })
+                @Html.ValidationMessageFor(m => m.Subject)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.MileageCost, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.MileageCost, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.MileageCost), onchange = "javascript:calculateMileageCost()" })
+                @Html.ValidationMessageFor(m => m.MileageCost)
+                <span id="spnSubjectValidation" class="error" style="display: none;"></span>
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.Currency, new { @class = "control-label" })
+                <select id="ddlCurrency" class="form-control dropDownStyle redborder" onchange="javascript: changeCurrency(this);">
+                    @*<option value="-1">Select</option>*@
+                    <option value="1">INR</option>
+                    <option value="2">USD</option>
+                </select>
+                @*@Html.TextBoxFor(m => m.Currency, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.Currency) })*@
+                @Html.ValidationMessageFor(m => m.Currency)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @if (Model.IsSez)
+                {
+                    <span><input id="chkIsSez" checked="checked" type="checkbox" value="true" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <span><input id="chkIsSez" type="checkbox" value="false" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                <span><b>IsSez</b></span><br />
+                @if (Model.IsOverseas)
+                {
+                    <span><input id="chkIsOverseas" checked="checked" type="checkbox" value="true" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <span><input id="chkIsOverseas" type="checkbox" value="false" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+
+                }
+                @*<span>@Html.CheckBoxFor(m => m.IsOverseas, new { @readonly = "readonly" }):&nbsp;&nbsp;&nbsp;</span>*@
+                <span><b>IsOverseas</b></span><br />
+                <span>GST No:&nbsp;&nbsp;&nbsp;</span> <span>@Model.ClientGSTNo</span>
+                @Html.HiddenFor(m => m.ClientGSTNo)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.HiddenFor(m => m.CGSTPercentage)
+                @Html.HiddenFor(m => m.SGSTPercentage)
+                @Html.HiddenFor(m => m.IGSTPercentage)
+                @*<span><b>CGST:&nbsp;&nbsp;&nbsp;</b></span><span>@(Model.CGSTPercentage == 0 ? "N/A")</span><br />
+                    <span><b>SGST:&nbsp;&nbsp;&nbsp;</b></span><span>@(Model.SGSTPercentage == 0 ? "N/A")</span><br />
+                    <span><b>IGST:&nbsp;&nbsp;&nbsp;</b></span><span>@(Model.IGSTPercentage == 0 ? "N/A")</span><br />*@
+            </div>
+        </div>
+        <div id="divVisitDetails" class="mb10">
+            <div>
+                @if (Model.LstVisitProcessings.Any())
+                {
+                    int index = 1;
+                    <table style="width:97%" cellpadding="0" cellspacing="0" class="center">
+                        <tr>
+                            <th style="width: 7%; align-items: center" class="font10">S.No</th>
+                            <th style="width: 12%; align-items: center" class="font10">Visit Date</th>
+                            <th style="width: 20%; align-items: center" class="font10">Supplier Details<br /><hr />Location</th>
+                            <th style="width: 15%; align-items: center" class="font10">@Html.Label("PO No")<br /><hr />@Html.Label("PO Date")</th>
+                            <th style="width: 15%; align-items: center" class="font10">@Html.Label("Insp Name")<br /><hr />@Html.Label("Report No")</th>
+                            <th>@Html.Label("Distance")</th>
+                            <th style="width: 15%; align-items: center" class="font10">@Html.Label("Time In")<br /><hr class="class-1" />@Html.Label("Time Out")</th>
+                            <th>@Html.Label("Total Hrs")</th>
+                            <th>@Html.Label("Mileage Cost")</th>
+                            <th>@Html.Label("Boarding Charges")</th>
+                            <th>@Html.Label("Hotel")</th>
+                            <th>@Html.Label("Travel Fare")</th>
+                            <th>@Html.Label("Other expenses")</th>
+                            <th>@Html.Label("Service Charge")</th>
+                            <th>@Html.Label("Total")</th>
+                            <th>@Html.Label("Remarks")</th>
+                        </tr>
+
+                        @foreach (var visit in Model.LstVisitProcessings.OrderBy(x => x.VisitDate))
+                        {
+                            <tr>
+                                <td align="center" style="width: 5%">
+                                    <input id="chkVisitId_@visit.VEMId" class="js-VisitPrice" checked="checked" type="checkbox" value="@visit.VEMId" onchange="javascript: fnVisitCalculationChanged(this);" />
+                                    @index
+                                    <input id="hdnVisitId_@visit.VEMId" type="hidden" value="@visit.VisitId" />
+                                </td>
+                                <td align="center" style="width: 15%">
+                                    @(visit.VisitDate.GetConvertedShortDate() == DateTime.MinValue.GetConvertedShortDate() ? " -- " : visit.VisitDate.ToString("dd-MM-yyyy"))
+                                    <input id="hdnVisitDate_@visit.VEMId" type="hidden" value="@visit.VisitDate" />
+                                </td>
+
+                                <td align="center" style="width: 17%" class="font10">
+                                    @(visit.ManufacturerName ?? "--")
+                                    <input id="hdnManufacturerName_@visit.VEMId" type="hidden" value="@visit.ManufacturerName" />
+                                    <br /><hr class="class-1" />
+                                    @(visit.VisitLocation ?? "--")
+                                    <input id="hdnVisitLocation_@visit.VEMId" type="hidden" value="@visit.VisitLocation" />
+                                </td>
+                                <td align="center" style="width: 15%" class="font10">
+                                    @(visit.PONumber ?? "NO P.O.")
+                                    <input id="hdnPONumber_@visit.VEMId" type="hidden" value="@visit.PONumber" />
+                                    <br /><hr class="class-1" />
+                                    @(visit.PODate.GetConvertedShortDate() == DateTime.MinValue.GetConvertedShortDate() ? "No PO Date" : visit.PODate.GetConvertedShortDate())
+                                    <input id="hdnPODate_@visit.VEMId" type="hidden" value="@visit.PODate" />
+                                </td>
+
+                                <td align="center" style="width: 15%" class="font10">
+                                    @visit.InspectorCode
+                                    <input id="hdnInspectorCode_@visit.VEMId" type="hidden" value="@visit.InspectorCode" />
+                                    <br /><hr class="class-1" />
+                                    @(visit.InspReportNo ?? "--")
+                                    <input id="hdnReportNo_@visit.VEMId" type="hidden" value="@visit.InspReportNo" />
+                                </td>
+                                <td><input id="hdnDistance_@visit.VEMId" value="@visit.Distance" type="text" placeholder="Distance" class="form-control" style="width:65px;" onchange="javascript: calculateMileageCostForIndividual('@visit.VEMId');" /></td>
+                                <td style="width: 10%; align-items: center" class="font10">
+                                    @visit.TimeIn.ToString("hh:mm tt")
+                                    <input id="hdnTimeIn_@visit.VEMId" type="hidden" value="@visit.TimeIn" />
+                                    <br /><hr class="class-1" />
+                                    @visit.TimeOut.ToString("hh:mm tt")
+                                    <input id="hdnTimeOut_@visit.VEMId" type="hidden" value="@visit.TimeOut" />
+                                </td>
+                                <td>
+                                    @(visit.TotalHrs ?? "--")
+                                    <input id="hdnTotalHrs_@visit.VEMId" type="hidden" value="@visit.TotalHrs" />
+                                </td>
+                                <td>
+                                    <input id="txtMileageCost_@visit.VEMId" value="@visit.MileageCost" data-id="@visit.VEMId" class="form-control inputStyle jsMileageCost" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="Mileage Cost" />
+                                    @*<input id="txtMileageCost_@visit.VEMId" value="0" data-id="@visit.VEMId" readonly="readonly" class="form-control jsMileageCost" style="width:65px;" onchange="javascript: sumAllIndividualAllowances(@visit.VEMId)" placeholder="" />*@
+                                </td>
+                                <td>
+                                    <input id="txtFoodAllowance_@visit.VEMId" value="@visit.FoodAllowance" data-id="@visit.VEMId" class="form-control" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="" />
+                                </td>
+                                <td>
+                                    <input id="txtHotel_@visit.VEMId" value="@visit.Hotel" data-id="@visit.VEMId" class="form-control" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="" />
+                                </td>
+                                <td>
+                                    <input id="txtTravelFare_@visit.VEMId" value="@visit.TravelFare" data-id="@visit.VEMId" class="form-control" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="" />
+                                </td>
+                                <td>
+                                    <input id="txtOtherExpenses_@visit.VEMId" value="@visit.OtherExpenses" data-id="@visit.VEMId" class="form-control" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="" />
+                                </td>
+                                <td>
+                                    <input id="txtServiceCharge_@visit.VEMId" value="@visit.ServiceCharge" data-id="@visit.VEMId" class="form-control" style="width:65px;" onchange="javascript: sumAllIndividualAllowances('@visit.VEMId');" placeholder="" />
+                                </td>
+                                <td>
+                                    @*@Html.TextBoxFor(m => m.TotalAmount, new { @class = "form-control inputStyle redborder", @style = "width:100px;", @placeholder = @Html.DisplayNameFor(model => model.TotalAmount), @readonly = "readonly" })*@
+                                    <input id="txtIndividualTotal_@visit.VEMId" value="@visit.Total" data-id="@visit.VEMId" class="form-control js-InvoiceGrandTotal" style="width:80px;" readonly="readonly" />
+                                </td>
+                                <td>
+                                    <input id="txtRemarks_@visit.VEMId"  value="@visit.Remarks"  data-id="@visit.VEMId" class="form-control" style="width:90px;" placeholder="Remarks" />
+                                </td>
+
+                            </tr>
+                            index++;
+                        }
+                    </table>
+
+
+                }
+
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <div id="divInvoiceOtherDetails" class="">
+            <div class="row mt10">
+                <div class="col-sm-8 col-md-8 col-lg-8 p0">
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                            @Html.LabelFor(m => m.InvoiceNo, new { @class = "control-label" })
+                            @Html.TextBoxFor(m => m.InvoiceNo, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.InvoiceNo), @readonly = "readonly" })
+                            @Html.ValidationMessageFor(m => m.InvoiceNo)
+                        </div>
+                        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                            @Html.LabelFor(m => m.InvoiceTemplateId, new { @class = "control-label" })
+                            @Html.DropDownListFor(m => m.InvoiceTemplateId, new SelectList(Model.TemplateTypes, "InvoiceTemplateId", "InvoiceTemplateName"), "Select", new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.InvoiceTemplateId) })
+                            @Html.ValidationMessageFor(m => m.InvoiceTemplateId)
+                        </div>
+                        @*<div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                                @Html.LabelFor(m => m.EmailId, new { @class = "control-label" })
+                                @Html.TextBoxFor(m => m.EmailId, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.EmailId) })
+                                @Html.ValidationMessageFor(m => m.EmailId)
+                            </div>
+                            <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                                @Html.LabelFor(m => m.CourierSendDate, new { @class = "control-label" })
+                                @Html.TextBoxFor(m => m.CourierSendDate, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.CourierSendDate) })
+                                @Html.ValidationMessageFor(m => m.CourierSendDate)
+                            </div>
+                            <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                                @Html.LabelFor(m => m.CourierReceiveDate, new { @class = "control-label" })
+                                @Html.TextBoxFor(m => m.CourierReceiveDate, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.CourierReceiveDate) })
+                                @Html.ValidationMessageFor(m => m.CourierReceiveDate)
+                            </div>*@
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+
+                        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                        </div>
+                        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                        </div>
+                        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4 col-md-4 col-lg-4 p0">
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.TotalAmount, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px;" id="spnTotalAmount">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.TotalAmount, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.TotalAmount), @readonly = "readonly" })
+
+
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                        </div>
+                    </div>
+                    @*<div class="col-sm-12 col-md-12 col-lg-12 ">
+                            <div class="col-sm-6 col-md-6 col-lg-6 ">
+                                @Html.LabelFor(m => m.InvoicePrice, new { @class = "control-label" })
+                                <div style="display: flex;">
+                                    <span style="padding: 10px 5px 1px 10px; ">
+                                        <i class="fa fa-inr" aria-hidden="true"></i>
+                                    </span>
+                                    @Html.TextBoxFor(m => m.InvoicePrice, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.InvoicePrice), @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(m => m.InvoicePrice)
+                                </div>
+                            </div>
+
+                        </div>*@
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.SGST, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px; " id="spnSGST">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.SGST, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.SGST), @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.ExchangeRate, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px; ">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.ExchangeRate, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ExchangeRate), onchange = "convertDollarToINR();" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.CGST, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px; " id="spnCGST">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.CGST, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.CGST), @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.IGST, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px;" id="spnIGST">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.IGST, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.IGST), @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-12 ">
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                            @Html.LabelFor(m => m.GrandTotalAmount, new { @class = "control-label" })
+                            <div style="display: flex;">
+                                <span style="padding: 10px 5px 1px 10px; " id="spnGrandTotalAmount">
+                                    @*Rs.*@<i class="fa fa-inr" aria-hidden="true"></i>
+                                </span>
+                                @Html.TextBoxFor(m => m.GrandTotalAmount, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.GrandTotalAmount), @readonly = "readonly" })
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-6 col-lg-6 ">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+
+            <div class="row mt10">
+                <div class="col-sm-9 col-md-9 col-lg-9 form-group">
+
+                </div>
+                <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+                    <button type='button' class="btn btn-success pull-right" id="btnUpdateInvoiceDetails" value="Update" title="Update" data-toggle="tooltip" onclick="javascript: UpdateInvoiceDetails();"><i class="fa fa-floppy-o" aria-hidden="true"></i> Update & Proceed</button>
+                    @*<button type='button' class="btn btn-success pull-right mr5" id="btnClearInvoiceDetails" value="Cancel" title="Clear" data-toggle="tooltip" onclick="javascript: void(0);"><i class="fa fa-floppy-o" aria-hidden="true"></i> Clear </button>
+                        <button type='button' class="btn btn-success pull-right mr5" id="btnPrintInvoice" value="Cancel" title="Print" data-toggle="tooltip" onclick="javascript: void (0);"><i class="fa fa-floppy-o" aria-hidden="true"></i> Print </button>*@
+                    @*<button type='button' class="btn btn-success pull-right mr5" id="btnPreview" value="Preview" title="Preview" data-toggle="tooltip" onclick="javascript: PreviewInvoice($('#InvoiceGuid').val());" disabled="disabled"><i class="fa fa-eye" aria-hidden="true"></i> Preview </button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.HiddenFor(m => m.InvoiceGuid)
+    @Html.HiddenFor(m => m.InvoiceID)
+</div>
+<script>
+    $(document).ready(function () {
+        //$('#FromDate').val('');
+        //$('#ToDate').val('');
+        //$('#CourierSendDate').val('');
+        //$('#CourierReceiveDate').val('');
+        $("#ExchangeRate").prop("readonly", true);
+    });
+    $.validator.unobtrusive.parse(document);
+    //$(function () {
+    //    $("#FromDate").datepicker({
+    //        endDate: '+0d',
+    //        autoclose: true
+    //    });
+    //    $("#ToDate").datepicker({
+    //        endDate: '+0d',
+    //        autoclose: true
+    //    });
+    //    //$("#CourierSendDate").datepicker({
+    //    //    endDate: '+0d',
+    //    //    autoclose: true
+    //    //});
+    //    //$("#CourierReceiveDate").datepicker({
+    //    //    //endDate: '+0d',
+    //    //    autoclose: true
+    //    //});
+    //});
+
+    function getClientUnitsByClientId(obj) {
+        //$('#divClientDetails').html('');
+        var clientId = $(obj).find('option:selected').val();
+        $.ajax({
+            url: '../PurchaseOrder/GetClientUnitsByClientId',
+            type: 'POST',
+            data: {
+                clientId: clientId
+            },
+            beforeSend: function (e) {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (clientUnits) {
+                //alert(JSON.parse(clientUnits));
+                var s = '<option value="-1">Select</option>';
+                for (var i = 0; i < clientUnits.length; i++) {
+                    s += '<option value="' + clientUnits[i].ClientUnitId + '">' + clientUnits[i].ClientUnitName + '</option>';
+                }
+                $("#ClientUnitId").html(s);
+            },
+            error: function (xhr, textStatus, errorThrown) {
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            }
+        });
+    }
+
+    function GetVisitsListForInvoice() {
+        $.ajax({
+            url: '../Invoice/GetVisitListForInvoice',
+            type: 'POST',
+            data: {
+                clientId: $("#ClientId").val(),
+                ClientUnitId: $("#ClientUnitId").val(),
+                FromDate: $("#FromDate").val(),
+                ToDate: $("#ToDate").val()
+            },
+            beforeSend: function () {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (response) {
+                $("#divVisitDetails").html(response);
+                $("#divInvoiceDetails").show();
+            },
+            error: function () {
+
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            }
+        });
+    }
+
+    function UpdateInvoiceDetails() {
+        $("#btnUpdateInvoiceDetails").prop('disabled', true);
+        visitPriceDetailsArray = [];
+        $(".js-VisitPrice").each(function () {
+            if ($(this).is(":checked")) {
+                var visitPriceData = {};
+                var dataId = $(this).val();
+                //var visitPrice = $("#txtVisitPrice_"+dataId).val();
+
+                visitPriceData.VEMId = dataId;
+                visitPriceData.InvoiceId = $("#InvoiceID").val();
+                visitPriceData.VisitId = $("#hdnVisitId_" + dataId).val();;
+                visitPriceData.PONumber = $("#hdnPONumber_" + dataId).val();
+                visitPriceData.PODate = $("#hdnPODate_" + dataId).val();
+                visitPriceData.VisitDate = $("#hdnVisitDate_" + dataId).val();
+                visitPriceData.VisitContactName = $("#hdnVisitContactName_" + dataId).val();
+                visitPriceData.VisitLocation = $("#hdnVisitLocation_" + dataId).val();
+                visitPriceData.ManufacturerName = $("#hdnManufacturerName_" + dataId).val();
+                visitPriceData.InspectorName = $("#hdnInspectorName_" + dataId).val();
+                visitPriceData.InspectorCode = $("#hdnInspectorCode_" + dataId).val();
+                visitPriceData.InspReportNo = $("#hdnReportNo_" + dataId).val();
+                visitPriceData.Distance = $("#hdnDistance_" + dataId).val();
+                visitPriceData.TimeIn = $("#hdnTimeIn_" + dataId).val();
+                visitPriceData.TimeOut = $("#hdnTimeOut_" + dataId).val();
+                visitPriceData.TotalHrs = $("#hdnTotalHrs_" + dataId).val();
+                visitPriceData.MileageCost = $("#txtMileageCost_" + dataId).val();
+                visitPriceData.FoodAllowance = $("#txtFoodAllowance_" + dataId).val();
+                //visitPriceData.ModeOfTransport = $("#txtModeOfTransport_" + dataId).val();
+                visitPriceData.TravelFare = $("#txtTravelFare_" + dataId).val();
+                visitPriceData.Hotel = $("#txtHotel_" + dataId).val();
+                visitPriceData.OtherExpenses = $("#txtOtherExpenses_" + dataId).val();
+                visitPriceData.ServiceCharge = $("#txtServiceCharge_" + dataId).val();
+                visitPriceData.Remarks = $("#txtRemarks_" + dataId).val();
+                visitPriceData.Total = $("#txtIndividualTotal_" + dataId).val();
+                visitPriceDetailsArray.push(visitPriceData);
+            }
+        });
+        $.ajax({
+            url: '../Invoice/UpdateInvoiceDetails',
+            type: 'POST',
+            data: {
+                InvoiceID: $("#InvoiceID").val(),
+                InvoiceGuid: $("#InvoiceGuid").val(),
+                clientId: $("#ClientId").val(),
+                ClientUnitId: $("#ClientUnitId").val(),
+                FromDate: $("#FromDate").val(),
+                ToDate: $("#ToDate").val(),
+                InvoiceNo: $("#InvoiceNo").val(),
+                //InvoicePrice: $("#InvoicePrice").val(),
+                Encl:$("#Encl").val(),
+                EmailId: $("#EmailId").val(),
+                CourierSendDate: $("#CourierSendDate").val(),
+                CourierReceiveDate: $("#CourierReceiveDate").val(),
+                InvoiceTemplateId: $("#InvoiceTemplateId").val(),
+                LstVisitProcessings: visitPriceDetailsArray,
+                ClientContactName: $("#ClientContactName").val(),
+                ClientContactAddress: $("#ClientContactAddress").val(),
+                PONumber: $("#PONumber").val(),
+                Currency: $("#ddlCurrency option:selected").text(), //as we are saving the text in the database.
+                Subject: $("#Subject").val(),
+                ExchangeRate: $("#ExchangeRate").val(),
+                GrandTotalAmount: $("#GrandTotalAmount").val(),
+                TotalAmount: $("#TotalAmount").val(),
+                CGST: $("#CGST").val(),
+                CGSTPercentage: $("#CGSTPercentage").val(),
+                SGST: $("#SGST").val(),
+                SGSTPercentage: $("#SGSTPercentage").val(),
+                IGST: $("#IGST").val(),
+                IGSTPercentage: $("#IGSTPercentage").val(),
+                ClientGSTNo: $("#ClientGSTNo").val(),
+                IsSez: $("#chkIsSez").val(),
+                IsOverseas: $("#chkIsOverseas").val(),
+                MileageCost: $("#MileageCost").val()
+            },
+            beforeSend: function () {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (response) {
+                if (response.status=='false') {
+                    window.GrowlObj.getGrowlMessage("@NotificationType.UpdateFailed");
+                   @*window.GrowlObj.getGrowlMessage("@NotificationType.InsertSuccess");
+                   $("#InvoiceGuid").val(response.invoiceGuid);
+                   $("#btnPreview").prop('disabled', false);*@
+               }
+               else
+               {
+                   $("#divInvoiceDetails").html(response);
+               }
+            },
+            error: function () {
+
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            }
+        });
+    }
+    function openInvoiceList() {
+        window.location.href = "/Invoice/Index";
+    }
+    function PreviewInvoice(invoiceGuid) {
+        $.ajax({
+            url: '../Invoice/InvoicePreview',
+            type: 'POST',
+            data: {
+                invoiceGuid: invoiceGuid
+            },
+            beforeSend: function (e) {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (data) {
+                var object = null;
+                var object1 = null;
+                //create iframe
+                var iframe = document.createElement('iframe');
+                // div tag in which iframe will be added should have id attribute with value myDIV
+                document.getElementById("divMSFilePreviewPopup").appendChild(iframe);
+                // add id to dynamically generated iframe
+                iframe.setAttribute("id", "myIframe");
+                // provide height and width to it
+                iframe.setAttribute("style", "height:600px;width:100%;");
+
+                if (data.strString == "success") {
+                    var fileName = data.containerPath + "site-" + data.imageSiteId + "/" + data.strContentLink;
+                    var msFileName =
+                        "https://view.officeapps.live.com/op/embed.aspx?src=" + fileName;
+                    if (data.fType == "normal") {
+                        object =
+                            "<object data=\"{FileName}\"  type=\"application/pdf\" width=\"100%\" height=\"600px\"></object>";
+                        // this is not allowing scroll style =\"Pointer-events:none\"
+                        object = object.replace(/{FileName}/g, "" + fileName);
+                        //$('#divMSFilePreviewPopup').hide();
+                        $("#divFilePreviewPopup").html(object).show();
+                    }
+                    else if (data.fType == "mstype") {
+                        $('#myIframe').attr('src', '');
+                        var myIframe = document.getElementById('myIframe');
+                        myIframe.setAttribute("src", msFileName);
+                        object1 = $('#myIframe').appendTo('body');
+                        //$('#divFilePreviewPopup').hide();
+                        $("#divMSFilePreviewPopup").html(object1).show();
+                    }
+                } else if (data.strString == "Fail") {
+                    console.log("failed to load preview");
+                } else {
+                    object = "<html width=\"100%\" height=\"500px\" > <head></head><body>" + data.strString;
+                    object += ", you can download from <a href = /\FolderFile/DownloadFile?GUId=" + strContentLink + "&SId=" + SID + "&GenericId=" + GID + ">here</a>";
+                    object += "</body></html>";
+                    //$('#divMSFilePreviewPopup').hide();
+                    $("#divFilePreviewPopup").html(object).show();
+                }
+
+                $('#lblFolderFileName').html(data.imageTitle);
+                $("#ShowFilesPreview").click();
+                //$("#title").html("eswar");
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            }
+        });
+    }
+    function sumAllIndividualAllowances(VEMId) {
+        ////debugger;
+        //  alert($("#txtMileageCost_" + VEMId).val());
+        //  alert(parseInt($("#txtMileageCost_" + VEMId).val()));
+        var mileageCost = parseInt($("#txtMileageCost_" + VEMId).val());
+        //alert("mileage cost" + mileageCost);
+        var foodAllowance = parseInt($("#txtFoodAllowance_" + VEMId).val());
+        //var modeOfTransport = parseInt($("#txtModeOfTransport_" + VEMId).val());
+        var hotelFare = parseInt($("#txtHotel_" + VEMId).val());
+        var travelFare = parseInt($("#txtTravelFare_" + VEMId).val());
+       
+        var otherExpensesFare = parseInt($("#txtOtherExpenses_" + VEMId).val());
+        var serviceCharge = parseInt($("#txtServiceCharge_" + VEMId).val());
+        //if (isNaN(mileageCost) ||
+        //    isNaN(foodAllowance) ||
+        //    isNaN(modeOfTransport) ||
+        //    isNaN(travelFare) ||
+        //    isNaN(hotelFare) ||
+        //    isNaN(serviceCharge)) {
+        //    alert("pls enter valid amount");
+        //    return;
+        //}
+        var Total = 0;
+        // alert(Total);
+        Total = mileageCost + foodAllowance + travelFare + hotelFare + serviceCharge + otherExpensesFare;// +mileageCost + +foodAllowance + +modeOfTransport + +travelFare + +hotelFare + +serviceCharge;
+        //   alert(Total);
+        $("#txtIndividualTotal_" + VEMId).val(Total);
+        var Total = 0;
+        $(".js-InvoiceGrandTotal").each(function () {
+            var dataId = $(this).attr("data-id");
+            var individualTotal = $("#txtIndividualTotal_" + dataId).val();
+            Total = +individualTotal + +Total;
+        });
+        $("#TotalAmount").val(Total);
+
+        var IsSeZ = $("#chkIsSez").val();
+        var IsOverseas = $("#chkIsOverseas").val();
+        //alert("issez" + IsSeZ);
+        //alert("IsOverseas" + IsOverseas);
+        if (IsSeZ == 'false' || IsOverseas == 'false') {
+            var amount = parseInt($("#TotalAmount").val());
+            var CGSTPer = parseFloat($("#CGSTPercentage").val());
+            var SGSTPer = parseFloat($("#SGSTPercentage").val());
+            var IGSTPer = parseFloat($("#IGSTPercentage").val());
+            var CGST = percentage(amount, CGSTPer);
+            $("#CGST").val(CGST);
+            var SGST = percentage(amount, SGSTPer);
+            $("#SGST").val(SGST);
+            var IGST = percentage(amount, IGSTPer);
+            $("#IGST").val(IGST);
+            Total = amount + CGST + SGST + IGST;
+            $("#GrandTotalAmount").val(Total);
+        }
+        if (IsOverseas == 'true' || $("#ddlCurrency").val() == 2) {
+            convertDollarToINR();
+        }
+    }
+
+    function convertDollarToINR() {
+        //alert("exchangerate");
+
+        var exchangeRate = $("#ExchangeRate").val();
+        var TotalAmount = $("#TotalAmount").val();
+        var finalInvoiceAmount = (TotalAmount * exchangeRate);
+        $("#GrandTotalAmount").val(finalInvoiceAmount);
+        if ($("#ddlCurrency").val() == 2) {
+            //alert("usd");
+        } else {
+            var amount = parseInt($("#TotalAmount").val());
+            var CGSTPer = parseFloat($("#CGSTPercentage").val());
+            var SGSTPer = parseFloat($("#SGSTPercentage").val());
+            var IGSTPer = parseFloat($("#IGSTPercentage").val());
+            var CGST = percentage(amount, CGSTPer);
+            $("#CGST").val(CGST);
+            var SGST = percentage(amount, SGSTPer);
+            $("#SGST").val(SGST);
+            var IGST = percentage(amount, IGSTPer);
+            $("#IGST").val(IGST);
+            Total = amount + CGST + SGST + IGST;
+            $("#GrandTotalAmount").val(Total);
+        }
+    }
+
+    function changeCurrency(obj) {
+        var currencyType = parseInt($(obj).val());
+
+        //alert("change currency" + currencyType);
+        if (currencyType === 1) {
+            console.log("change currency" + currencyType);
+            $("#ExchangeRate").val('1');
+            $("#ExchangeRate").attr("readonly", true);
+            $("#spnTotalAmount").html("<i class='fa fa-inr' aria-hidden='true'></i>");
+        }
+        if (currencyType === 2) {
+            console.log("change currency" + currencyType);
+            $("#spnTotalAmount").html("<i class='fa fa-usd' aria-hidden='true'></i>");
+            //$("#ExchangeRate").val('1');
+            $("#ExchangeRate").attr("readonly", false);
+            $("#SGST").val('0');
+            $("#CGST").val('0');
+            $("#IGST").val('0');
+        }
+        convertDollarToINR();
+    }
+    function percentage(num, percentToGet) {
+        return (percentToGet / 100) * num;
+    }
+    function calculateMileageCost() {
+        console.log("mc value:");
+        var MC = $("#MileageCost").val();
+        $(".jsMileageCost").each(function () {
+            var dataId = $(this).attr("data-id");
+            var distance = $("#hdnDistance_" + dataId).val();
+            var MCost = (MC * distance);
+            $("#txtMileageCost_" + dataId).val(MCost);
+        });
+    }
+
+    function calculateMileageCostForIndividual(uniqueId) {
+        console.log("mc value:" + uniqueId);
+        //Mileage cost calculation for individual entry
+        var MC = $("#MileageCost").val();
+        var distance = $("#hdnDistance_" + uniqueId).val();
+        var MCost = (MC * distance);
+        $("#txtMileageCost_" + uniqueId).val(MCost);
+        sumAllIndividualAllowances(uniqueId);
+        console.log("mileage cost changed" + uniqueId);
+    }
+
+    function fnVisitCalculationChanged(obj) {
+        var dataId = $(obj).val();
+        if ($(obj).is(":checked")) {
+            $("#hdnDistance_" + dataId).prop("disabled", false);
+            $("#txtMileageCost_" + dataId).prop("disabled", false);
+            $("#txtFoodAllowance_" + dataId).prop("disabled", false);
+            $("#txtFoodAllowance_" + dataId).prop("disabled", false);
+            $("#txtOtherExpenses_" + dataId).prop("disabled", false);
+            $("#txtTravelFare_" + dataId).prop("disabled", false);
+            $("#txtHotel_" + dataId).prop("disabled", false);
+            $("#txtServiceCharge_" + dataId).prop("disabled", false);
+        } else {
+            $("#hdnDistance_" + dataId).val(0);
+            $("#txtMileageCost_" + dataId).val(0);
+            $("#txtFoodAllowance_" + dataId).val(0);
+            //$("#txtModeOfTransport_" + dataId).val(0);
+            $("#txtTravelFare_" + dataId).val(0);
+            $("#txtHotel_" + dataId).val(0);
+            $("#txtServiceCharge_" + dataId).val(0);
+
+            $("#hdnDistance_" + dataId).prop("disabled", true);
+            $("#txtMileageCost_" + dataId).prop("disabled", true);
+            $("#txtFoodAllowance_" + dataId).prop("disabled", true);
+            $("#txtOtherExpenses_" + dataId).prop("disabled", false);
+            $("#txtTravelFare_" + dataId).prop("disabled", true);
+            $("#txtHotel_" + dataId).prop("disabled", true);
+            $("#txtServiceCharge_" + dataId).prop("disabled", true);
+            sumAllIndividualAllowances(dataId);
+        }
+    }
+</script>

@@ -1,0 +1,30 @@
+from __future__ import annotations
+from pydantic_settings import BaseSettings
+from typing import Optional
+
+
+class Settings(BaseSettings):
+    app_name: str = "IQEApp API"
+    debug: bool = False
+    mongodb_url: str = "mongodb://localhost:27017"
+    mongodb_db_name: str = "iqeapp_dev"
+    jwt_secret_key: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60
+    jwt_refresh_token_expire_days: int = 7
+    azure_storage_connection_string: Optional[str] = None
+    azure_storage_container_name: str = "iqeapp-files"
+    azure_openai_endpoint: Optional[str] = None
+    azure_openai_api_key: Optional[str] = None
+    azure_openai_deployment: str = "gpt-4o"
+    azure_openai_embedding_deployment: str = "text-embedding-3-large"
+    sendgrid_api_key: Optional[str] = None
+    sendgrid_from_email: str = "noreply@iqeapp.com"
+    redis_url: str = "redis://localhost:6379/0"
+    allowed_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()

@@ -1,0 +1,350 @@
+﻿@using IQEApp.Domain
+@using WebIndiaApp.Web.Utils
+@model IQEApp.Web.Models.InvoiceModel.InvoiceDetailsModel
+@{
+    ViewBag.Title = "Edit Invoice";
+}
+<style>
+    .directory-table-row hr {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    .table {
+        border: 1px solid #ccc;
+        border-collapse: collapse;
+        background-color: #B8DBFD;
+        align-content: center;
+        color: #333;
+        height: 50px;
+        width: 95%;
+        /* line-height: 1em;*/
+        padding-top: 0;
+        line-height: 1em;
+    }
+</style>
+<div>
+    <div class="box-header with-border row">
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <h3 class="box-title"> <span id="spnHeadTitle"> Edit Invoice </span></h3>
+        </div>
+        <div class="col-sm-6 col-md-6 col-lg-6 ">
+            <div id="divLoadingIconId"></div>
+        </div>
+        <div class="col-sm-3 col-md-3 col-lg-3 ">
+            <button type='button' class="btn btn-outline-secondary pull-right mtn10" id="btnInvoiceList" onclick="javascript: openInvoiceList();"><i class="fa fa-list" aria-hidden="true"></i>&nbsp;Invoice</button>
+        </div>
+    </div>
+    <div class="clearfix "></div>
+
+    <div class="row mt10">
+        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+            <label class="control-label">Invoice For : </label>
+            <label>
+                <input type="radio" name="InvoiceType" value="Customer" @(Model.InvoiceType == "Customer" || string.IsNullOrEmpty(Model.InvoiceType) ? "checked" : "") onclick="toggleInvoiceType()" /> Customer
+            </label>
+            <label style="margin-left:15px;">
+                <input type="radio" name="InvoiceType" value="Supplier" @(Model.InvoiceType == "Supplier" ? "checked" : "") onclick="toggleInvoiceType()" /> Supplier
+            </label>
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClients.FirstOrDefault().ClientName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientId, new SelectList(Model.LstClients, "ClientId", "ClientName"), "Select", new { @style = "width:200px", @class = "form-control dropDownStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientId), onchange = "getClientUnitsByClientId(this)" })
+            @Html.ValidationMessageFor(m => m.ClientId)
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.LstClientUnits.FirstOrDefault().ClientUnitName, new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.ClientUnitId, new SelectList(Model.LstClientUnits, "ClientUnitId", "ClientUnitName"), "Select", new { @style = "width:200px", @class = "form-control dropDownStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientUnitId) })
+            @Html.ValidationMessageFor(m => m.ClientUnitId)
+        </div>
+        <div class="col-sm-3 col-md-3 col-lg-3 form-group" id="manufacturerSection" style="display:none;">
+            @Html.Label("Supplier")
+            @Html.DropDownListFor(m => m.ManufacturerId,
+            new SelectList(Model.LstManufacturer, "ManufacturerId", "ManufacturerName"), "Select", new {@style = "width:200px", @class = "form-control dropDownStyle redborder", onchange = "getManufacturerUnits(this)" })
+            <span id="spnManufacturerValidation" class="error" style="display:none;"></span>
+        </div>
+
+        <div class="col-sm-3 col-md-3 col-lg-3 form-group">
+            @Html.LabelFor(m => m.LstServiceOrders.FirstOrDefault().SONumber, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.SONumber, new { @style = "width:200px", @class = "form-control redborder", @placeholder = @Html.DisplayNameFor(model => model.SOID), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.SOID)
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.FromDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.FromDate, "{0:dd-MMM-yyyy}", new { @style = "width:200px", @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.DateFormat), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.FromDate)
+        </div>
+        <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+            @Html.LabelFor(m => m.ToDate, new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.ToDate, "{0:dd-MMM-yyyy}", new { @style = "width:200px", @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.DateFormat), @readonly = "readonly" })
+            @Html.ValidationMessageFor(m => m.ToDate)
+        </div>
+    </div>
+
+    <div class="clearfix "></div>
+    <div id="divInvoiceDetails" class="mb10">
+        <div class="row mt10">
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.ClientContactName, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.ClientContactName, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientContactName) })
+                @Html.ValidationMessageFor(m => m.ClientContactName)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.ClientContactAddress, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.ClientContactAddress, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.ClientContactAddress) })
+                @Html.ValidationMessageFor(m => m.ClientContactAddress)
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-6 form-group">
+                @Html.LabelFor(m => m.Encl, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Encl, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.Encl) })
+                @Html.ValidationMessageFor(m => m.ClientContactAddress)
+            </div>
+        </div>
+        <div class="clearfix "></div>
+        <div class="row mt10 mb10">
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.Subject, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Subject, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.Subject) })
+                @Html.ValidationMessageFor(m => m.Subject)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.MileageCost, new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.MileageCost, new { @class = "form-control inputStyle redborder", @placeholder = @Html.DisplayNameFor(model => model.MileageCost), onchange = "javascript:calculateMileageCost()" })
+                @Html.ValidationMessageFor(m => m.MileageCost)
+                <span id="spnSubjectValidation" class="error" style="display: none;"></span>
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.LabelFor(m => m.Currency, new { @class = "control-label" })
+                <select id="ddlCurrency" class="form-control dropDownStyle redborder" onchange="javascript: changeCurrency(this);">
+                    <option value="1">INR</option>
+                    <option value="2">USD</option>
+                </select>
+                @Html.ValidationMessageFor(m => m.Currency)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @if (Model.IsSez)
+                {
+                    <span><input id="chkIsSez" checked="checked" type="checkbox" value="true" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <span><input id="chkIsSez" type="checkbox" value="false" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                <span><b>IsSez</b></span><br />
+                @if (Model.IsOverseas)
+                {
+                    <span><input id="chkIsOverseas" checked="checked" type="checkbox" value="true" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+                }
+                else
+                {
+                    <span><input id="chkIsOverseas" type="checkbox" value="false" disabled="disabled" />:&nbsp;&nbsp;&nbsp;</span>
+
+                }
+                <span><b>IsOverseas</b></span><br />
+                <span>GST No:&nbsp;&nbsp;&nbsp;</span> <span>@Model.ClientGSTNo</span>
+                @Html.HiddenFor(m => m.ClientGSTNo)
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 form-group">
+                @Html.HiddenFor(m => m.CGSTPercentage)
+                @Html.HiddenFor(m => m.SGSTPercentage)
+                @Html.HiddenFor(m => m.IGSTPercentage)
+            </div>
+        </div>
+
+        <!-- Render visits + consolidated via shared partial so both sections show correctly -->
+        <div id="divVisitAndConsolidated">
+            @Html.Partial("_VisitAndConsolidated", Model)
+        </div>
+
+        <div id="divInvoiceOtherDetailsPlaceholder"></div>
+
+        <div class="clearfix"></div>
+    </div>
+
+    @Html.HiddenFor(m => m.InvoiceGuid)
+    @Html.HiddenFor(m => m.InvoiceID)
+</div>
+
+<script>
+    function toggleInvoiceType() {
+        var type = $("input[name='InvoiceType']:checked").val();
+        if (type === "Customer") {
+            $("#manufacturerSection").hide();
+            $("#ClientId, #ClientUnitId").prop('disabled', false);
+        }
+        else {
+            $("#manufacturerSection").show();
+            $("#ClientId, #ClientUnitId").prop('disabled', true);
+        }
+    }
+
+    $(document).ready(function () {
+        toggleInvoiceType();
+        $("#ExchangeRate").prop("readonly", true);
+    });
+
+    // Update invoice details (sends annexure updates and receives consolidated partial)
+    function UpdateInvoiceDetails() {
+        $("#btnUpdateInvoiceDetails").prop('disabled', true);
+        var visitPriceDetailsArray = [];
+        $(".js-VisitPrice").each(function () {
+            if ($(this).is(":checked")) {
+                var visitPriceData = {};
+                var dataId = $(this).val();
+                visitPriceData.VEMId = dataId;
+                visitPriceData.InvoiceId = $("#InvoiceID").val();
+                visitPriceData.VisitId = $("#hdnVisitId_" + dataId).val();
+                visitPriceData.PONumber = $("#hdnPONumber_" + dataId).val();
+                visitPriceData.PODate = $("#hdnPODate_" + dataId).val();
+                visitPriceData.VisitDate = $("#hdnVisitDate_" + dataId).val();
+                visitPriceData.VisitContactName = $("#hdnVisitContactName_" + dataId).val() || '';
+                visitPriceData.VisitLocation = $("#hdnVisitLocation_" + dataId).val();
+                visitPriceData.ManufacturerName = $("#hdnManufacturerName_" + dataId).val();
+                visitPriceData.InspectorName = $("#hdnInspectorName_" + dataId).val() || '';
+                visitPriceData.InspReportNo = $("#hdnReportNo_" + dataId).val();
+                visitPriceData.Distance = $("#hdnDistance_" + dataId).val();
+                visitPriceData.TimeIn = $("#hdnTimeIn_" + dataId).val();
+                visitPriceData.TimeOut = $("#hdnTimeOut_" + dataId).val();
+                visitPriceData.TotalHrs = $("#hdnTotalHrs_" + dataId).val();
+                visitPriceData.MileageCost = $("#txtMileageCost_" + dataId).val();
+                visitPriceData.FoodAllowance = $("#txtFoodAllowance_" + dataId).val();
+                visitPriceData.TravelFare = $("#txtTravelFare_" + dataId).val();
+                visitPriceData.Hotel = $("#txtHotel_" + dataId).val() || 0;
+                visitPriceData.OtherExpenses = $("#txtOtherExpenses_" + dataId).val();
+                visitPriceData.ServiceCharge = $("#txtServiceCharge_" + dataId).val();
+                visitPriceData.Remarks = $("#txtRemarks_" + dataId).val();
+                visitPriceData.Total = $("#txtIndividualTotal_" + dataId).val();
+                visitPriceDetailsArray.push(visitPriceData);
+            }
+        });
+
+        $.ajax({
+            url: '../Invoice/UpdateInvoiceDetails',
+            type: 'POST',
+            data: {
+                InvoiceID: $("#InvoiceID").val(),
+                InvoiceGuid: $("#InvoiceGuid").val(),
+                clientId: $("#ClientId").val(),
+                ClientUnitId: $("#ClientUnitId").val(),
+                FromDate: $("#FromDate").val(),
+                ToDate: $("#ToDate").val(),
+                InvoiceNo: $("#InvoiceNo").val(),
+                Encl: $("#Encl").val(),
+                EmailId: $("#EmailId").val(),
+                CourierSendDate: $("#CourierSendDate").val(),
+                CourierReceiveDate: $("#CourierReceiveDate").val(),
+                InvoiceTemplateId: $("#InvoiceTemplateId").val(),
+                LstVisitProcessings: visitPriceDetailsArray,
+                ClientContactName: $("#ClientContactName").val(),
+                ClientContactAddress: $("#ClientContactAddress").val(),
+                PONumber: $("#PONumber").val(),
+                Currency: $("#ddlCurrency option:selected").text(),
+                Subject: $("#Subject").val(),
+                ExchangeRate: $("#ExchangeRate").val(),
+                GrandTotalAmount: $("#GrandTotalAmount").val(),
+                TotalAmount: $("#TotalAmount").val(),
+                CGST: $("#CGST").val(),
+                CGSTPercentage: $("#CGSTPercentage").val(),
+                SGST: $("#SGST").val(),
+                SGSTPercentage: $("#SGSTPercentage").val(),
+                IGST: $("#IGST").val(),
+                IGSTPercentage: $("#IGSTPercentage").val(),
+                ClientGSTNo: $("#ClientGSTNo").val(),
+                IsSez: $("#chkIsSez").val(),
+                IsOverseas: $("#chkIsOverseas").val(),
+                MileageCost: $("#MileageCost").val()
+            },
+            beforeSend: function () {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (response) {
+                try {
+                    // The controller returns a PartialView with consolidated charges on success
+                    $("#divInvoiceConsolidatedDetails").html(response);
+                    // Optionally show/hide sections
+                    $("#divProceedButtons").hide();
+                }
+                catch (e) {
+                    window.GrowlObj.getGrowlMessage("@NotificationType.UpdateFailed");
+                }
+            },
+            error: function () {
+                window.GrowlObj.getGrowlMessage("@NotificationType.UpdateFailed");
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+                $("#btnUpdateInvoiceDetails").prop('disabled', false);
+            }
+        });
+    }
+
+    function openInvoiceList() {
+        window.location.href = "/Invoice/Index";
+    }
+    function PreviewInvoice(invoiceGuid) {
+        $.ajax({
+            url: '../Invoice/InvoicePreview',
+            type: 'POST',
+            data: {
+                invoiceGuid: invoiceGuid
+            },
+            beforeSend: function (e) {
+                BaseLayout_InlineLoadingIcon.showLoadingIcon({ parentElement: $('#divLoadingIconId'), position: "center" });
+            },
+            success: function (data) {
+                var object = null;
+                var object1 = null;
+                //create iframe
+                var iframe = document.createElement('iframe');
+                // div tag in which iframe will be added should have id attribute with value myDIV
+                document.getElementById("divMSFilePreviewPopup").appendChild(iframe);
+                // add id to dynamically generated iframe
+                iframe.setAttribute("id", "myIframe");
+                // provide height and width to it
+                iframe.setAttribute("style", "height:600px;width:100%;");
+
+                if (data.strString == "success") {
+                    var fileName = data.containerPath + "site-" + data.imageSiteId + "/" + data.strContentLink;
+                    var msFileName =
+                        "https://view.officeapps.live.com/op/embed.aspx?src=" + fileName;
+                    if (data.fType == "normal") {
+                        object =
+                            "<object data=\"{FileName}\"  type=\"application/pdf\" width=\"100%\" height=\"600px\"></object>";
+                        // this is not allowing scroll style =\"Pointer-events:none\" 
+                        object = object.replace(/{FileName}/g, "" + fileName);
+                        //$('#divMSFilePreviewPopup').hide();
+                        $("#divFilePreviewPopup").html(object).show();
+                    }
+                    else if (data.fType == "mstype") {
+                        $('#myIframe').attr('src', '');
+                        var myIframe = document.getElementById('myIframe');
+                        myIframe.setAttribute("src", msFileName);
+                        object1 = $('#myIframe').appendTo('body');
+                        //$('#divFilePreviewPopup').hide();
+                        $("#divMSFilePreviewPopup").html(object1).show();
+                    }
+                } else if (data.strString == "Fail") {
+                    console.log("failed to load preview");
+                } else {
+                    object = "<html width=\"100%\" height=\"500px\" > <head></head><body>" + data.strString;
+                    object += ", you can download from <a href = /\FolderFile/DownloadFile?GUId=" + strContentLink + "&SId=" + SID + "&GenericId=" + GID + ">here</a>";
+                    object += "</body></html>";
+                    //$('#divMSFilePreviewPopup').hide();
+                    $("#divFilePreviewPopup").html(object).show();
+                }
+
+                $('#lblFolderFileName').html(data.imageTitle);
+                $("#ShowFilesPreview").click();
+                //$("#title").html("eswar");
+            },
+            complete: function () {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                BaseLayout_InlineLoadingIcon.hideLoadingIcon($('#divLoadingIconId'));
+            }
+        });
+    }
+</script>

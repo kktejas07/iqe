@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+IQEWorkSpace/packages/
+*.nupkg
+*.dll
+*.exe
+
+# Build outputs & caches
+.next/
+dist/
+build/
+bin/
+obj/
+__pycache__/
+*.pyc
+
+# Archives
+*.zip
+*.tar.gz
+*.7z
+
+# OS files
+.DS_Store
+Thumbs.db

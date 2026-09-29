@@ -987,7 +987,16 @@ export default function BOQReconciliationPage() {
                 title="Toggle Inline Cell Editing Mode"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>{isInlineEditMode ? "Exit Inline Edit" : "Enable Inline Edit"}</span>
+                <span>{isInlineEditMode ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                title="Add New Line Item"
+              >
+                <Plus className="w-3.5 h-3.5 text-sky-300" />
+                <span>Add Item</span>
               </button>
 
               <button

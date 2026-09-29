@@ -260,6 +260,36 @@ export default function InspectionReleaseNotePage() {
   const [showSavedToast, setShowSavedToast] = useState<boolean>(false);
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+  const [isInlineEditReports, setIsInlineEditReports] = useState<boolean>(false);
+  const [isInlineEditDeviations, setIsInlineEditDeviations] = useState<boolean>(false);
+
+  const handleAddReport = () => {
+    const newId = `rep-${Date.now()}`;
+    const newReport: InspectionReportRef = {
+      id: newId,
+      slNo: reports.length + 1,
+      reportNo: `IQE-IVR-2026-${String(reports.length + 1).padStart(4, "0")}`,
+      date: new Date().toISOString().split("T")[0],
+      stage: "Stage / Final Inspection",
+      remarks: "Field inspection endorsed per QAP.",
+    };
+    setReports((prev) => [...prev, newReport]);
+    setIsInlineEditReports(true);
+  };
+
+  const handleAddDeviation = () => {
+    const newId = `dev-${Date.now()}`;
+    const newDev: DeviationRef = {
+      id: newId,
+      slNo: deviations.length + 1,
+      concessionNo: `DEV-${new Date().getFullYear()}-${String(deviations.length + 1).padStart(3, "0")}`,
+      date: new Date().toISOString().split("T")[0],
+      status: "Approved by Client",
+      remarks: "Concession deviation approved by client / TPI.",
+    };
+    setDeviations((prev) => [...prev, newDev]);
+    setIsInlineEditDeviations(true);
+  };
 
   const handleExportSingleRowCSV = (item: ReleaseItem) => {
     const headers = ["PO Item No", "Description", "Drawing Ref", "Tag No", "Unit", "PO Qty", "Prev Released", "Current Released", "Remarks"];
@@ -779,8 +809,29 @@ export default function InspectionReleaseNotePage() {
       {/* 2.0 INSPECTION REPORT REFERENCES */}
       <div id="sec-2" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">2.0 INSPECTION REPORT REFERENCES</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 2.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">2.0 INSPECTION REPORT REFERENCES</span>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{reports.length} reports</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditReports(!isInlineEditReports)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditReports ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditReports ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddReport}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Report Ref</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-04 Clause 2.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-xs border-collapse">
@@ -790,17 +841,83 @@ export default function InspectionReleaseNotePage() {
                 <th className="p-2.5 border-r border-slate-200 font-mono">Inspection Report No.</th>
                 <th className="p-2.5 border-r border-slate-200">Date</th>
                 <th className="p-2.5 border-r border-slate-200">Inspection Stage</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {reports.map((r, idx) => (
                 <tr key={r.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-mono font-bold text-[#003366] border-r border-slate-100">{r.reportNo}</td>
-                  <td className="p-2.5 font-mono border-r border-slate-100">{r.date}</td>
-                  <td className="p-2.5 font-semibold text-slate-800 border-r border-slate-100">{r.stage}</td>
-                  <td className="p-2.5 text-slate-600">{r.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditReports ? (
+                      <input
+                        type="text"
+                        value={r.reportNo}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReports((prev) => prev.map((item) => (item.id === r.id ? { ...item, reportNo: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-[#003366]"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-[#003366]">{r.reportNo}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditReports ? (
+                      <input
+                        type="date"
+                        value={r.date}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReports((prev) => prev.map((item) => (item.id === r.id ? { ...item, date: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono"
+                      />
+                    ) : (
+                      <span className="font-mono">{r.date}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditReports ? (
+                      <input
+                        type="text"
+                        value={r.stage}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReports((prev) => prev.map((item) => (item.id === r.id ? { ...item, stage: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-slate-800"
+                      />
+                    ) : (
+                      <span className="font-semibold text-slate-800">{r.stage}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditReports ? (
+                      <input
+                        type="text"
+                        value={r.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReports((prev) => prev.map((item) => (item.id === r.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-700"
+                      />
+                    ) : (
+                      <span className="text-slate-600">{r.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setReports((prev) => prev.filter((item) => item.id !== r.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Report Reference"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -811,8 +928,29 @@ export default function InspectionReleaseNotePage() {
       {/* 3.0 COMPLIANCE / DEVIATION REFERENCES */}
       <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">3.0 COMPLIANCE / DEVIATION REFERENCES</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 3.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">3.0 COMPLIANCE / DEVIATION REFERENCES</span>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{deviations.length} records</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditDeviations(!isInlineEditDeviations)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditDeviations ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditDeviations ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddDeviation}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Deviation</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-04 Clause 3.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-xs border-collapse">
@@ -822,17 +960,87 @@ export default function InspectionReleaseNotePage() {
                 <th className="p-2.5 border-r border-slate-200 font-mono">Compliance / Deviation Acceptance No.</th>
                 <th className="p-2.5 border-r border-slate-200">Date</th>
                 <th className="p-2.5 border-r border-slate-200">Status</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {deviations.map((d, idx) => (
                 <tr key={d.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-mono font-bold text-slate-800 border-r border-slate-100">{d.concessionNo}</td>
-                  <td className="p-2.5 font-mono border-r border-slate-100">{d.date}</td>
-                  <td className="p-2.5 font-semibold text-emerald-700 border-r border-slate-100">{d.status}</td>
-                  <td className="p-2.5 text-slate-600">{d.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDeviations ? (
+                      <input
+                        type="text"
+                        value={d.concessionNo}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDeviations((prev) => prev.map((item) => (item.id === d.id ? { ...item, concessionNo: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-slate-800"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-slate-800">{d.concessionNo}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDeviations ? (
+                      <input
+                        type="date"
+                        value={d.date}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDeviations((prev) => prev.map((item) => (item.id === d.id ? { ...item, date: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono"
+                      />
+                    ) : (
+                      <span className="font-mono">{d.date}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDeviations ? (
+                      <select
+                        value={d.status}
+                        onChange={(e) => {
+                          const val = e.target.value as DeviationRef["status"];
+                          setDeviations((prev) => prev.map((item) => (item.id === d.id ? { ...item, status: val } : item)));
+                        }}
+                        className="p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-emerald-700"
+                      >
+                        <option value="Approved by Client">Approved by Client</option>
+                        <option value="Waived with Conditions">Waived with Conditions</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="NIL">NIL</option>
+                      </select>
+                    ) : (
+                      <span className="font-semibold text-emerald-700">{d.status}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDeviations ? (
+                      <input
+                        type="text"
+                        value={d.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDeviations((prev) => prev.map((item) => (item.id === d.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-700"
+                      />
+                    ) : (
+                      <span className="text-slate-600">{d.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setDeviations((prev) => prev.filter((item) => item.id !== d.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Deviation Record"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -842,8 +1050,29 @@ export default function InspectionReleaseNotePage() {
       {/* 4.0 ITEMS RELEASED */}
       <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">4.0 ITEMS RELEASED</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 4.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">4.0 ITEMS RELEASED</span>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{filteredItems.length} items</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditMode(!isInlineEditMode)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditMode ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditMode ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Item</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-04 Clause 4.0</span>
+          </div>
         </div>
         <div className="p-4 bg-white space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

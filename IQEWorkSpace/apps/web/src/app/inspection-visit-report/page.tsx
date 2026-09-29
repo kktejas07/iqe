@@ -541,6 +541,8 @@ export default function InspectionVisitReportPage() {
 
   const [search, setSearch] = useState<string>("");
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
+  const [isInlineEditPunch, setIsInlineEditPunch] = useState<boolean>(false);
+  const [isInlineEditCalibrations, setIsInlineEditCalibrations] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<InspectedItem | null>(null);
   const [viewingItem, setViewingItem] = useState<InspectedItem | null>(null);
   const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
@@ -552,6 +554,36 @@ export default function InspectionVisitReportPage() {
   const triggerSaveToast = () => {
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2800);
+  };
+
+  const handleAddPunch = () => {
+    const newP: PunchItem = {
+      id: `punch-${Date.now()}`,
+      slNo: punchList.length + 1,
+      observation: "New punch observation noted during physical walk-through",
+      reference: "Drawing GA-01 Note 4",
+      supplierAction: "Supplier to rectify prior to final punch clearance",
+      status: "Open",
+    };
+    setPunchList([...punchList, newP]);
+    triggerSaveToast();
+  };
+
+  const handleAddCalibration = () => {
+    const newC: CalibrationItem = {
+      id: `cal-${Date.now()}`,
+      equipment: "Digital Vernier Caliper (0-300mm)",
+      manufacturer: "Mitutoyo",
+      model: "CD-6 CSX",
+      serialNo: `VC-${Date.now().toString().slice(-4)}`,
+      range: "0 - 300 mm",
+      accuracy: "±0.02 mm",
+      certNo: "NABL/CAL/2026/102",
+      dueDate: "2027-04-30",
+      status: "Valid",
+    };
+    setCalibrations([...calibrations, newC]);
+    triggerSaveToast();
   };
 
   const handleToggleLockItem = (id: string) => {
@@ -1414,9 +1446,33 @@ export default function InspectionVisitReportPage() {
         {/* SECTION 6.0 NON-CONFORMITIES / AREAS OF CONCERN (Word Document Table 6)   */}
         {/* ========================================================================= */}
         <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-          <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">6.0 NON-CONFORMITIES / AREAS OF CONCERN</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 6.0</span>
+          <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">6.0 NON-CONFORMITIES / AREAS OF CONCERN</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {punchList.length} NCRs
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditPunch(!isInlineEditPunch)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditPunch ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditPunch ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddPunch}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add NCR</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1434,19 +1490,71 @@ export default function InspectionVisitReportPage() {
                 {punchList.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/80">
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-500">{p.slNo}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900">{p.observation}</td>
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">{p.reference}</td>
-                    <td className="py-2.5 px-3 text-slate-700">{p.supplierAction}</td>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditPunch ? (
+                        <input
+                          type="text"
+                          value={p.observation}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, observation: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.observation
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
+                      {isInlineEditPunch ? (
+                        <input
+                          type="text"
+                          value={p.reference}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, reference: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.reference
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700">
+                      {isInlineEditPunch ? (
+                        <input
+                          type="text"
+                          value={p.supplierAction}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, supplierAction: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.supplierAction
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.status === "Open"
-                            ? "bg-rose-100 text-rose-800 border border-rose-200"
-                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
+                      {isInlineEditPunch ? (
+                        <select
+                          value={p.status}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, status: e.target.value as any } : x)))
+                          }
+                          className="p-1 font-bold text-[10px] bg-white border border-slate-300 rounded"
+                        >
+                          <option value="Open">Open</option>
+                          <option value="Closed">Closed</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            p.status === "Open"
+                              ? "bg-rose-100 text-rose-800 border border-rose-200"
+                              : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1459,9 +1567,33 @@ export default function InspectionVisitReportPage() {
         {/* SECTION 7.0 INSTRUMENTS / CALIBRATION DETAILS (Word Document Table 7)      */}
         {/* ========================================================================= */}
         <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-          <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">7.0 INSTRUMENTS / CALIBRATION DETAILS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 7.0</span>
+          <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">7.0 INSTRUMENTS / CALIBRATION DETAILS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {calibrations.length} instruments
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditCalibrations(!isInlineEditCalibrations)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditCalibrations ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditCalibrations ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddCalibration}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Equipment</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1481,14 +1613,92 @@ export default function InspectionVisitReportPage() {
               <tbody className="divide-y divide-slate-200 bg-white">
                 {calibrations.map((cal) => (
                   <tr key={cal.id} className="hover:bg-slate-50/80">
-                    <td className="py-2 px-3 font-bold text-slate-900">{cal.equipment}</td>
-                    <td className="py-2 px-3 text-slate-700">{cal.manufacturer}</td>
-                    <td className="py-2 px-3 text-slate-700">{cal.model}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">{cal.serialNo}</td>
-                    <td className="py-2 px-3 text-slate-600">{cal.range}</td>
+                    <td className="py-2 px-3 font-bold text-slate-900">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="text"
+                          value={cal.equipment}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, equipment: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        cal.equipment
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="text"
+                          value={cal.manufacturer}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, manufacturer: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.manufacturer
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="text"
+                          value={cal.model}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, model: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.model
+                      )}
+                    </td>
+                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="text"
+                          value={cal.serialNo}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, serialNo: e.target.value } : x)))
+                          }
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        cal.serialNo
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="text"
+                          value={cal.range}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, range: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.range
+                      )}
+                    </td>
                     <td className="py-2 px-3 text-slate-600">{cal.accuracy}</td>
                     <td className="py-2 px-3 font-mono text-[11px] text-slate-700">{cal.certNo}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-center text-emerald-700">{cal.dueDate}</td>
+                    <td className="py-2 px-3 font-mono font-bold text-center text-emerald-700">
+                      {isInlineEditCalibrations ? (
+                        <input
+                          type="date"
+                          value={cal.dueDate}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, dueDate: e.target.value } : x)))
+                          }
+                          className="p-1 font-mono text-xs bg-amber-50 border border-amber-300 rounded"
+                        />
+                      ) : (
+                        cal.dueDate
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

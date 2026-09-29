@@ -404,6 +404,101 @@ export default function ExpeditingVisitReportPage() {
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
+  const [isInlineEditPersonnel, setIsInlineEditPersonnel] = useState<boolean>(false);
+  const [isInlineEditDocs, setIsInlineEditDocs] = useState<boolean>(false);
+  const [isInlineEditSubOrders, setIsInlineEditSubOrders] = useState<boolean>(false);
+  const [isInlineEditMfg, setIsInlineEditMfg] = useState<boolean>(false);
+  const [isInlineEditInspections, setIsInlineEditInspections] = useState<boolean>(false);
+  const [isInlineEditActions, setIsInlineEditActions] = useState<boolean>(false);
+
+  const handleAddPersonnel = () => {
+    const newId = `p-${Date.now()}`;
+    const newP: Personnel = {
+      id: newId,
+      name: "New Attendee",
+      designation: "Quality Inspector",
+      company: "IQE / Client / Vendor",
+      role: "Observer / Participant",
+    };
+    setPersonnel((prev) => [...prev, newP]);
+    setIsInlineEditPersonnel(true);
+  };
+
+  const handleAddDocument = () => {
+    const newId = `d-${Date.now()}`;
+    const newD: DocDetail = {
+      id: newId,
+      docTitle: "Inspection / Engineering Procedure",
+      docNo: `DOC-${Date.now().toString().slice(-4)}`,
+      rev: "Rev 00",
+      status: "Submitted",
+      approvalStatus: "Under Review",
+      remarks: "Submitted for engineering approval",
+    };
+    setDocuments((prev) => [...prev, newD]);
+    setIsInlineEditDocs(true);
+  };
+
+  const handleAddSubOrder = () => {
+    const newId = `m-${Date.now()}`;
+    const newM: SubOrderMaterial = {
+      id: newId,
+      component: "Raw Material / Bought-Out Component",
+      supplier: "Approved Sub-Vendor",
+      orderRef: `SO-${Date.now().toString().slice(-4)}`,
+      qtyOrdered: "10 Nos",
+      qtyReceived: "0 Nos",
+      expectedBalance: "10 Nos",
+      status: "Order placed; awaiting dispatch",
+    };
+    setSubOrders((prev) => [...prev, newM]);
+    setIsInlineEditSubOrders(true);
+  };
+
+  const handleAddMfgActivity = () => {
+    const newId = `a-${Date.now()}`;
+    const newA: ManufacturingActivity = {
+      id: newId,
+      activity: "Fabrication / Assembly Activity",
+      plannedFinish: new Date().toISOString().split("T")[0],
+      actualExpectedFinish: new Date().toISOString().split("T")[0],
+      percentComplete: 0,
+      status: "In Progress",
+      remarks: "Fabrication commenced per approved drawings",
+    };
+    setMfgActivities((prev) => [...prev, newA]);
+    setIsInlineEditMfg(true);
+  };
+
+  const handleAddInspection = () => {
+    const newId = `i-${Date.now()}`;
+    const newI: InspectionTestActivity = {
+      id: newId,
+      activity: "Stage Inspection / NDT / Pressure Test",
+      plannedDate: new Date().toISOString().split("T")[0],
+      actualDate: new Date().toISOString().split("T")[0],
+      status: "Scheduled",
+      rfiRef: `RFI-EXP-${inspections.length + 1}`,
+      remarks: "Inspection hold point per QAP",
+    };
+    setInspections((prev) => [...prev, newI]);
+    setIsInlineEditInspections(true);
+  };
+
+  const handleAddAction = () => {
+    const newId = `act-${Date.now()}`;
+    const newAct: ActionFollowUp = {
+      id: newId,
+      action: "Expediting mitigation action item",
+      responsibility: "Vendor / Supplier Lead",
+      targetDate: new Date().toISOString().split("T")[0],
+      status: "Open",
+      remarks: "Critical path action monitored by IQE expeditor",
+    };
+    setActions((prev) => [...prev, newAct]);
+    setIsInlineEditActions(true);
+  };
+
   const [newItem, setNewItem] = useState({
     description: "",
     poQty: 1,
@@ -1172,8 +1267,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 4.0 PERSONNEL PRESENT */}
       <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">4.0 PERSONNEL PRESENT</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 4.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">4.0 PERSONNEL PRESENT</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {personnel.length} attendees
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditPersonnel(!isInlineEditPersonnel)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditPersonnel ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditPersonnel ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddPersonnel}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Person</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 4.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1183,17 +1301,83 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200">Name</th>
                 <th className="p-2.5 border-r border-slate-200">Designation</th>
                 <th className="p-2.5 border-r border-slate-200">Company</th>
-                <th className="p-2.5">Role / Responsibility</th>
+                <th className="p-2.5 border-r border-slate-200">Role / Responsibility</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {personnel.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{p.name}</td>
-                  <td className="p-2.5 text-slate-700 border-r border-slate-100">{p.designation}</td>
-                  <td className="p-2.5 font-semibold text-[#003366] border-r border-slate-100">{p.company}</td>
-                  <td className="p-2.5 text-slate-600">{p.role}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditPersonnel ? (
+                      <input
+                        type="text"
+                        value={p.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPersonnel((prev) => prev.map((item) => (item.id === p.id ? { ...item, name: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-bold text-slate-900">{p.name}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditPersonnel ? (
+                      <input
+                        type="text"
+                        value={p.designation}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPersonnel((prev) => prev.map((item) => (item.id === p.id ? { ...item, designation: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-700"
+                      />
+                    ) : (
+                      <span className="text-slate-700">{p.designation}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditPersonnel ? (
+                      <input
+                        type="text"
+                        value={p.company}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPersonnel((prev) => prev.map((item) => (item.id === p.id ? { ...item, company: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-[#003366]"
+                      />
+                    ) : (
+                      <span className="font-semibold text-[#003366]">{p.company}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditPersonnel ? (
+                      <input
+                        type="text"
+                        value={p.role}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setPersonnel((prev) => prev.map((item) => (item.id === p.id ? { ...item, role: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600">{p.role}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setPersonnel((prev) => prev.filter((item) => item.id !== p.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Attendee"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1204,8 +1388,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 5.0 DOCUMENTATION DETAILS */}
       <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">5.0 DOCUMENTATION DETAILS</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 5.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">5.0 DOCUMENTATION DETAILS</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {documents.length} documents
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditDocs(!isInlineEditDocs)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditDocs ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditDocs ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddDocument}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Document</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 5.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1217,23 +1424,119 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200 text-center">Rev.</th>
                 <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
                 <th className="p-2.5 border-r border-slate-200 text-center">Approval Status</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {documents.map((d, idx) => (
                 <tr key={d.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-semibold text-slate-900 border-r border-slate-100">{d.docTitle}</td>
-                  <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">{d.docNo}</td>
-                  <td className="p-2.5 text-center font-mono border-r border-slate-100">{d.rev}</td>
-                  <td className="p-2.5 text-center border-r border-slate-100">{d.status}</td>
-                  <td className="p-2.5 text-center border-r border-slate-100">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                      {d.approvalStatus}
-                    </span>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDocs ? (
+                      <input
+                        type="text"
+                        value={d.docTitle}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, docTitle: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-semibold text-slate-900">{d.docTitle}</span>
+                    )}
                   </td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">{d.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDocs ? (
+                      <input
+                        type="text"
+                        value={d.docNo}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, docNo: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono text-purple-700 font-bold"
+                      />
+                    ) : (
+                      <span className="font-mono text-purple-700 font-bold">{d.docNo}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditDocs ? (
+                      <input
+                        type="text"
+                        value={d.rev}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, rev: val } : item)));
+                        }}
+                        className="w-16 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono text-center"
+                      />
+                    ) : (
+                      <span className="font-mono">{d.rev}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditDocs ? (
+                      <input
+                        type="text"
+                        value={d.status}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, status: val } : item)));
+                        }}
+                        className="w-24 p-1 bg-amber-50 border border-amber-300 rounded text-xs text-center"
+                      />
+                    ) : (
+                      <span>{d.status}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditDocs ? (
+                      <select
+                        value={d.approvalStatus}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, approvalStatus: val } : item)));
+                        }}
+                        className="p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-800"
+                      >
+                        <option value="Approved">Approved</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Comments Incorporated">Comments Incorporated</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        {d.approvalStatus}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditDocs ? (
+                      <input
+                        type="text"
+                        value={d.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDocuments((prev) => prev.map((item) => (item.id === d.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600 text-[11px]">{d.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setDocuments((prev) => prev.filter((item) => item.id !== d.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1244,8 +1547,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 6.0 SUB-ORDERS / MATERIALS IN STOCK */}
       <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">6.0 SUB-ORDERS / MATERIALS IN STOCK</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 6.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">6.0 SUB-ORDERS / MATERIALS IN STOCK</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {subOrders.length} sub-orders
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditSubOrders(!isInlineEditSubOrders)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditSubOrders ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditSubOrders ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddSubOrder}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Sub-Order</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 6.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1258,20 +1584,128 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200 text-right">Qty Ordered</th>
                 <th className="p-2.5 border-r border-slate-200 text-right">Qty Received / In Stock</th>
                 <th className="p-2.5 border-r border-slate-200 text-right">Expected Balance</th>
-                <th className="p-2.5">Status / Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Status / Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {subOrders.map((m, idx) => (
                 <tr key={m.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{m.component}</td>
-                  <td className="p-2.5 text-slate-700 border-r border-slate-100">{m.supplier}</td>
-                  <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">{m.orderRef}</td>
-                  <td className="p-2.5 text-right font-mono border-r border-slate-100">{m.qtyOrdered}</td>
-                  <td className="p-2.5 text-right font-mono font-bold text-emerald-700 border-r border-slate-100">{m.qtyReceived}</td>
-                  <td className="p-2.5 text-right font-mono text-slate-500 border-r border-slate-100">{m.expectedBalance}</td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">{m.status}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.component}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, component: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-bold text-slate-900">{m.component}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.supplier}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, supplier: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-700"
+                      />
+                    ) : (
+                      <span className="text-slate-700">{m.supplier}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.orderRef}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, orderRef: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono text-purple-700 font-bold"
+                      />
+                    ) : (
+                      <span className="font-mono text-purple-700 font-bold">{m.orderRef}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-right">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.qtyOrdered}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, qtyOrdered: val } : item)));
+                        }}
+                        className="w-20 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono text-right"
+                      />
+                    ) : (
+                      <span className="font-mono">{m.qtyOrdered}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-right">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.qtyReceived}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, qtyReceived: val } : item)));
+                        }}
+                        className="w-20 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-emerald-700 text-right"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-emerald-700">{m.qtyReceived}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-right">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.expectedBalance}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, expectedBalance: val } : item)));
+                        }}
+                        className="w-20 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono text-slate-500 text-right"
+                      />
+                    ) : (
+                      <span className="font-mono text-slate-500">{m.expectedBalance}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditSubOrders ? (
+                      <input
+                        type="text"
+                        value={m.status}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubOrders((prev) => prev.map((item) => (item.id === m.id ? { ...item, status: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600 text-[11px]">{m.status}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setSubOrders((prev) => prev.filter((item) => item.id !== m.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Sub-Order"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1282,8 +1716,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 7.0 MANUFACTURING STATUS */}
       <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">7.0 MANUFACTURING STATUS</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 7.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">7.0 MANUFACTURING STATUS</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {mfgActivities.length} activities
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditMfg(!isInlineEditMfg)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditMfg ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditMfg ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddMfgActivity}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Activity</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 7.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1295,26 +1752,123 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Actual / Expected Finish</th>
                 <th className="p-2.5 border-r border-slate-200 text-right">% Complete</th>
                 <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
-                <th className="p-2.5">Remarks / Constraints</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks / Constraints</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {mfgActivities.map((a, idx) => (
                 <tr key={a.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{a.activity}</td>
-                  <td className="p-2.5 font-mono text-slate-500 border-r border-slate-100">{a.plannedFinish}</td>
-                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{a.actualExpectedFinish}</td>
-                  <td className="p-2.5 text-right font-mono font-bold text-[#003366] border-r border-slate-100">{a.percentComplete}%</td>
-                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      a.status === "Completed" ? "bg-emerald-100 text-emerald-800" :
-                      a.status === "In Progress" ? "bg-sky-100 text-sky-800" : "bg-amber-100 text-amber-800"
-                    }`}>
-                      {a.status}
-                    </span>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditMfg ? (
+                      <input
+                        type="text"
+                        value={a.activity}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, activity: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-bold text-slate-900">{a.activity}</span>
+                    )}
                   </td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">{a.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditMfg ? (
+                      <input
+                        type="date"
+                        value={a.plannedFinish}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, plannedFinish: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono"
+                      />
+                    ) : (
+                      <span className="font-mono text-slate-500">{a.plannedFinish}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditMfg ? (
+                      <input
+                        type="date"
+                        value={a.actualExpectedFinish}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, actualExpectedFinish: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-slate-900">{a.actualExpectedFinish}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-right">
+                    {isInlineEditMfg ? (
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={a.percentComplete}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, percentComplete: val } : item)));
+                        }}
+                        className="w-16 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-right text-[#003366]"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-[#003366]">{a.percentComplete}%</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditMfg ? (
+                      <select
+                        value={a.status}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, status: val } : item)));
+                        }}
+                        className="p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-800"
+                      >
+                        <option value="Completed">Completed</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        a.status === "Completed" ? "bg-emerald-100 text-emerald-800" :
+                        a.status === "In Progress" ? "bg-sky-100 text-sky-800" : "bg-amber-100 text-amber-800"
+                      }`}>
+                        {a.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditMfg ? (
+                      <input
+                        type="text"
+                        value={a.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600 text-[11px]">{a.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setMfgActivities((prev) => prev.filter((item) => item.id !== a.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Activity"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1325,8 +1879,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 8.0 INSPECTION / TESTING STATUS */}
       <div id="sec-8" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">8.0 INSPECTION / TESTING STATUS</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 8.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">8.0 INSPECTION / TESTING STATUS</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {inspections.length} tests
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditInspections(!isInlineEditInspections)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditInspections ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditInspections ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddInspection}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Inspection</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 8.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1338,23 +1915,120 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Actual / Expected Date</th>
                 <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
                 <th className="p-2.5 border-r border-slate-200 font-mono">RFI / Report Ref.</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {inspections.map((i, idx) => (
                 <tr key={i.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{i.activity}</td>
-                  <td className="p-2.5 font-mono text-slate-500 border-r border-slate-100">{i.plannedDate}</td>
-                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{i.actualDate}</td>
-                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
-                      {i.status}
-                    </span>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditInspections ? (
+                      <input
+                        type="text"
+                        value={i.activity}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, activity: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-bold text-slate-900">{i.activity}</span>
+                    )}
                   </td>
-                  <td className="p-2.5 font-mono text-sky-700 border-r border-slate-100">{i.rfiRef}</td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">{i.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditInspections ? (
+                      <input
+                        type="date"
+                        value={i.plannedDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, plannedDate: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono"
+                      />
+                    ) : (
+                      <span className="font-mono text-slate-500">{i.plannedDate}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditInspections ? (
+                      <input
+                        type="date"
+                        value={i.actualDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, actualDate: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-slate-900">{i.actualDate}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditInspections ? (
+                      <select
+                        value={i.status}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, status: val } : item)));
+                        }}
+                        className="p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-800"
+                      >
+                        <option value="Passed">Passed</option>
+                        <option value="Witnessed">Witnessed</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Hold">Hold</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                        {i.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 font-mono text-sky-700">
+                    {isInlineEditInspections ? (
+                      <input
+                        type="text"
+                        value={i.rfiRef}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, rfiRef: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-sky-700"
+                      />
+                    ) : (
+                      <span>{i.rfiRef}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditInspections ? (
+                      <input
+                        type="text"
+                        value={i.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInspections((prev) => prev.map((item) => (item.id === i.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600 text-[11px]">{i.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setInspections((prev) => prev.filter((item) => item.id !== i.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Inspection Activity"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1451,8 +2125,31 @@ export default function ExpeditingVisitReportPage() {
       {/* 10.0 ACTIONS / FOLLOW-UP */}
       <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-          <span className="uppercase tracking-wider">10.0 ACTIONS / FOLLOW-UP</span>
-          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 10.0</span>
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">10.0 ACTIONS / FOLLOW-UP</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {actions.length} action items
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditActions(!isInlineEditActions)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditActions ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>{isInlineEditActions ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+            <button
+              onClick={handleAddAction}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ Add Action Item</span>
+            </button>
+            <span className="font-mono text-[11px] text-sky-200 hidden md:inline ml-2">IQE-TP-05 Clause 10.0</span>
+          </div>
         </div>
         <div className="overflow-x-auto bg-white">
           <table className="w-full text-left text-xs border-collapse">
@@ -1463,24 +2160,105 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200">Responsibility</th>
                 <th className="p-2.5 border-r border-slate-200 font-mono">Target Date</th>
                 <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {actions.map((act, idx) => (
                 <tr key={act.id} className="hover:bg-slate-50">
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                  <td className="p-2.5 font-semibold text-slate-900 border-r border-slate-100">{act.action}</td>
-                  <td className="p-2.5 font-bold text-sky-700 border-r border-slate-100">{act.responsibility}</td>
-                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{act.targetDate}</td>
-                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      act.status === "Closed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                    }`}>
-                      {act.status}
-                    </span>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditActions ? (
+                      <input
+                        type="text"
+                        value={act.action}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setActions((prev) => prev.map((item) => (item.id === act.id ? { ...item, action: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-slate-900"
+                      />
+                    ) : (
+                      <span className="font-semibold text-slate-900">{act.action}</span>
+                    )}
                   </td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">{act.remarks}</td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditActions ? (
+                      <input
+                        type="text"
+                        value={act.responsibility}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setActions((prev) => prev.map((item) => (item.id === act.id ? { ...item, responsibility: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-sky-700"
+                      />
+                    ) : (
+                      <span className="font-bold text-sky-700">{act.responsibility}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditActions ? (
+                      <input
+                        type="date"
+                        value={act.targetDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setActions((prev) => prev.map((item) => (item.id === act.id ? { ...item, targetDate: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold text-slate-900">{act.targetDate}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100 text-center">
+                    {isInlineEditActions ? (
+                      <select
+                        value={act.status}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setActions((prev) => prev.map((item) => (item.id === act.id ? { ...item, status: val } : item)));
+                        }}
+                        className="p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold text-slate-800"
+                      >
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        act.status === "Closed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                      }`}>
+                        {act.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2.5 border-r border-slate-100">
+                    {isInlineEditActions ? (
+                      <input
+                        type="text"
+                        value={act.remarks}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setActions((prev) => prev.map((item) => (item.id === act.id ? { ...item, remarks: val } : item)));
+                        }}
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs text-slate-600"
+                      />
+                    ) : (
+                      <span className="text-slate-600 text-[11px]">{act.remarks}</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center">
+                    <button
+                      onClick={() => setActions((prev) => prev.filter((item) => item.id !== act.id))}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
+                      title="Delete Action Item"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

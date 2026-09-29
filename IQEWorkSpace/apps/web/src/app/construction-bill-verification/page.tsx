@@ -33,6 +33,7 @@ import {
   Unlock,
   CheckSquare,
   Loader2,
+  Plus,
 } from "lucide-react";
 
 // Guaranteed Initial 100-Item Dataset for instant client rendering
@@ -179,6 +180,115 @@ export default function ConstructionBillVerificationPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const [isInlineEditMode, setIsInlineEditMode] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItem, setNewItem] = useState({
+    boqItem: "",
+    description: "",
+    unit: "Cum",
+    contractQty: 100,
+    claimedQty: 10,
+    verifiedQty: 10,
+    unitRate: 1500,
+    remarks: "Joint site measurement verified",
+  });
+
+  const handleInlineItemChange = (slNo: number, field: string, value: any) => {
+    setAbstractData((prev: any) => {
+      const updated = prev.abstract_items.map((it: any) => {
+        const itemSl = it.slNo ?? it.sl_no;
+        if (itemSl === slNo) {
+          const claimed = field === "claimedQty" ? Number(value) : (it.claimedQty ?? it.total_consumed ?? 0);
+          const verified = field === "verifiedQty" ? Number(value) : (it.verifiedQty ?? it.theoretical_consumed ?? 0);
+          const rate = field === "unitRate" ? Number(value) : (it.unitRate ?? it.unit_rate ?? 0);
+          const diff = Number((claimed - verified).toFixed(2));
+          const claimedAmt = Number((claimed * rate).toFixed(2));
+          const recAmt = Number((verified * rate).toFixed(2));
+          const savings = Number((claimedAmt - recAmt).toFixed(2));
+          return {
+            ...it,
+            [field]: value,
+            claimedQty: claimed,
+            verifiedQty: verified,
+            unitRate: rate,
+            diffQty: diff,
+            claimedAmount: claimedAmt,
+            recommendedAmount: recAmt,
+            savingsAmount: savings,
+          };
+        }
+        return it;
+      });
+      const newClaimed = updated.reduce((s: number, i: any) => s + (i.claimedAmount || 0), 0);
+      const newVerified = updated.reduce((s: number, i: any) => s + (i.recommendedAmount || 0), 0);
+      return {
+        ...prev,
+        total_claimed_amount: newClaimed,
+        total_verified_amount: newVerified,
+        total_discrepancy_savings: newClaimed - newVerified,
+        abstract_items: updated,
+      };
+    });
+  };
+
+  const handleAddItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sl = (abstractData.abstract_items?.length || 0) + 1;
+    const claimedAmt = Number(newItem.claimedQty) * Number(newItem.unitRate);
+    const verifiedAmt = Number(newItem.verifiedQty) * Number(newItem.unitRate);
+    const itemToAdd = {
+      slNo: sl,
+      boqItem: newItem.boqItem || `BOQ-CIV-${String(sl).padStart(3, "0")}`,
+      raBillNo: "RA-CBV-2026-004",
+      billDate: new Date().toISOString().split("T")[0],
+      client: "State Health Corp",
+      contractor: "Suguna Metals Ltd",
+      description: newItem.description || `Civil Construction Item #${sl}`,
+      unit: newItem.unit,
+      drawingRef: "GIL/GAG/CIV-001 R2",
+      contractQty: Number(newItem.contractQty),
+      prevCertifiedQty: 0,
+      claimedQty: Number(newItem.claimedQty),
+      verifiedQty: Number(newItem.verifiedQty),
+      diffQty: Number((Number(newItem.claimedQty) - Number(newItem.verifiedQty)).toFixed(2)),
+      unitRate: Number(newItem.unitRate),
+      claimedAmount: claimedAmt,
+      recommendedAmount: verifiedAmt,
+      savingsAmount: claimedAmt - verifiedAmt,
+      variationOrder: Number(newItem.claimedQty) > Number(newItem.verifiedQty) ? "Y" : "N",
+      voRefNo: "N/A",
+      governanceClause: "Clause 12.3",
+      isConcealedWork: "N",
+      measurementProtocol: "Joint Physical Verification",
+      remarks: newItem.remarks || "Verified & Approved",
+      actionRequired: "Approved for billing",
+      closureStatus: "Verified & Approved",
+      lockStatus: "UNLOCKED - DRAFT",
+      isLocked: false,
+    };
+    setAbstractData((prev: any) => {
+      const updated = [itemToAdd, ...(prev.abstract_items || [])];
+      return {
+        ...prev,
+        total_claimed_amount: (prev.total_claimed_amount || 0) + claimedAmt,
+        total_verified_amount: (prev.total_verified_amount || 0) + verifiedAmt,
+        total_discrepancy_savings: (prev.total_discrepancy_savings || 0) + (claimedAmt - verifiedAmt),
+        abstract_items: updated,
+      };
+    });
+    setShowAddModal(false);
+    setNewItem({
+      boqItem: "",
+      description: "",
+      unit: "Cum",
+      contractQty: 100,
+      claimedQty: 10,
+      verifiedQty: 10,
+      unitRate: 1500,
+      remarks: "Joint site measurement verified",
+    });
   };
 
   const [abstractData, setAbstractData] = useState<any>(INITIAL_ABSTRACT);
@@ -554,6 +664,26 @@ export default function ConstructionBillVerificationPage() {
 
             <div className="flex items-center space-x-3 flex-wrap gap-2">
               <button
+                onClick={() => setIsInlineEditMode(!isInlineEditMode)}
+                className={`flex items-center px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                  isInlineEditMode
+                    ? "bg-amber-400 text-slate-950 border-amber-500 font-extrabold shadow-amber-500/20"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                }`}
+                title="Toggle Inline Cell Editing"
+              >
+                <Edit3 className="w-3.5 h-3.5 mr-1.5" /> {isInlineEditMode ? "Exit Inline Edit" : "Inline Edit"}
+              </button>
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-sm"
+                title="Add New Bill Verification Item"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5 text-sky-300" /> Add Item
+              </button>
+
+              <button
                 onClick={() => setViewMode27Col(!viewMode27Col)}
                 className={`flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                   viewMode27Col ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-slate-100 border-slate-200 text-slate-700"
@@ -650,10 +780,43 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-3 px-3 text-slate-600 font-mono">{item.drawingRef || "GIL/GAG/CIV-001 R2"}</td>
                       <td className="py-3 px-3 text-right font-mono text-slate-600">{(item.contractQty || 0).toLocaleString()}</td>
                       <td className="py-3 px-3 text-right font-mono text-slate-500">{(item.prevCertifiedQty || 0).toLocaleString()}</td>
-                      <td className="py-3 px-3 text-right font-mono font-semibold text-slate-900">{claimedQty.toLocaleString()}</td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-emerald-700">{verifiedQty.toLocaleString()}</td>
+                      <td className="py-2 px-2 text-right border-r border-slate-100">
+                        {isInlineEditMode && !item.isLocked ? (
+                          <input
+                            type="number"
+                            value={claimedQty}
+                            onChange={(e) => handleInlineItemChange(sl, "claimedQty", e.target.value)}
+                            className="w-20 p-1 text-right font-mono bg-amber-50 border border-amber-300 rounded text-xs font-semibold"
+                          />
+                        ) : (
+                          <span className="font-semibold text-slate-900 font-mono">{claimedQty.toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-2 text-right border-r border-slate-100">
+                        {isInlineEditMode && !item.isLocked ? (
+                          <input
+                            type="number"
+                            value={verifiedQty}
+                            onChange={(e) => handleInlineItemChange(sl, "verifiedQty", e.target.value)}
+                            className="w-20 p-1 text-right font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold text-emerald-800"
+                          />
+                        ) : (
+                          <span className="font-bold text-emerald-700 font-mono">{verifiedQty.toLocaleString()}</span>
+                        )}
+                      </td>
                       <td className="py-3 px-3 text-right font-mono text-amber-700 font-semibold">{diffQty > 0 ? `+${diffQty}` : "0.00"}</td>
-                      <td className="py-3 px-3 text-right font-mono text-slate-800 font-medium">₹{unitRate.toLocaleString("en-IN")}</td>
+                      <td className="py-2 px-2 text-right border-r border-slate-100">
+                        {isInlineEditMode && !item.isLocked ? (
+                          <input
+                            type="number"
+                            value={unitRate}
+                            onChange={(e) => handleInlineItemChange(sl, "unitRate", e.target.value)}
+                            className="w-20 p-1 text-right font-mono bg-amber-50 border border-amber-300 rounded text-xs font-semibold"
+                          />
+                        ) : (
+                          <span className="font-medium text-slate-800 font-mono">₹{unitRate.toLocaleString("en-IN")}</span>
+                        )}
+                      </td>
                       <td className="py-3 px-3 text-right font-mono font-semibold text-slate-700">₹{claimedAmt.toLocaleString("en-IN")}</td>
                       <td className="py-3 px-3 text-right font-mono font-bold text-emerald-700">₹{recAmt.toLocaleString("en-IN")}</td>
                       <td className="py-3 px-3 text-right font-mono font-bold text-blue-700">₹{savingsAmt > 0 ? savingsAmt.toLocaleString("en-IN") : "0"}</td>
@@ -662,7 +825,18 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-3 px-4 text-slate-600 font-medium">{item.governanceClause || "Clause 12.3"}</td>
                       <td className="py-3 px-3 text-center font-bold text-slate-700">{item.isConcealedWork || "N"}</td>
                       <td className="py-3 px-4 text-slate-600 truncate max-w-[180px]">{item.measurementProtocol || "Joint Measurement"}</td>
-                      <td className="py-3 px-4 text-slate-600 truncate max-w-[180px]">{item.remarks || item.engineerRemarks || "Verified"}</td>
+                      <td className="py-2 px-2 text-slate-600 truncate max-w-[180px]">
+                        {isInlineEditMode && !item.isLocked ? (
+                          <input
+                            type="text"
+                            value={item.remarks || item.engineerRemarks || ""}
+                            onChange={(e) => handleInlineItemChange(sl, "remarks", e.target.value)}
+                            className="w-full min-w-[140px] p-1 text-xs bg-amber-50 border border-amber-300 rounded"
+                          />
+                        ) : (
+                          item.remarks || item.engineerRemarks || "Verified"
+                        )}
+                      </td>
                       <td className="py-3 px-4 text-slate-700 font-medium">{item.actionRequired || "Verified & Approved"}</td>
                       <td className="py-3 px-3 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1219,6 +1393,150 @@ export default function ConstructionBillVerificationPage() {
                 <Save className="w-4 h-4 mr-2" /> Save Audit Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD ITEM MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 font-heading">
+                    Add New Construction Supply Item
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">27-Column Precision Ledger</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddItem} className="space-y-4">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">BOQ Item Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. BOQ-CIV-101"
+                      value={newItem.boqItem}
+                      onChange={(e) => setNewItem({ ...newItem, boqItem: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Unit of Measure</label>
+                    <select
+                      value={newItem.unit}
+                      onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                    >
+                      <option value="Cum">Cum</option>
+                      <option value="Mt">Mt</option>
+                      <option value="Bags">Bags</option>
+                      <option value="Sqm">Sqm</option>
+                      <option value="Nos">Nos</option>
+                      <option value="Rmt">Rmt</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 uppercase text-[10px]">Work Item Description *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. M 25 Grade Reinforced Concrete Beams & Slabs"
+                    value={newItem.description}
+                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                    className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Contract Qty</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newItem.contractQty}
+                      onChange={(e) => setNewItem({ ...newItem, contractQty: Number(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Claimed Qty</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newItem.claimedQty}
+                      onChange={(e) => setNewItem({ ...newItem, claimedQty: Number(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-emerald-800 uppercase text-[10px]">Verified Qty</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newItem.verifiedQty}
+                      onChange={(e) => setNewItem({ ...newItem, verifiedQty: Number(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-emerald-50 border border-emerald-300 rounded-xl font-mono font-bold text-emerald-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Unit Rate (₹)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newItem.unitRate}
+                      onChange={(e) => setNewItem({ ...newItem, unitRate: Number(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">TPI Verification Remarks</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Joint site physical survey completed"
+                      value={newItem.remarks}
+                      onChange={(e) => setNewItem({ ...newItem, remarks: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#003366] hover:bg-[#002244] font-bold text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-sky-300" />
+                  <span>Add Line Item</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

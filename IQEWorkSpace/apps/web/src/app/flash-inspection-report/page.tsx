@@ -285,6 +285,8 @@ export default function FlashInspectionReportPage() {
 
   const [search, setSearch] = useState<string>("");
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
+  const [isInlineEditFindings, setIsInlineEditFindings] = useState<boolean>(false);
+  const [isInlineEditActions, setIsInlineEditActions] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<FlashInspectionItem | null>(null);
   const [viewingItem, setViewingItem] = useState<FlashInspectionItem | null>(null);
   const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
@@ -292,6 +294,33 @@ export default function FlashInspectionReportPage() {
   const [showMetaEditModal, setShowMetaEditModal] = useState<boolean>(false);
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
   const [saveToast, setSaveToast] = useState<boolean>(false);
+
+  const handleAddFinding = () => {
+    const newF: KeyFinding = {
+      id: `find-${Date.now()}`,
+      slNo: findings.length + 1,
+      finding: "Visual observation satisfactory per standard QAP requirements",
+      reference: "QAP Cl. 4.2",
+      actionRequired: "Vendor to provide final test certificate",
+      status: "OPEN",
+    };
+    setFindings([...findings, newF]);
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2500);
+  };
+
+  const handleAddAction = () => {
+    const newA: ImmediateAction = {
+      id: `act-${Date.now()}`,
+      action: "Submit calibrated dimensional and NDT witness reports",
+      targetDate: new Date().toISOString().split("T")[0],
+      followUpParty: "Vendor QA / IQE Inspector",
+      status: "PENDING",
+    };
+    setActions([...actions, newA]);
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2500);
+  };
 
   const triggerSaveToast = () => {
     setSaveToast(true);
@@ -1135,8 +1164,32 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">5.0 KEY FINDINGS / AREAS OF CONCERN</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 5.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">5.0 KEY FINDINGS / AREAS OF CONCERN</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {findings.length} findings
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditFindings(!isInlineEditFindings)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditFindings ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditFindings ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddFinding}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Finding</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1154,21 +1207,74 @@ export default function FlashInspectionReportPage() {
                 {findings.map((f) => (
                   <tr key={f.id} className="hover:bg-slate-50/80">
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-500">{f.slNo}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900">{f.finding}</td>
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">{f.reference}</td>
-                    <td className="py-2.5 px-3 text-slate-700">{f.actionRequired}</td>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditFindings ? (
+                        <input
+                          type="text"
+                          value={f.finding}
+                          onChange={(e) =>
+                            setFindings(findings.map((x) => (x.id === f.id ? { ...x, finding: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        f.finding
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
+                      {isInlineEditFindings ? (
+                        <input
+                          type="text"
+                          value={f.reference}
+                          onChange={(e) =>
+                            setFindings(findings.map((x) => (x.id === f.id ? { ...x, reference: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        f.reference
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700">
+                      {isInlineEditFindings ? (
+                        <input
+                          type="text"
+                          value={f.actionRequired}
+                          onChange={(e) =>
+                            setFindings(findings.map((x) => (x.id === f.id ? { ...x, actionRequired: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        f.actionRequired
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          f.status === "OPEN"
-                            ? "bg-rose-100 text-rose-800 border border-rose-200"
-                            : f.status === "RESOLVED"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-amber-100 text-amber-800 border border-amber-200"
-                        }`}
-                      >
-                        {f.status}
-                      </span>
+                      {isInlineEditFindings ? (
+                        <select
+                          value={f.status}
+                          onChange={(e) =>
+                            setFindings(findings.map((x) => (x.id === f.id ? { ...x, status: e.target.value as any } : x)))
+                          }
+                          className="p-1 font-bold text-[10px] bg-white border border-slate-300 rounded"
+                        >
+                          <option value="OPEN">OPEN</option>
+                          <option value="RESOLVED">RESOLVED</option>
+                          <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            f.status === "OPEN"
+                              ? "bg-rose-100 text-rose-800 border border-rose-200"
+                              : f.status === "RESOLVED"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                              : "bg-amber-100 text-amber-800 border border-amber-200"
+                          }`}
+                        >
+                          {f.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1182,8 +1288,32 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">6.0 IMMEDIATE ACTION / FOLLOW-UP</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 6.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">6.0 IMMEDIATE ACTION / FOLLOW-UP</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {actions.length} actions
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditActions(!isInlineEditActions)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditActions ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditActions ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddAction}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Action</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1199,13 +1329,65 @@ export default function FlashInspectionReportPage() {
               <tbody className="divide-y divide-slate-200 bg-white">
                 {actions.map((act) => (
                   <tr key={act.id} className="hover:bg-slate-50/80">
-                    <td className="py-2.5 px-3 font-medium text-slate-900">{act.action}</td>
-                    <td className="py-2.5 px-3 font-mono font-bold text-rose-700">{act.targetDate}</td>
-                    <td className="py-2.5 px-3 text-slate-700">{act.followUpParty}</td>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditActions ? (
+                        <input
+                          type="text"
+                          value={act.action}
+                          onChange={(e) =>
+                            setActions(actions.map((x) => (x.id === act.id ? { ...x, action: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        act.action
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono font-bold text-rose-700">
+                      {isInlineEditActions ? (
+                        <input
+                          type="date"
+                          value={act.targetDate}
+                          onChange={(e) =>
+                            setActions(actions.map((x) => (x.id === act.id ? { ...x, targetDate: e.target.value } : x)))
+                          }
+                          className="p-1 font-mono text-xs bg-amber-50 border border-amber-300 rounded"
+                        />
+                      ) : (
+                        act.targetDate
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700">
+                      {isInlineEditActions ? (
+                        <input
+                          type="text"
+                          value={act.followUpParty}
+                          onChange={(e) =>
+                            setActions(actions.map((x) => (x.id === act.id ? { ...x, followUpParty: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        act.followUpParty
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                        {act.status}
-                      </span>
+                      {isInlineEditActions ? (
+                        <select
+                          value={act.status}
+                          onChange={(e) =>
+                            setActions(actions.map((x) => (x.id === act.id ? { ...x, status: e.target.value as any } : x)))
+                          }
+                          className="p-1 font-bold text-[10px] bg-white border border-slate-300 rounded"
+                        >
+                          <option value="Open">Open</option>
+                          <option value="Closed">Closed</option>
+                        </select>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          {act.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

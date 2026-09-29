@@ -1,9 +1,10 @@
 from __future__ import annotations
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
     app_name: str = "IQEApp API"
     debug: bool = False
     mongodb_url: str = "mongodb://localhost:27017"

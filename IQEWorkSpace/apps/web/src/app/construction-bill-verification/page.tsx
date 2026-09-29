@@ -31,7 +31,8 @@ import {
   Save,
   Lock,
   Unlock,
-  CheckSquare
+  CheckSquare,
+  Loader2,
 } from "lucide-react";
 
 // Guaranteed Initial 100-Item Dataset for instant client rendering
@@ -137,6 +138,49 @@ const INITIAL_ABSTRACT = {
 
 export default function ConstructionBillVerificationPage() {
   const [activeTab, setActiveTab] = useState<"abstract" | "steel" | "dailylogs" | "waybills" | "export">("abstract");
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
+
+  const handleTabSwitch = (tab: "abstract" | "steel" | "dailylogs" | "waybills" | "export") => {
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
+
+  const handleToggleLock = (slNo: number) => {
+    setAbstractData((prev: any) => ({
+      ...prev,
+      abstract_items: prev.abstract_items.map((it: any) => {
+        const itemSl = it.slNo ?? it.sl_no;
+        if (itemSl === slNo) {
+          const isCurrentlyLocked = it.lockStatus?.includes("LOCKED") || it.isLocked;
+          return {
+            ...it,
+            isLocked: !isCurrentlyLocked,
+            lockStatus: isCurrentlyLocked ? "UNLOCKED - DRAFT" : "LOCKED - SEALED"
+          };
+        }
+        return it;
+      })
+    }));
+  };
+
+  const handleExportSingleRowCSV = (item: any) => {
+    const sl = item.slNo || item.sl_no || 1;
+    const boq = item.boqItem || item.item_code || `BOQ-${sl}`;
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [
+        "SL No,BOQ Item,Description,Unit,Contract Qty,Claimed Qty,Verified Qty,Unit Rate,Claimed Amount,Verified Amount,Savings Amount,Status,Lock Status",
+        `${sl},"${boq}","${(item.description || "").replace(/"/g, '""')}","${item.unit || ""}",${item.contractQty || 0},${item.claimedQty || 0},${item.verifiedQty || 0},${item.unitRate || 0},${item.claimedAmount || 0},${item.recommendedAmount || 0},${item.savingsAmount || 0},"${item.closureStatus || item.verification_status || ""}","${item.lockStatus || ""}"`,
+      ].join("\n");
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = `CBV_Item_${sl}_${boq}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const [abstractData, setAbstractData] = useState<any>(INITIAL_ABSTRACT);
   const [steelLedger, setSteelLedger] = useState<any[]>([
     { diameter: "8mm Steel", unit: "Mt", opening_balance: 0.47, received_qty: 5.86, details_of_purchase: "Suguna Metals Ltd.", issued_for_consumption: 6.33, details_of_consumption: "Column Stirrups & Beam Ties", closing_balance: 0.00 },
@@ -415,11 +459,17 @@ export default function ConstructionBillVerificationPage() {
       </div>
 
       {/* Tabs Header - Light Theme */}
-      <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex flex-wrap items-center justify-between gap-4 relative">
+        {isTabSwitching && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-20 text-xs font-bold text-emerald-700 rounded-xl">
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+            <span>Switching module view...</span>
+          </div>
+        )}
         <div className="flex flex-wrap gap-1">
           <button
-            onClick={() => setActiveTab("abstract")}
-            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all ${
+            onClick={() => handleTabSwitch("abstract")}
+            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "abstract"
                 ? "bg-emerald-600 text-white shadow"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -429,8 +479,8 @@ export default function ConstructionBillVerificationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("steel")}
-            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all ${
+            onClick={() => handleTabSwitch("steel")}
+            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "steel"
                 ? "bg-emerald-600 text-white shadow"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -440,8 +490,8 @@ export default function ConstructionBillVerificationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("dailylogs")}
-            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all ${
+            onClick={() => handleTabSwitch("dailylogs")}
+            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "dailylogs"
                 ? "bg-emerald-600 text-white shadow"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -451,8 +501,8 @@ export default function ConstructionBillVerificationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("waybills")}
-            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all ${
+            onClick={() => handleTabSwitch("waybills")}
+            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "waybills"
                 ? "bg-emerald-600 text-white shadow"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -462,8 +512,8 @@ export default function ConstructionBillVerificationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("export")}
-            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all ${
+            onClick={() => handleTabSwitch("export")}
+            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "export"
                 ? "bg-emerald-600 text-white shadow"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -626,28 +676,68 @@ export default function ConstructionBillVerificationPage() {
                       </td>
 
                       {/* Rightmost Sticky Action Hub Column */}
-                      <td className="py-2 px-3 text-center sticky right-0 bg-white z-10 border-l border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-center space-x-1.5">
+                      <td className="py-2 px-3 text-center sticky right-0 bg-white z-10 border-l border-slate-200 shadow-sm whitespace-nowrap">
+                        <div className="flex items-center justify-center space-x-1">
+                          {/* 1. Lock/Unlock */}
+                          <button
+                            onClick={() => handleToggleLock(sl)}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              item.lockStatus?.includes("LOCKED") || item.isLocked
+                                ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                : "bg-slate-100 hover:bg-slate-200 text-slate-500"
+                            }`}
+                            title={item.lockStatus?.includes("LOCKED") || item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
+                          >
+                            {item.lockStatus?.includes("LOCKED") || item.isLocked ? (
+                              <Lock className="w-3.5 h-3.5 text-amber-700" />
+                            ) : (
+                              <Unlock className="w-3.5 h-3.5 text-slate-500" />
+                            )}
+                          </button>
+
+                          {/* 2. View Details Modal */}
                           <button
                             onClick={() => setSelectedViewItem(item)}
                             title="View Full Item Audit Details"
-                            className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+
+                          {/* 3. Edit Quantity, Rate & Remarks */}
                           <button
                             onClick={() => setSelectedEditItem({ ...item })}
                             title="Edit Quantity, Rate & Remarks"
-                            className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
+
+                          {/* 4. Single CSV */}
+                          <button
+                            onClick={() => handleExportSingleRowCSV(item)}
+                            title="Download Single Row CSV"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 5. Live Preview Single Item PDF */}
+                          <button
+                            onClick={() => setShowPdfModal(true)}
+                            title="Live Preview PDF"
+                            className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 6. Download Single Item PDF Certificate */}
                           <button
                             onClick={() => handleSingleItemPdf(item)}
                             title="Download Single Item PDF Certificate"
-                            className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                           >
-                            <Download className="w-3.5 h-3.5" />
+                            <FileText className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

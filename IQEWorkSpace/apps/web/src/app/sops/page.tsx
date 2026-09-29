@@ -16,6 +16,7 @@ import {
   BookOpen,
   ArrowRight,
   AlertCircle,
+  X,
 } from "lucide-react";
 
 interface SOPItem {
@@ -302,8 +303,9 @@ export default function SOPSPage() {
               <button
                 onClick={() => setSelectedSOP(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-sm"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

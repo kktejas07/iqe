@@ -18,6 +18,7 @@ import {
   Ruler,
   Layers,
   ArrowRight,
+  X,
 } from "lucide-react";
 
 interface WorkInstruction {
@@ -319,8 +320,9 @@ export default function WorkInstructionsPage() {
               <button
                 onClick={() => setActiveWI(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-sm"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

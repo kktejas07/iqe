@@ -35,6 +35,7 @@ import {
   Flame,
   Info,
   Settings,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -1940,17 +1941,26 @@ export default function ScheduleMPharmaEPCPage() {
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-500 uppercase font-bold block">IQE Lead Inspector</span>
                   <p className="font-bold text-sky-400">{ir.inspector_sign}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium">✓ Digitally Signed & Authenticated</span>
+                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>Digitally Signed &amp; Authenticated</span>
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-500 uppercase font-bold block">Technical Reviewer</span>
                   <p className="font-bold text-cyan-400">{ir.technical_reviewer_sign}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium">✓ Peer Review Sign-Off</span>
+                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>Peer Review Sign-Off</span>
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-500 uppercase font-bold block">Client Acknowledgement</span>
                   <p className="font-bold text-slate-300">{ir.client_ack}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium">✓ Verified & Logged</span>
+                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>Verified &amp; Logged</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -2053,8 +2063,9 @@ export default function ScheduleMPharmaEPCPage() {
                         {gap.recommended_fix}
                       </td>
                       <td className="p-3 align-top whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[10px]">
-                          ✓ {gap.status}
+                        <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[10px] inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>{gap.status}</span>
                         </span>
                       </td>
                     </tr>
@@ -2125,8 +2136,9 @@ export default function ScheduleMPharmaEPCPage() {
               <button
                 onClick={() => setShowProjectSetupModal(false)}
                 className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -46,6 +46,7 @@ import {
   DollarSign,
   Users,
   Handshake,
+  Loader2,
 } from "lucide-react";
 
 export interface BOQItem {
@@ -405,6 +406,21 @@ export default function BOQReconciliationPage() {
   const [search, setSearch] = useState("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleSwitchDiscipline = (d: string) => {
+    if (d === selectedDiscipline) return;
+    setIsTabSwitching(true);
+    setSelectedDiscipline(d);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
+
+  const handleSwitchStatus = (s: string) => {
+    if (s === selectedStatus) return;
+    setIsTabSwitching(true);
+    setSelectedStatus(s);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
 
   // Project Info initialized from client map
   const initialClient = CLIENT_DETAILS_MAP["Granules India Limited - Gagillapur"];
@@ -1021,7 +1037,7 @@ export default function BOQReconciliationPage() {
             {["All", "Civil", "Structural", "Piping", "Electrical", "HVAC"].map((d) => (
               <button
                 key={d}
-                onClick={() => setSelectedDiscipline(d)}
+                onClick={() => handleSwitchDiscipline(d)}
                 className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   selectedDiscipline === d
                     ? "bg-[#003366] text-white"
@@ -1038,7 +1054,7 @@ export default function BOQReconciliationPage() {
             {["All", "APPROVED", "OVER_CLAIM", "VARIATION_PENDING"].map((s) => (
               <button
                 key={s}
-                onClick={() => setSelectedStatus(s)}
+                onClick={() => handleSwitchStatus(s)}
                 className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   selectedStatus === s
                     ? "bg-slate-900 text-white"
@@ -1050,8 +1066,15 @@ export default function BOQReconciliationPage() {
             ))}
           </div>
 
-          {/* Main 20-Column Table (Identical Layout to Bill Verification) */}
-          <div className="overflow-x-auto max-h-[600px]">
+          {/* TAB SWITCHING LOADER EFFECT */}
+          {isTabSwitching ? (
+            <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
+              <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+              <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Filtering BOQ records...</p>
+            </div>
+          ) : (
+            /* Main 20-Column Table (Identical Layout to Bill Verification) */
+            <div className="overflow-x-auto max-h-[600px]">
             <table className="w-full text-left text-xs border-collapse min-w-[2400px]">
               <thead className="sticky top-0 bg-slate-100 text-slate-800 font-bold border-b border-slate-300 z-10 select-none shadow-xs">
                 <tr>
@@ -1349,6 +1372,26 @@ export default function BOQReconciliationPage() {
                           </button>
 
                           <button
+                            onClick={() => {
+                              setShowPdfPreview(true);
+                            }}
+                            className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
+                            title="Live Preview Single Item PDF Certificate"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              window.open("http://localhost:8000/api/v1/reports/pdf/boq-reconciliation", "_blank");
+                            }}
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
+                            title="Download Single PDF Report"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
                             onClick={() => handleDuplicateItem(item)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-700 transition-colors cursor-pointer"
                             title="Duplicate BOQ Item"
@@ -1376,6 +1419,7 @@ export default function BOQReconciliationPage() {
               </tbody>
             </table>
           </div>
+        )}
 
           {/* Matrix Footer Totals */}
           <div className="p-3 bg-slate-50 border-t border-slate-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold">

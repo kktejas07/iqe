@@ -34,6 +34,9 @@ import {
   Download,
   Edit3,
   X,
+  Loader2,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 
@@ -48,6 +51,7 @@ interface ExpeditingItem {
   qtyProduced: number;
   status: "On Schedule" | "At Risk" | "Delayed" | "Completed";
   remarks: string;
+  isLocked?: boolean;
 }
 
 interface Personnel {
@@ -206,11 +210,35 @@ const CLIENT_METADATA_MAP: Record<string, ClientExpeditingMeta> = {
 
 export default function ExpeditingVisitReportPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "items" | "progress" | "manufacturing" | "actions" | "signatures">("overview");
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [viewingItem, setViewingItem] = useState<ExpeditingItem | null>(null);
+  const [editingItem, setEditingItem] = useState<ExpeditingItem | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>("Granules India Limited - Gagillapur");
 
   // 1.0 Header & Order Details
   const [meta, setMeta] = useState<ClientExpeditingMeta>(CLIENT_METADATA_MAP["Granules India Limited - Gagillapur"]);
+
+  const handleToggleLock = (id: string) => {
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, isLocked: !it.isLocked } : it))
+    );
+  };
+
+  const handleExportSingleRowCSV = (item: ExpeditingItem) => {
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [
+        "Item No,Description,Tag No,PO Qty,Qty Produced,Promised Delivery,Expected Delivery,Status,Remarks",
+        `${item.itemNo},"${item.description.replace(/"/g, '""')}","${item.tagNo}",${item.poQty},${item.qtyProduced},${item.promisedDelivery},${item.currentExpectedDelivery},${item.status},"${item.remarks.replace(/"/g, '""')}"`,
+      ].join("\n");
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = `EVR_Item_${item.itemNo}_${item.tagNo || "Row"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleClientChange = (client: string) => {
     setSelectedClient(client);
@@ -692,7 +720,13 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* Jump Links Strip */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs">
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs relative">
+        {isTabSwitching && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 text-xs font-bold text-[#0084bf]">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Navigating to section...</span>
+          </div>
+        )}
         <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
         {[
           { id: "sec-1", label: "1.0 Items" },
@@ -709,13 +743,18 @@ export default function ExpeditingVisitReportPage() {
           { id: "sec-12", label: "12.0 Photos" },
           { id: "sec-13", label: "13.0 Sign-Off" },
         ].map((sec) => (
-          <a
+          <button
             key={sec.id}
-            href={`#${sec.id}`}
-            className="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] hover:text-white rounded-md text-slate-700 font-semibold whitespace-nowrap transition-colors"
+            onClick={() => {
+              setIsTabSwitching(true);
+              const el = document.getElementById(sec.id);
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+              setTimeout(() => setIsTabSwitching(false), 250);
+            }}
+            className="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] hover:text-white rounded-md text-slate-700 font-semibold whitespace-nowrap transition-colors cursor-pointer"
           >
             {sec.label}
-          </a>
+          </button>
         ))}
       </div>
 
@@ -848,7 +887,8 @@ export default function ExpeditingVisitReportPage() {
                 <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Current Expected Delivery</th>
                 <th className="p-2.5 border-r border-slate-200 text-center w-24">Qty Available / Produced</th>
                 <th className="p-2.5 border-r border-slate-200 text-center w-28">Status</th>
-                <th className="p-2.5">Remarks</th>
+                <th className="p-2.5 border-r border-slate-200">Remarks</th>
+                <th className="p-2.5 text-center min-w-[200px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -960,7 +1000,7 @@ export default function ExpeditingVisitReportPage() {
                       </span>
                     )}
                   </td>
-                  <td className="p-2.5 text-slate-600 text-[11px]">
+                  <td className="p-2.5 text-slate-600 text-[11px] border-r border-slate-100">
                     {isInlineEditMode ? (
                       <input
                         type="text"
@@ -971,6 +1011,72 @@ export default function ExpeditingVisitReportPage() {
                     ) : (
                       it.remarks
                     )}
+                  </td>
+                  <td className="p-2.5 text-center whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-1">
+                      {/* 1. Lock/Unlock */}
+                      <button
+                        onClick={() => handleToggleLock(it.id)}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          it.isLocked
+                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-500"
+                        }`}
+                        title={it.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
+                      >
+                        {it.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-700" /> : <Unlock className="w-3.5 h-3.5 text-slate-500" />}
+                      </button>
+
+                      {/* 2. View Details Modal */}
+                      <button
+                        onClick={() => setViewingItem(it)}
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                        title="View Row Details"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 3. Edit Row Values */}
+                      <button
+                        onClick={() => !it.isLocked && setEditingItem(it)}
+                        disabled={it.isLocked}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          it.isLocked
+                            ? "bg-slate-100 text-slate-300 cursor-not-allowed"
+                            : "bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 cursor-pointer"
+                        }`}
+                        title={it.isLocked ? "Item Locked" : "Edit Row Values"}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 4. Single CSV */}
+                      <button
+                        onClick={() => handleExportSingleRowCSV(it)}
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
+                        title="Download Single Row CSV"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 5. Live Preview Single Item PDF */}
+                      <button
+                        onClick={() => setShowPdfPreview(true)}
+                        className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
+                        title="Live Preview Single Item PDF"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 6. Download Single Item PDF */}
+                      <button
+                        onClick={() => window.open(`http://localhost:8000/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
+                        className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
+                        title="Download Single PDF Report"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1842,6 +1948,219 @@ export default function ExpeditingVisitReportPage() {
                 >
                   <Plus className="w-4 h-4 text-sky-300" />
                   <span>Add Line Item</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW ROW DETAILS MODAL */}
+      {viewingItem && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 font-heading">
+                    Expediting Item Details &bull; Item #{viewingItem.itemNo}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">{viewingItem.tagNo}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingItem(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Description</span>
+                <span className="font-semibold text-slate-800 text-xs">{viewingItem.description}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">PO Qty</span>
+                <span className="font-mono font-bold text-slate-800">{viewingItem.poQty}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Qty Available / Produced</span>
+                <span className="font-mono font-bold text-emerald-700">{viewingItem.qtyProduced}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Promised Delivery</span>
+                <span className="font-mono text-slate-700">{viewingItem.promisedDelivery}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Current Expected Delivery</span>
+                <span className="font-mono font-bold text-slate-900">{viewingItem.currentExpectedDelivery}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Schedule Status</span>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-0.5 ${
+                  viewingItem.status === "On Schedule" || viewingItem.status === "Completed"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
+                }`}>
+                  {viewingItem.status}
+                </span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Lock Status</span>
+                <span className="font-mono font-bold text-slate-700">{viewingItem.isLocked ? "Locked" : "Unlocked"}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Expediting Remarks & Progress</span>
+                <span className="text-slate-700 italic">{viewingItem.remarks || "—"}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT ROW MODAL */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 font-heading">
+                Edit Item &bull; #{editingItem.itemNo} ({editingItem.tagNo})
+              </h3>
+              <button onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setItems(items.map((i) => (i.id === editingItem.id ? editingItem : i)));
+                setEditingItem(null);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 3000);
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-3">
+                <div>
+                  <label className="font-bold text-slate-700 uppercase text-[10px]">Description</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingItem.description}
+                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                    className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">PO Qty</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={editingItem.poQty}
+                      onChange={(e) => setEditingItem({ ...editingItem, poQty: parseInt(e.target.value) || 1 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Tag / Serial No.</label>
+                    <input
+                      type="text"
+                      value={editingItem.tagNo}
+                      onChange={(e) => setEditingItem({ ...editingItem, tagNo: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Promised Delivery</label>
+                    <input
+                      type="date"
+                      value={editingItem.promisedDelivery}
+                      onChange={(e) => setEditingItem({ ...editingItem, promisedDelivery: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Current Expected Delivery</label>
+                    <input
+                      type="date"
+                      value={editingItem.currentExpectedDelivery}
+                      onChange={(e) => setEditingItem({ ...editingItem, currentExpectedDelivery: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Qty Available / Produced</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editingItem.qtyProduced}
+                      onChange={(e) => setEditingItem({ ...editingItem, qtyProduced: parseInt(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-emerald-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Status</label>
+                    <select
+                      value={editingItem.status}
+                      onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value as any })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
+                    >
+                      <option value="On Schedule">On Schedule</option>
+                      <option value="At Risk">At Risk</option>
+                      <option value="Delayed">Delayed</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 uppercase text-[10px]">Remarks</label>
+                  <input
+                    type="text"
+                    value={editingItem.remarks}
+                    onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}
+                    className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#003366] hover:bg-[#002244] font-bold text-white transition-colors cursor-pointer"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

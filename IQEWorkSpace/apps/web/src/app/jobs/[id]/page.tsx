@@ -16,6 +16,8 @@ import {
   Hash,
   UserCheck,
   CheckCircle2,
+  Zap,
+  ArrowRight,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -144,9 +146,21 @@ export default function JobDetailPage() {
               <Sparkles className="w-4 h-4 text-blue-600 dark:text-sky-400" />
               <span>Full Operational Roadmap &amp; Approval State Machine</span>
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
-              CV Sign-off ➔ Budget Set ➔ Visit Scheduled ➔ Field Audit AI Report ➔ QC Approval ➔ Finance Approval ➔ Invoice Shared
-            </p>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium mt-1">
+              <span>CV Sign-off</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>Budget Set</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>Visit Scheduled</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>Field Audit AI Report</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>QC Approval</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>Finance Approval</span>
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>Invoice Shared</span>
+            </div>
           </div>
 
           <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-extrabold border border-emerald-300 dark:border-emerald-800">
@@ -155,23 +169,29 @@ export default function JobDetailPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 font-mono text-[10px]">
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold">
-            1. CV Submitted ✓
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold flex items-center justify-between">
+            <span>1. CV Submitted</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           </div>
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold">
-            2. Client Approved ✓
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold flex items-center justify-between">
+            <span>2. Client Approved</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           </div>
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold">
-            3. Budget Set ✓
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold flex items-center justify-between">
+            <span>3. Budget Set</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           </div>
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold">
-            4. Visit Scheduled ✓
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold flex items-center justify-between">
+            <span>4. Visit Scheduled</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           </div>
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold">
-            5. Field Complete ✓
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-extrabold flex items-center justify-between">
+            <span>5. Field Complete</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           </div>
-          <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-[#003366] dark:text-sky-300 font-extrabold animate-pulse">
-            6. QC Approved ➔
+          <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-[#003366] dark:text-sky-300 font-extrabold animate-pulse flex items-center justify-between">
+            <span>6. QC Approved</span>
+            <ArrowRight className="w-3.5 h-3.5 text-blue-600 shrink-0" />
           </div>
           <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 font-extrabold">
             7. Finance Pending
@@ -190,23 +210,26 @@ export default function JobDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/visits/new?job_id=${job.job_id}`}
-              className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-[#003366] dark:text-sky-300 font-extrabold hover:bg-blue-200 border border-blue-300 dark:border-blue-800 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-[#003366] dark:text-sky-300 font-extrabold hover:bg-blue-200 border border-blue-300 dark:border-blue-800 transition-all inline-flex items-center gap-1.5"
             >
-              + Schedule Visit
+              <Plus className="w-3.5 h-3.5" />
+              <span>Schedule Visit</span>
             </Link>
 
             <Link
               href={`/visits/VIS-001`}
-              className="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 font-extrabold hover:bg-purple-200 border border-purple-300 dark:border-purple-800 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 font-extrabold hover:bg-purple-200 border border-purple-300 dark:border-purple-800 transition-all inline-flex items-center gap-1.5"
             >
-              ⚡ Log AI Findings
+              <Zap className="w-3.5 h-3.5 text-purple-600" />
+              <span>Log AI Findings</span>
             </Link>
 
             <Link
               href={`/tpi-process-flow?tab=tm_review`}
-              className="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 font-extrabold hover:bg-emerald-200 border border-emerald-300 dark:border-emerald-800 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 font-extrabold hover:bg-emerald-200 border border-emerald-300 dark:border-emerald-800 transition-all inline-flex items-center gap-1.5"
             >
-              ✓ QC Sign-off
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>QC Sign-off</span>
             </Link>
 
             <Link

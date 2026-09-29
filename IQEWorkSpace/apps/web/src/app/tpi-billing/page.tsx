@@ -51,6 +51,7 @@ import {
   Layers3,
   Users,
   Handshake,
+  Landmark,
 } from "lucide-react";
 
 export type TpiInspectionMode = "epc_sponsored" | "end_client_direct" | "tripartite";
@@ -4810,24 +4811,28 @@ export default function TPIBillingPage() {
               </span>
               {(
                 [
-                  { id: "epc_sponsored", label: "🏢 EPC Sponsored", tooltip: "EPC = Client | EPC's Client = End Client" },
-                  { id: "end_client_direct", label: "🏛️ End Client Direct", tooltip: "End Client = Primary Client" },
-                  { id: "tripartite", label: "🤝 Tripartite (EPC & End Client)", tooltip: "Exclusive 3-way alignment between EPC & End Client" },
+                  { id: "epc_sponsored", label: "EPC Sponsored", icon: Building2, tooltip: "EPC = Client | EPC's Client = End Client" },
+                  { id: "end_client_direct", label: "End Client Direct", icon: Landmark, tooltip: "End Client = Primary Client" },
+                  { id: "tripartite", label: "Tripartite (EPC & End Client)", icon: Handshake, tooltip: "Exclusive 3-way alignment between EPC & End Client" },
                 ] as const
-              ).map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setTpiMode(m.id)}
-                  title={m.tooltip}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    tpiMode === m.id
-                      ? "bg-[#003366] text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
+              ).map((m) => {
+                const IconComp = m.icon;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setTpiMode(m.id)}
+                    title={m.tooltip}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                      tpiMode === m.id
+                        ? "bg-[#003366] text-white shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <IconComp className="w-3.5 h-3.5 shrink-0" />
+                    <span>{m.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

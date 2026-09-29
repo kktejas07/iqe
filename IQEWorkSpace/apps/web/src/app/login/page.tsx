@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck, Building2, HardHat } from "lucide-react";
 import { api } from "@/lib/api";
 import { IQELogo } from "@/components/IQELogo";
 
@@ -184,7 +184,10 @@ export default function LoginPage() {
                 onClick={() => fillDemo("admin_system", "admin123")}
                 className="px-2.5 py-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 text-[11px] text-purple-300 border border-purple-800/50 transition-all duration-300 font-semibold flex flex-col items-center gap-1 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <span>🔑 Admin</span>
+                <div className="flex items-center gap-1.5 font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Admin</span>
+                </div>
                 <span className="text-[9px] text-purple-400 font-normal">Super Admin</span>
               </button>
               <button
@@ -192,7 +195,10 @@ export default function LoginPage() {
                 onClick={() => fillDemo("tenant_client", "tenant123")}
                 className="px-2.5 py-2 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 text-[11px] text-blue-300 border border-blue-800/50 transition-all duration-300 font-semibold flex flex-col items-center gap-1 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <span>🏢 Tenant</span>
+                <div className="flex items-center gap-1.5 font-bold">
+                  <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Tenant</span>
+                </div>
                 <span className="text-[9px] text-blue-400 font-normal">Client / PM</span>
               </button>
               <button
@@ -200,7 +206,10 @@ export default function LoginPage() {
                 onClick={() => fillDemo("tpi_engineer", "engineer123")}
                 className="px-2.5 py-2 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/60 text-[11px] text-emerald-300 border border-emerald-800/50 transition-all duration-300 font-semibold flex flex-col items-center gap-1 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <span>👷 User</span>
+                <div className="flex items-center gap-1.5 font-bold">
+                  <HardHat className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>User</span>
+                </div>
                 <span className="text-[9px] text-emerald-400 font-normal">TPI Engineer</span>
               </button>
             </div>

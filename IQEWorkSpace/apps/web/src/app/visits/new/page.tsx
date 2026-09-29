@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CalendarCheck, Plus } from "lucide-react";
+import { ArrowLeft, CalendarCheck, Plus, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 
 function NewVisitForm() {
@@ -116,7 +116,8 @@ function NewVisitForm() {
 
           {autoPopulated && (
             <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold flex items-center gap-1.5 self-start sm:self-auto">
-              <span>✓ Auto-populated from Job {jobId}</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Auto-populated from Job {jobId}</span>
             </span>
           )}
         </div>

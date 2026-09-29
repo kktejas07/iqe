@@ -597,7 +597,7 @@ export default function JobsPage() {
                               className="w-full px-3.5 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 flex items-center gap-2 font-extrabold border-b border-slate-100 dark:border-slate-800"
                             >
                               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                              <span>✓ Client Inspector Approval (Sign-off)</span>
+                              <span>Client Inspector Approval (Sign-off)</span>
                             </button>
 
                             <button
@@ -605,7 +605,7 @@ export default function JobsPage() {
                               className="w-full px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-400 flex items-center gap-2 font-extrabold border-b border-slate-100 dark:border-slate-800"
                             >
                               <UserX className="w-4 h-4 text-rose-600" />
-                              <span>✕ Client Reject / Reassign Inspector</span>
+                              <span>Client Reject / Reassign Inspector</span>
                             </button>
 
                             <button

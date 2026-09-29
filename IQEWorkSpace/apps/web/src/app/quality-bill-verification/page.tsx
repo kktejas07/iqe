@@ -34,6 +34,7 @@ import {
   Plus,
   FileCode,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 
 export interface HybridQVRItem {
@@ -612,8 +613,16 @@ export default function QualityBillVerificationPage() {
   const [items, setItems] = useState<HybridQVRItem[]>(GRANULES_HYBRID_ITEMS);
   const [metadata, setMetadata] = useState<QVRMetadata>(CLIENT_METADATA_MAP["Granules India Limited - Gagillapur"]);
   const [viewLayout, setViewLayout] = useState<"vertical" | "horizontal">("vertical"); // Default to Vertical View
+  const [isSwitchingLayout, setIsSwitchingLayout] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  const handleSwitchLayout = (layout: "vertical" | "horizontal") => {
+    if (layout === viewLayout) return;
+    setIsSwitchingLayout(true);
+    setViewLayout(layout);
+    setTimeout(() => setIsSwitchingLayout(false), 220);
+  };
   
   // Modals state for explicit View and Edit actions requested by user!
   const [viewingItem, setViewingItem] = useState<HybridQVRItem | null>(null);
@@ -990,7 +999,7 @@ export default function QualityBillVerificationPage() {
             {/* Layout Toggle */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
               <button
-                onClick={() => setViewLayout("vertical")}
+                onClick={() => handleSwitchLayout("vertical")}
                 className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
                   viewLayout === "vertical"
                     ? "bg-[#003366] text-white shadow-xs font-extrabold"
@@ -1001,7 +1010,7 @@ export default function QualityBillVerificationPage() {
                 <span>Vertical View</span>
               </button>
               <button
-                onClick={() => setViewLayout("horizontal")}
+                onClick={() => handleSwitchLayout("horizontal")}
                 className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
                   viewLayout === "horizontal"
                     ? "bg-[#003366] text-white shadow-xs font-extrabold"
@@ -1208,9 +1217,17 @@ export default function QualityBillVerificationPage() {
         </div>
       </div>
 
-      {/* VERTICAL CARDS VIEW - Compact & Action Items at Bottom */}
-      {viewLayout === "vertical" && (
-        <div className="space-y-3">
+      {/* LAYOUT TRANSITION LOADER */}
+      {isSwitchingLayout ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Switching Layout View...</p>
+        </div>
+      ) : (
+        <>
+          {/* VERTICAL CARDS VIEW - Compact & Action Items at Bottom */}
+          {viewLayout === "vertical" && (
+            <div className="space-y-3">
           {filteredItems.map((item, idx) => {
             const isDiscrepancy = item.verificationStatus.includes("Discrepancy") || item.diffQty > 0;
             return (
@@ -1377,6 +1394,15 @@ export default function QualityBillVerificationPage() {
                   >
                     <FileCode className="w-3.5 h-3.5 text-blue-600" />
                     <span>Word</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleExportSingleItemCSV(item)}
+                    className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                    title="Download Single Row CSV for this item"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>CSV</span>
                   </button>
 
                   <button
@@ -1646,6 +1672,14 @@ export default function QualityBillVerificationPage() {
                           </button>
 
                           <button
+                            onClick={() => handleExportSingleItemCSV(item)}
+                            className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
+                            title="Download Single Row CSV"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                          </button>
+
+                          <button
                             onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                             className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
                             title="Download Excel with IQE Header"
@@ -1686,6 +1720,8 @@ export default function QualityBillVerificationPage() {
           </div>
         </div>
       )}
+    </>
+  )}
 
       {/* FULL EDIT MODAL (REQUISITE EDIT OPTION) */}
       {editingItem && (

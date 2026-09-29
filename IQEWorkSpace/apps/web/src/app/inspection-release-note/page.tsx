@@ -45,6 +45,7 @@ import {
   Truck,
   Send,
   Boxes,
+  Loader2,
 } from "lucide-react";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 
@@ -253,10 +254,24 @@ export default function InspectionReleaseNotePage() {
   const [activeTab, setActiveTab] = useState<"items" | "basis" | "dispatch" | "reports" | "signoff">("items");
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<ReleaseItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<ReleaseItem | null>(null);
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showSavedToast, setShowSavedToast] = useState<boolean>(false);
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
+
+  const handleExportSingleRowCSV = (item: ReleaseItem) => {
+    const headers = ["PO Item No", "Description", "Drawing Ref", "Tag No", "Unit", "PO Qty", "Prev Released", "Current Released", "Remarks"];
+    const row = [item.poItemNo, `"${(item.description || "").replace(/"/g, '""')}"`, `"${item.drawingRef || ""}"`, `"${item.tagNo || ""}"`, item.unit, item.poQty, item.prevReleasedQty, item.currentReleasedQty, `"${(item.remarks || "").replace(/"/g, '""')}"`];
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), row.join(",")].join("\n");
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", `IRN_Item_${item.tagNo || item.poItemNo}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const initialDetails = CLIENT_DETAILS_MAP["Granules India Limited - Gagillapur"];
   const [irnNo, setIrnNo] = useState<string>("IQE-IRN-2026-0419");
@@ -575,7 +590,13 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* Jump Links Strip */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs">
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs relative">
+        {isTabSwitching && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 text-xs font-bold text-[#0084bf]">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Navigating to section...</span>
+          </div>
+        )}
         <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
         {[
           { id: "sec-1", label: "1.0 Release Status" },
@@ -589,13 +610,18 @@ export default function InspectionReleaseNotePage() {
           { id: "sec-9", label: "9.0 Signatures" },
           { id: "sec-10", label: "10.0 Disclaimer" },
         ].map((sec) => (
-          <a
+          <button
             key={sec.id}
-            href={`#${sec.id}`}
-            className="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] hover:text-white rounded-md text-slate-700 font-semibold whitespace-nowrap transition-colors"
+            onClick={() => {
+              setIsTabSwitching(true);
+              const el = document.getElementById(sec.id);
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+              setTimeout(() => setIsTabSwitching(false), 250);
+            }}
+            className="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] hover:text-white rounded-md text-slate-700 font-semibold whitespace-nowrap transition-colors cursor-pointer"
           >
             {sec.label}
-          </a>
+          </button>
         ))}
       </div>
 
@@ -893,7 +919,7 @@ export default function InspectionReleaseNotePage() {
                   </th>
                   <th className="p-3 border-r border-slate-200 text-right">Balance Qty</th>
                   <th className="p-3 border-r border-slate-200 min-w-[260px]">Remarks / Packing Notes</th>
-                  <th className="p-3 text-center min-w-[120px]">Actions</th>
+                  <th className="p-3 text-center min-w-[210px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -1041,6 +1067,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-1">
+                          {/* 1. Lock/Unlock */}
                           <button
                             onClick={() => handleToggleLock(item.id)}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
@@ -1048,24 +1075,62 @@ export default function InspectionReleaseNotePage() {
                                 ? "bg-amber-100 text-amber-800 border border-amber-300"
                                 : "bg-slate-100 hover:bg-slate-200 text-slate-500"
                             }`}
-                            title={item.isLocked ? "Locked" : "Unlocked"}
+                            title={item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                           >
                             {item.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-700" /> : <Unlock className="w-3.5 h-3.5 text-slate-500" />}
                           </button>
 
+                          {/* 2. View Details Modal */}
                           <button
-                            onClick={() => setEditingItem({ ...item })}
+                            onClick={() => setViewingItem(item)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                            title="View Row Details"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 3. Edit Row */}
+                          <button
+                            onClick={() => !item.isLocked && setEditingItem({ ...item })}
                             disabled={item.isLocked}
                             className={`p-1.5 rounded-lg transition-colors ${
                               item.isLocked
                                 ? "bg-slate-100 text-slate-300 cursor-not-allowed"
                                 : "bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 cursor-pointer"
                             }`}
-                            title="Edit Row"
+                            title={item.isLocked ? "Item Locked" : "Edit Row Values"}
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
 
+                          {/* 4. Single CSV */}
+                          <button
+                            onClick={() => handleExportSingleRowCSV(item)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
+                            title="Download Single Row CSV"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 5. Live Preview Single Item PDF */}
+                          <button
+                            onClick={() => setShowPdfPreview(true)}
+                            className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
+                            title="Live Preview Single Item PDF Certificate"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 6. Download Single Item PDF */}
+                          <button
+                            onClick={() => window.open("http://localhost:8000/api/v1/reports/pdf/inspection-release-note", "_blank")}
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
+                            title="Download Single PDF Report"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* 7. Delete */}
                           <button
                             onClick={() => !item.isLocked && handleDeleteItem(item.id)}
                             disabled={item.isLocked}
@@ -1385,6 +1450,78 @@ export default function InspectionReleaseNotePage() {
           </button>
         </div>
       </div>
+
+      {/* VIEW ROW DETAILS MODAL */}
+      {viewingItem && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 font-heading">
+                    Item Details &bull; Item #{viewingItem.poItemNo}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">{viewingItem.tagNo}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingItem(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Description of Material</span>
+                <span className="font-semibold text-slate-800 text-xs">{viewingItem.description}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Drawing Ref</span>
+                <span className="font-mono text-slate-700">{viewingItem.drawingRef}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Tag / Heat No</span>
+                <span className="font-mono font-bold text-slate-800">{viewingItem.tagNo}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">PO Quantity</span>
+                <span className="font-bold text-slate-900">{viewingItem.poQty} {viewingItem.unit}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Previously Released</span>
+                <span className="font-bold text-slate-600">{viewingItem.prevReleasedQty} {viewingItem.unit}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Inspected / Accepted</span>
+                <span className="font-bold text-emerald-700">{viewingItem.inspectedQty} / {viewingItem.acceptedQty} {viewingItem.unit}</span>
+              </div>
+              <div className="bg-sky-50 p-2.5 rounded-xl border border-sky-100">
+                <span className="text-[10px] text-sky-600 uppercase font-bold tracking-wider block">Current Released Qty</span>
+                <span className="font-black text-sky-800 text-sm">{viewingItem.currentReleasedQty} {viewingItem.unit}</span>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Remarks / Notes</span>
+                <span className="text-slate-700 italic">{viewingItem.remarks || "—"}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT ROW MODAL */}
       {editingItem && (

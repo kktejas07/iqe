@@ -417,8 +417,15 @@ export default function VisitDetailPage() {
                       <span className={`text-xs font-bold ${item.is_completed ? "text-slate-900 line-through text-slate-500" : "text-slate-900"}`}>
                         {item.title}
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400 font-semibold">
-                        {item.is_completed ? "✓ COMPLETED" : "PENDING VERIFICATION"}
+                      <span className="text-[10px] font-mono text-slate-400 font-semibold inline-flex items-center gap-1">
+                        {item.is_completed ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span className="text-emerald-600">COMPLETED</span>
+                          </>
+                        ) : (
+                          "PENDING VERIFICATION"
+                        )}
                       </span>
                     </div>
                     {item.description && (
@@ -574,9 +581,10 @@ export default function VisitDetailPage() {
               />
               <button
                 onClick={handleQC}
-                className="px-5 py-2.5 rounded-xl bg-purple-700 text-white font-extrabold text-xs shadow-md hover:bg-purple-800"
+                className="px-5 py-2.5 rounded-xl bg-purple-700 text-white font-extrabold text-xs shadow-md hover:bg-purple-800 inline-flex items-center gap-1.5"
               >
-                ✓ Approve QC Check &amp; Pass to Finance
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Approve QC Check &amp; Pass to Finance</span>
               </button>
             </div>
           )}
@@ -594,9 +602,10 @@ export default function VisitDetailPage() {
               />
               <button
                 onClick={handleFinance}
-                className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-md hover:bg-emerald-800"
+                className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-md hover:bg-emerald-800 inline-flex items-center gap-1.5"
               >
-                ✓ Approve Finance Claim
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Approve Finance Claim</span>
               </button>
             </div>
           )}
@@ -883,8 +892,15 @@ export default function VisitDetailPage() {
                             <td className="p-2.5 font-semibold text-slate-800">{c.title}</td>
                             <td className="p-2.5 text-slate-500">{c.category || "Scope Verification"}</td>
                             <td className="p-2.5 text-right font-bold">
-                              <span className={c.is_completed ? "text-emerald-600 font-extrabold" : "text-amber-600"}>
-                                {c.is_completed ? "✓ PASS & VERIFIED" : "PENDING"}
+                              <span className={c.is_completed ? "text-emerald-600 font-extrabold inline-flex items-center gap-1" : "text-amber-600"}>
+                                {c.is_completed ? (
+                                  <>
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>PASS &amp; VERIFIED</span>
+                                  </>
+                                ) : (
+                                  "PENDING"
+                                )}
                               </span>
                             </td>
                           </tr>

@@ -82,7 +82,10 @@ export default function Dashboard() {
       {/* Home Page Title */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold text-[#0084bf] dark:text-sky-400" suppressHydrationWarning>{greeting} 👋</p>
+          <p className="text-xs font-semibold text-[#0084bf] dark:text-sky-400 flex items-center gap-1.5" suppressHydrationWarning>
+            <Sparkles className="w-3.5 h-3.5 text-[#e35f14]" />
+            <span>{greeting}</span>
+          </p>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-heading tracking-tight">Home Page</h1>
         </div>
         <div className="flex items-center gap-2">

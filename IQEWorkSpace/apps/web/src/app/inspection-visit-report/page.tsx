@@ -73,8 +73,8 @@ export interface DocumentReview {
   docType: string;
   docNo: string;
   rev: string;
-  status: "Reviewed & Found in Order" | "Approved" | "Comments Offered" | "Under Revision";
-  approvalStatus: "Client Approved" | "Consultant Approved" | "Supplier Internal";
+  status: string;
+  approvalStatus: string;
   remarks: string;
 }
 
@@ -125,6 +125,13 @@ export interface AttachmentItem {
   description: string;
   referencePages: string;
   remarks: string;
+}
+
+export interface PhotoItem {
+  id: string;
+  title: string;
+  desc: string;
+  tag: string;
 }
 
 const CLIENT_OPTIONS = [
@@ -543,6 +550,15 @@ export default function InspectionVisitReportPage() {
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [isInlineEditPunch, setIsInlineEditPunch] = useState<boolean>(false);
   const [isInlineEditCalibrations, setIsInlineEditCalibrations] = useState<boolean>(false);
+  const [isInlineEditDocs, setIsInlineEditDocs] = useState<boolean>(false);
+  const [isInlineEditAttachments, setIsInlineEditAttachments] = useState<boolean>(false);
+  const [isInlineEditPhotos, setIsInlineEditPhotos] = useState<boolean>(false);
+  const [photos, setPhotos] = useState<PhotoItem[]>([
+    { id: "ph-1", title: "Photo 1", desc: "Hydrostatic Test at 9.0 Bar with Calibrated Master Gauge", tag: "HE-3101 Shell" },
+    { id: "ph-2", title: "Photo 2", desc: "Digital Surface Electropolish Ra Measurement Scan", tag: "Ra = 0.28 µm" },
+    { id: "ph-3", title: "Photo 3", desc: "Borescope Inspection Video Output of Orbital Weld W-14", tag: "Root Concavity Flagged" },
+    { id: "ph-4", title: "Photo 4", desc: "Material Heat Stamping & Nameplate Verification", tag: "Heat #H-8821 Riveted" },
+  ]);
   const [editingItem, setEditingItem] = useState<InspectedItem | null>(null);
   const [viewingItem, setViewingItem] = useState<InspectedItem | null>(null);
   const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
@@ -554,6 +570,44 @@ export default function InspectionVisitReportPage() {
   const triggerSaveToast = () => {
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2800);
+  };
+
+  const handleAddDoc = () => {
+    const newDoc: DocumentReview = {
+      id: `doc-${Date.now()}`,
+      slNo: docs.length + 1,
+      docType: "Engineering Drawing / Fabrication Drawing",
+      docNo: `DWG-${Date.now().toString().slice(-4)}`,
+      rev: "R0",
+      status: "Approved",
+      approvalStatus: "Code 1 Approved by Client",
+      remarks: "Reviewed at site during inspection",
+    };
+    setDocs([...docs, newDoc]);
+    triggerSaveToast();
+  };
+
+  const handleAddAttachment = () => {
+    const newAtt: AttachmentItem = {
+      id: `att-${Date.now()}`,
+      slNo: attachments.length + 1,
+      description: "Inspection Certificate / Quality Record",
+      referencePages: `TC-IQE-${Date.now().toString().slice(-4)} (2 Pages)`,
+      remarks: "Verified and attached to dossier",
+    };
+    setAttachments([...attachments, newAtt]);
+    triggerSaveToast();
+  };
+
+  const handleAddPhoto = () => {
+    const newPh: PhotoItem = {
+      id: `ph-${Date.now()}`,
+      title: `Photo ${photos.length + 1}`,
+      desc: "Physical Inspection Verification Record",
+      tag: "Site Inspection Finding",
+    };
+    setPhotos([...photos, newPh]);
+    triggerSaveToast();
   };
 
   const handleAddPunch = () => {
@@ -756,111 +810,6 @@ export default function InspectionVisitReportPage() {
             >
               <Printer className="w-4 h-4" />
             </button>
-          </div>
-        </div>
-
-        {/* 5-Card Project & Contract Metadata Strip */}
-        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-              <Building2 className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-blue-700 uppercase font-extrabold tracking-wider">Project &amp; Location</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.projectName}</p>
-              <p className="text-[10px] text-slate-500 truncate">{clientMeta.projectLocation}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-              <Users className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-emerald-700 uppercase font-extrabold tracking-wider">Customer / Client</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.customer}</p>
-              <p className="text-[10px] text-emerald-700 font-semibold truncate">RFI: {clientMeta.rfiRef}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-              <Factory className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-amber-800 uppercase font-extrabold tracking-wider">Vendor / Supplier</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.supplier}</p>
-              <p className="text-[10px] text-slate-500 truncate">Sub: {clientMeta.subSupplier}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
-              <FileText className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-purple-700 uppercase font-extrabold tracking-wider">PO Ref &amp; Date</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.poNumber}</p>
-              <p className="text-[10px] text-purple-700 font-mono truncate">Date: {clientMeta.poDate}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-teal-100 flex items-center justify-center text-teal-700 shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-teal-800 uppercase font-extrabold tracking-wider">Lead TPI Inspector</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.inspector}</p>
-              <p className="text-[10px] text-teal-700 font-semibold truncate">Type-A ISO 17020 Lead</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4-Card Summary Metric Strip */}
-        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider">Total Offered</p>
-              <p className="text-xl font-extrabold font-mono text-slate-900 mt-0.5 truncate">{kpis.totalOffered} Units</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 truncate">Across {items.length} items</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-extrabold text-sm shrink-0">
-              #
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-emerald-700 font-extrabold uppercase tracking-wider">Accepted for Release</p>
-              <p className="text-xl font-extrabold font-mono text-emerald-700 mt-0.5 truncate">{kpis.totalAccepted} Units</p>
-              <p className="text-[10px] text-emerald-700/80 mt-0.5 truncate">Inspected: {kpis.totalInspected} units</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-rose-700 font-extrabold uppercase tracking-wider">Rejected / Held</p>
-              <p className="text-xl font-extrabold font-mono text-rose-700 mt-0.5 truncate">{kpis.totalRejected} Units</p>
-              <p className="text-[10px] text-rose-700/80 mt-0.5 truncate">{kpis.openPunchCount} Open NCRs</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-indigo-700 uppercase font-extrabold tracking-wider">Conclusion Status</p>
-              <p className="text-xs font-extrabold font-mono text-indigo-800 mt-0.5 truncate uppercase">{inspectionStatus}</p>
-              <p className="text-[10px] text-indigo-700/80 mt-0.5 truncate font-semibold">QAP: {clientMeta.applicableQAP}</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-              <Layers className="w-4 h-4" />
-            </div>
           </div>
         </div>
 
@@ -1314,8 +1263,34 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">3.0 DOCUMENTS &amp; REFERENCES REVIEWED</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 3.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">3.0 DOCUMENTS &amp; REFERENCES REVIEWED</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {docs.length} docs
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditDocs(!isInlineEditDocs)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditDocs ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditDocs ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddDoc}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Document</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1329,22 +1304,99 @@ export default function InspectionVisitReportPage() {
                   <th className="py-2.5 px-3 w-36">Status</th>
                   <th className="py-2.5 px-3 w-36">Approval Status</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Remarks</th>
+                  {isInlineEditDocs && <th className="py-2.5 px-3 w-16 text-center">Action</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {docs.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/80">
                     <td className="py-2 px-3 text-center font-mono font-bold text-slate-500">{doc.slNo}</td>
-                    <td className="py-2 px-3 font-bold text-slate-800">{doc.docType}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">{doc.docNo}</td>
-                    <td className="py-2 px-3 text-center font-mono text-slate-600">{doc.rev}</td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        {doc.status}
-                      </span>
+                    <td className="py-2 px-3 font-bold text-slate-800">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.docType}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, docType: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        doc.docType
+                      )}
                     </td>
-                    <td className="py-2 px-3 text-slate-700">{doc.approvalStatus}</td>
-                    <td className="py-2 px-3 text-slate-600 text-[11px]">{doc.remarks}</td>
+                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.docNo}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, docNo: e.target.value } : d)))}
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold text-[#003366]"
+                        />
+                      ) : (
+                        doc.docNo
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-center font-mono text-slate-600">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.rev}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, rev: e.target.value } : d)))}
+                          className="w-12 p-1 text-center font-mono bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.rev
+                      )}
+                    </td>
+                    <td className="py-2 px-3">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.status}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, status: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {doc.status}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.approvalStatus}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, approvalStatus: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.approvalStatus
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-[11px]">
+                      {isInlineEditDocs ? (
+                        <input
+                          type="text"
+                          value={doc.remarks}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, remarks: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.remarks
+                      )}
+                    </td>
+                    {isInlineEditDocs && (
+                      <td className="py-2 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setDocs(docs.filter((d) => d.id !== doc.id))}
+                          className="p-1 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1768,8 +1820,34 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">9.0 ATTACHMENTS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 9.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">9.0 ATTACHMENTS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {attachments.length} items
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditAttachments(!isInlineEditAttachments)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditAttachments ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditAttachments ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddAttachment}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Attachment</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -1780,18 +1858,64 @@ export default function InspectionVisitReportPage() {
                   <th className="py-2.5 px-3 min-w-[260px]">Attachment Description</th>
                   <th className="py-2.5 px-3 w-56 font-mono">Reference / No. of Pages</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Remarks</th>
+                  {isInlineEditAttachments && <th className="py-2.5 px-3 w-16 text-center">Action</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {attachments.map((att) => (
                   <tr key={att.id} className="hover:bg-slate-50/80">
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-500">{att.slNo}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900 flex items-center gap-1.5">
-                      <Paperclip className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{att.description}</span>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditAttachments ? (
+                        <input
+                          type="text"
+                          value={att.description}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, description: e.target.value } : a)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{att.description}</span>
+                        </div>
+                      )}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-700 font-bold">{att.referencePages}</td>
-                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">{att.remarks}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-700 font-bold">
+                      {isInlineEditAttachments ? (
+                        <input
+                          type="text"
+                          value={att.referencePages}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, referencePages: e.target.value } : a)))}
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        att.referencePages
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">
+                      {isInlineEditAttachments ? (
+                        <input
+                          type="text"
+                          value={att.remarks}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, remarks: e.target.value } : a)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        att.remarks
+                      )}
+                    </td>
+                    {isInlineEditAttachments && (
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setAttachments(attachments.filter((a) => a.id !== att.id))}
+                          className="p-1 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
+                          title="Delete Attachment"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1804,8 +1928,34 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">10.0 PHOTOGRAPHS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 10.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">10.0 PHOTOGRAPHS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+                {photos.length} photos
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditPhotos(!isInlineEditPhotos)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditPhotos ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditPhotos ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddPhoto}
+                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Photo</span>
+              </button>
+            </div>
           </div>
 
           <div className="p-4 bg-white space-y-3 text-xs">
@@ -1814,21 +1964,54 @@ export default function InspectionVisitReportPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { title: "Photo 1", desc: "Hydrostatic Test at 9.0 Bar with Calibrated Master Gauge", tag: "HE-3101 Shell" },
-                { title: "Photo 2", desc: "Digital Surface Electropolish Ra Measurement Scan", tag: "Ra = 0.28 µm" },
-                { title: "Photo 3", desc: "Borescope Inspection Video Output of Orbital Weld W-14", tag: "Root Concavity Flagged" },
-                { title: "Photo 4", desc: "Material Heat Stamping & Nameplate Verification", tag: "Heat #H-8821 Riveted" },
-              ].map((ph, idx) => (
-                <div key={idx} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 flex flex-col justify-between">
+              {photos.map((ph, idx) => (
+                <div key={ph.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 flex flex-col justify-between relative group">
+                  {isInlineEditPhotos && (
+                    <button
+                      type="button"
+                      onClick={() => setPhotos(photos.filter((p) => p.id !== ph.id))}
+                      className="absolute top-2 right-2 p-1 rounded-md bg-rose-600 text-white hover:bg-rose-700 shadow-sm cursor-pointer z-10"
+                      title="Delete Photo"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                   <div className="h-28 rounded-lg bg-slate-200 border border-slate-300 flex flex-col items-center justify-center text-slate-400 gap-1">
                     <Camera className="w-6 h-6 text-slate-400" />
                     <span className="text-[10px] font-mono">[Photograph {idx + 1}]</span>
                   </div>
-                  <div>
-                    <span className="font-mono text-[10px] font-extrabold text-[#003366] block">{ph.title}</span>
-                    <p className="font-bold text-slate-800 text-[11px] mt-0.5">{ph.desc}</p>
-                    <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">{ph.tag}</span>
+                  <div className="space-y-1">
+                    {isInlineEditPhotos ? (
+                      <>
+                        <input
+                          type="text"
+                          value={ph.title}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, title: e.target.value } : p)))}
+                          className="w-full p-1 font-mono text-[10px] font-extrabold text-[#003366] bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Photo title"
+                        />
+                        <input
+                          type="text"
+                          value={ph.desc}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, desc: e.target.value } : p)))}
+                          className="w-full p-1 text-[11px] font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Description"
+                        />
+                        <input
+                          type="text"
+                          value={ph.tag}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, tag: e.target.value } : p)))}
+                          className="w-full p-1 text-[10px] font-mono text-slate-500 bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Tag / Finding"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-mono text-[10px] font-extrabold text-[#003366] block">{ph.title}</span>
+                        <p className="font-bold text-slate-800 text-[11px] mt-0.5">{ph.desc}</p>
+                        <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">{ph.tag}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

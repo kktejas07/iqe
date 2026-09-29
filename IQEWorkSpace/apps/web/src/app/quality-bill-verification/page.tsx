@@ -1085,66 +1085,6 @@ export default function QualityBillVerificationPage() {
             <span>Changes updated and saved successfully!</span>
           </div>
         )}
-
-        {/* Executive Metadata Section */}
-        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2 text-[11px]">
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">Report No. &amp; Rev</p>
-            <p className="font-mono font-bold text-slate-900">{metadata.reportNo} (R{metadata.revision})</p>
-            <p className="text-[10px] text-slate-500">Date: {metadata.reportDate}</p>
-          </div>
-
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">Client &amp; Asset Owner</p>
-            <p className="font-bold text-slate-900 truncate" title={metadata.client}>{metadata.client}</p>
-            <p className="text-[10px] text-slate-500 truncate">{metadata.location}</p>
-          </div>
-
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">EPC Contractor / Supplier</p>
-            <p className="font-bold text-slate-900 truncate" title={metadata.epcContractor}>{metadata.epcContractor}</p>
-            <p className="text-[10px] text-purple-700 font-mono font-bold">PO: {metadata.poWoNo}</p>
-          </div>
-
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">IQE Inspector &amp; Discipline</p>
-            <p className="font-bold text-slate-900">{metadata.iqeInspector}</p>
-            <p className="text-[10px] text-emerald-700 font-bold">{metadata.discipline}</p>
-          </div>
-
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">RA Bill / Claim No.</p>
-            <p className="font-mono font-bold text-blue-700">{metadata.raBillNo}</p>
-            <p className="text-[10px] text-slate-500">Period: {metadata.verificationPeriod}</p>
-          </div>
-        </div>
-
-        {/* Metric Cards - Compact Spacing */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-slate-400">Total Scope PO Qty</p>
-            <p className="text-xl font-extrabold font-mono text-slate-900">{totalContractQty.toLocaleString()}</p>
-            <p className="text-[10px] text-slate-500">Contract / PO Quantities</p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 shadow-2xs space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-amber-900">Current Claimed Qty</p>
-            <p className="text-xl font-extrabold font-mono text-amber-900">{totalClaimedQty.toLocaleString()}</p>
-            <p className="text-[10px] text-amber-800">Submitted in {metadata.raBillNo}</p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-2xs space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-emerald-900">Current Verified Qty</p>
-            <p className="text-xl font-extrabold font-mono text-emerald-700">{totalVerifiedQty.toLocaleString()}</p>
-            <p className="text-[10px] text-emerald-800">Physically Audited &amp; Approved</p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-rose-50/70 border border-rose-200 shadow-2xs space-y-0.5">
-            <p className="text-[9px] font-extrabold uppercase text-rose-900">Deduction / Diff Qty</p>
-            <p className="text-xl font-extrabold font-mono text-rose-700">{totalDiffQty.toLocaleString()}</p>
-            <p className="text-[10px] text-rose-800">{discrepancyCount} Item(s) Flagged Discrepancy</p>
-          </div>
-        </div>
       </div>
 
       {/* Filter and Search Bar - Compact Spacing */}

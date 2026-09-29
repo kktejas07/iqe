@@ -7,6 +7,7 @@ import {
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -349,7 +350,7 @@ export default function ControlNumbersPage() {
       loadCNs();
     } catch (err) {
       console.error(err);
-      alert(editingCN ? "Failed to update Control Number" : "Failed to generate Control Number");
+      toast.error(editingCN ? "Couldn't update the control number. Please try again." : "Couldn't generate the control number. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -362,7 +363,7 @@ export default function ControlNumbersPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Control Numbers &amp; Enquiry Bill Verification</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-xs font-bold font-mono">
               {cns.length} Records
             </span>
           </div>
@@ -372,7 +373,7 @@ export default function ControlNumbersPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh Registry"
             onClick={loadCNs}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -392,7 +393,7 @@ export default function ControlNumbersPage() {
 
           <button
             onClick={handleOpenAddModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Control Number</span>
@@ -404,7 +405,7 @@ export default function ControlNumbersPage() {
       <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alphabetical Customer Index</span>
-          <span className="text-[11px] font-mono text-indigo-600 font-semibold">Filter by Customer or Supplier initial</span>
+          <span className="text-[11px] font-mono text-brand-600 font-semibold">Filter by Customer or Supplier initial</span>
         </div>
         <div className="flex flex-wrap items-center gap-1">
           {alphabet.map((letter) => {
@@ -415,8 +416,8 @@ export default function ControlNumbersPage() {
                 onClick={() => setSelectedAlpha(letter)}
                 className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-sm scale-105"
-                    : "bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200/60"
+                    ? "bg-brand-600 text-white shadow-sm scale-105"
+                    : "bg-slate-50 text-slate-600 hover:bg-brand-50 hover:text-brand-600 border border-slate-200/60"
                 }`}
               >
                 {letter}
@@ -430,20 +431,21 @@ export default function ControlNumbersPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Control No (CN-2026-001), Customer, Supplier, LOI/SO Ref, Scope, Location..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("active")}
               className={`px-3 py-1 rounded-lg transition-all ${
-                statusFilter === "active" ? "bg-white text-indigo-600 font-bold shadow-sm" : "text-slate-600 hover:text-slate-900"
+                statusFilter === "active" ? "bg-white text-brand-600 font-bold shadow-sm" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Active
@@ -467,16 +469,16 @@ export default function ControlNumbersPage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-indigo-600 shadow-sm" : "hover:text-slate-900"}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-brand-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-indigo-600 shadow-sm" : "hover:text-slate-900"}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-brand-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
             >
               <LayoutGrid className="w-4 h-4" />
@@ -513,9 +515,9 @@ export default function ControlNumbersPage() {
                 ) : (
                   cns.map((cn) => (
                     <tr key={cn.control_number_id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-3 font-mono font-bold text-indigo-600">
+                      <td className="p-3 font-mono font-bold text-brand-600">
                         <p>{cn.control_number_id}</p>
-                        <span className="text-[10px] text-slate-500">{cn.enquiry_no || "ENQ-901"}</span>
+                        <span className="text-[11px] text-slate-500">{cn.enquiry_no || "ENQ-901"}</span>
                       </td>
                       <td className="p-3 max-w-xs">
                         <p className="font-bold text-slate-900">{cn.client_name || "Reliance Industries Ltd"}</p>
@@ -527,13 +529,13 @@ export default function ControlNumbersPage() {
                       </td>
                       <td className="p-3">
                         <p className="font-bold text-slate-900">{cn.so_number || "SO-8890"}</p>
-                        <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[11px] font-bold">
                           {cn.so_type || "Regular"}
                         </span>
                       </td>
                       <td className="p-3 max-w-xs">
                         <p className="font-bold text-slate-900 truncate">{cn.equipment_name || "Pipe Elbows Audit"}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-emerald-700 font-mono">
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-emerald-700 font-mono">
                           <span>Ref: {cn.ra_bill_ref || "RA-BILL-001"}</span>
                           <span>• Qty: {cn.claimed_qty || 10}</span>
                         </div>
@@ -542,7 +544,7 @@ export default function ControlNumbersPage() {
                         ₹{(cn.contract_amount || 0).toLocaleString()}
                       </td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           cn.is_active ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"
                         }`}>
                           {cn.is_active ? "Active" : "Closed"}
@@ -550,15 +552,15 @@ export default function ControlNumbersPage() {
                       </td>
                       <td className="p-3 text-right relative">
                         <div className="flex items-center justify-end gap-1">
-                          <button
+                          <button aria-label="View Full Details"
                             onClick={() => handleOpenViewDetailsModal(cn)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-brand-600 transition-colors"
                             title="View Full Details"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
 
-                          <button
+                          <button aria-label="Edit Row"
                             onClick={() => handleOpenEditModal(cn)}
                             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-blue-600 transition-colors"
                             title="Edit Row"
@@ -566,7 +568,7 @@ export default function ControlNumbersPage() {
                             <Edit3 className="w-4 h-4" />
                           </button>
 
-                          <button
+                          <button aria-label="Download Single Row (CSV)"
                             onClick={() => handleExportSingleRowCSV(cn)}
                             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-emerald-600 transition-colors"
                             title="Download Single Row (CSV)"
@@ -574,7 +576,7 @@ export default function ControlNumbersPage() {
                             <Download className="w-4 h-4" />
                           </button>
 
-                          <button
+                          <button aria-label="More actions" title="More actions"
                             onClick={() => setActiveDropdown(activeDropdown === cn.control_number_id ? null : cn.control_number_id)}
                             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
                           >
@@ -589,7 +591,7 @@ export default function ControlNumbersPage() {
                               onClick={() => handleOpenViewDetailsModal(cn)}
                               className="w-full px-3 py-1.5 hover:bg-slate-100 text-slate-700 flex items-center gap-2 font-semibold"
                             >
-                              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                              <Eye className="w-3.5 h-3.5 text-brand-600" />
                               <span>View Full Row Details</span>
                             </button>
 
@@ -628,10 +630,10 @@ export default function ControlNumbersPage() {
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg">
+                  <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-0.5 rounded-lg">
                     {cn.control_number_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     cn.is_active ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"
                   }`}>
                     {cn.is_active ? "Active" : "Closed"}
@@ -655,7 +657,7 @@ export default function ControlNumbersPage() {
                   onClick={() => handleOpenViewDetailsModal(cn)}
                   className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-colors flex items-center gap-1"
                 >
-                  <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                  <Eye className="w-3.5 h-3.5 text-brand-600" />
                   <span>View</span>
                 </button>
 
@@ -686,12 +688,12 @@ export default function ControlNumbersPage() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-indigo-600" />
+                <FileCheck className="w-5 h-5 text-brand-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   {editingCN ? `Edit Control Number Row — ${controlNumberId}` : "Add New Control Number Row"}
                 </h2>
               </div>
-              <button onClick={() => setShowCNModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowCNModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -699,8 +701,8 @@ export default function ControlNumbersPage() {
             <form onSubmit={handleSaveCN} className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Control Number ID *</label>
-                  <input
+                  <label htmlFor="connum-control-number-id" className="block text-xs font-semibold text-slate-700 mb-1">Control Number ID *</label>
+                  <input id="connum-control-number-id"
                     type="text"
                     required
                     value={controlNumberId}
@@ -709,8 +711,8 @@ export default function ControlNumbersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Enquiry Reference No *</label>
-                  <input
+                  <label htmlFor="connum-enquiry-reference-no" className="block text-xs font-semibold text-slate-700 mb-1">Enquiry Reference No *</label>
+                  <input id="connum-enquiry-reference-no"
                     type="text"
                     required
                     value={enquiryNo}
@@ -719,8 +721,8 @@ export default function ControlNumbersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Equipment Name / Description *</label>
-                  <input
+                  <label htmlFor="connum-equipment-name-description" className="block text-xs font-semibold text-slate-700 mb-1">Equipment Name / Description *</label>
+                  <input id="connum-equipment-name-description"
                     type="text"
                     required
                     value={equipmentName}
@@ -739,8 +741,8 @@ export default function ControlNumbersPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">1. Item Description</label>
-                    <input
+                    <label htmlFor="connum-1-item-description" className="block text-[11px] font-medium text-slate-600 mb-0.5">1. Item Description</label>
+                    <input id="connum-1-item-description"
                       type="text"
                       value={equipmentName}
                       onChange={(e) => setEquipmentName(e.target.value)}
@@ -750,8 +752,8 @@ export default function ControlNumbersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">2. Verification Scope</label>
-                    <input
+                    <label htmlFor="connum-2-verification-scope" className="block text-[11px] font-medium text-slate-600 mb-0.5">2. Verification Scope</label>
+                    <input id="connum-2-verification-scope"
                       type="text"
                       value={workScope}
                       onChange={(e) => setWorkScope(e.target.value)}
@@ -761,8 +763,8 @@ export default function ControlNumbersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">3. RA Bill Ref No</label>
-                    <input
+                    <label htmlFor="connum-3-ra-bill-ref-no" className="block text-[11px] font-medium text-slate-600 mb-0.5">3. RA Bill Ref No</label>
+                    <input id="connum-3-ra-bill-ref-no"
                       type="text"
                       value={raBillRef}
                       onChange={(e) => setRaBillRef(e.target.value)}
@@ -772,8 +774,8 @@ export default function ControlNumbersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">4. Claimed Qty</label>
-                    <input
+                    <label htmlFor="connum-4-claimed-qty" className="block text-[11px] font-medium text-slate-600 mb-0.5">4. Claimed Qty</label>
+                    <input id="connum-4-claimed-qty"
                       type="number"
                       value={claimedQty}
                       onChange={(e) => setClaimedQty(e.target.value)}
@@ -783,8 +785,8 @@ export default function ControlNumbersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">5. Verified Rate / Amount ₹</label>
-                    <input
+                    <label htmlFor="connum-5-verified-rate-amount" className="block text-[11px] font-medium text-slate-600 mb-0.5">5. Verified Rate / Amount ₹</label>
+                    <input id="connum-5-verified-rate-amount"
                       type="number"
                       value={contractAmount}
                       onChange={(e) => setContractAmount(Number(e.target.value))}
@@ -794,8 +796,8 @@ export default function ControlNumbersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">6. Verification Remarks</label>
-                    <input
+                    <label htmlFor="connum-6-verification-remarks" className="block text-[11px] font-medium text-slate-600 mb-0.5">6. Verification Remarks</label>
+                    <input id="connum-6-verification-remarks"
                       type="text"
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}
@@ -817,7 +819,7 @@ export default function ControlNumbersPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-600 text-white rounded-xl hover:bg-brand-700 shadow-sm"
                 >
                   {submitting ? "Saving..." : editingCN ? "Save Changes" : "Create Control Number"}
                 </button>
@@ -833,7 +835,7 @@ export default function ControlNumbersPage() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-indigo-600" />
+                <Eye className="w-5 h-5 text-brand-600" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
                     Row Details — {selectedCNForDetails.control_number_id}
@@ -841,7 +843,7 @@ export default function ControlNumbersPage() {
                   <p className="text-xs text-slate-500">Enquiry No: {selectedCNForDetails.enquiry_no}</p>
                 </div>
               </div>
-              <button onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>

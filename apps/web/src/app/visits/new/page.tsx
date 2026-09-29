@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CalendarCheck, Plus, CheckCircle2 } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 function NewVisitForm() {
   const router = useRouter();
@@ -82,7 +83,7 @@ function NewVisitForm() {
       router.push(`/visits/${res.visit_id || ""}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to schedule visit");
+      toast.error("Couldn't schedule the visit. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -125,10 +126,11 @@ function NewVisitForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+              <label htmlFor="visit-job" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
                 Select Approved Job Reference *
               </label>
               <select
+                id="visit-job"
                 value={jobId}
                 onChange={(e) => setJobId(e.target.value)}
                 required
@@ -146,8 +148,9 @@ function NewVisitForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Assigned Inspector Name *</label>
+              <label htmlFor="visit-inspector" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Assigned Inspector Name *</label>
               <input
+                id="visit-inspector"
                 type="text"
                 required
                 value={inspectorName}
@@ -158,8 +161,9 @@ function NewVisitForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Planned Site Visit Date *</label>
+              <label htmlFor="visit-date" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Planned Site Visit Date *</label>
               <input
+                id="visit-date"
                 type="date"
                 required
                 value={plannedDate}
@@ -171,8 +175,9 @@ function NewVisitForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Customer / Client</label>
+              <label htmlFor="visit-customer" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Customer / Client</label>
               <input
+                id="visit-customer"
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
@@ -182,8 +187,9 @@ function NewVisitForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Manufacturer Plant / Works Site</label>
+              <label htmlFor="visit-manufacturer" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Manufacturer Plant / Works Site</label>
               <input
+                id="visit-manufacturer"
                 type="text"
                 value={manufacturerName}
                 onChange={(e) => setManufacturerName(e.target.value)}
@@ -193,8 +199,9 @@ function NewVisitForm() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">TPI Standard Protocol *</label>
+              <label htmlFor="visit-protocol" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">TPI Standard Protocol *</label>
               <select
+                id="visit-protocol"
                 value={protocolStandard}
                 onChange={(e) => setProtocolStandard(e.target.value)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0084bf] font-semibold text-slate-900 dark:text-slate-100"
@@ -209,8 +216,9 @@ function NewVisitForm() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Inspection Location & Address</label>
+            <label htmlFor="visit-location" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Inspection Location & Address</label>
             <input
+              id="visit-location"
               type="text"
               value={plantLocation}
               onChange={(e) => setPlantLocation(e.target.value)}
@@ -237,8 +245,9 @@ function NewVisitForm() {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Scope of Physical Verification / Remarks</label>
+            <label htmlFor="visit-scope" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">Scope of Physical Verification / Remarks</label>
             <textarea
+              id="visit-scope"
               rows={3}
               value={inspectionScope}
               onChange={(e) => setInspectionScope(e.target.value)}

@@ -1,8 +1,10 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
+import { confirmDialog } from "@/components/feedback";
 import {
   FileSpreadsheet,
   CheckCircle2,
@@ -564,10 +566,17 @@ export default function BOQReconciliationPage() {
   };
 
   // Delete Row Handler
-  const handleDeleteItem = (id: string) => {
-    if (confirm("Are you sure you want to remove this BOQ item from the reconciliation audit?")) {
-      setItems((prev) => prev.filter((it) => it.id !== id));
-    }
+  const handleDeleteItem = async (id: string) => {
+    if (
+      !(await confirmDialog({
+        title: "Remove this BOQ item?",
+        message: "The item will be removed from the reconciliation audit.",
+        confirmLabel: "Remove",
+        danger: true,
+      }))
+    )
+      return;
+    setItems((prev) => prev.filter((it) => it.id !== id));
   };
 
   // Duplicate Row Handler
@@ -778,21 +787,21 @@ export default function BOQReconciliationPage() {
       <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <span>BOQ Reconciliation &amp; Material Audit</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] border border-blue-200 text-[11px] font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
               FORMAT F-BOQ-01 &bull; ISO 17020
             </span>
 
             {/* Select Client Asset Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs max-w-full min-w-0">
               <Users className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-slate-600 font-extrabold">Select Client:</span>
-              <select
+              <span className="text-slate-600 font-extrabold shrink-0">Select Client:</span>
+              <select aria-label="Select client"
                 value={selectedClient}
                 onChange={(e) => handleClientChange(e.target.value)}
-                className="bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="min-w-0 max-w-full bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 {CLIENT_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -804,14 +813,14 @@ export default function BOQReconciliationPage() {
 
             {/* FIDIC Red Book Clause Badge */}
             <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-              <Scale className="w-3.5 h-3.5 text-indigo-600" />
+              <Scale className="w-3.5 h-3.5 text-brand-600" />
               <span className="text-slate-500 text-[11px] font-bold">Standard:</span>
               <span className="text-slate-800 font-extrabold">FIDIC Red Book Cl. 14.1</span>
             </div>
           </div>
 
           {/* Quick Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               onClick={() => setShowPdfPreview(true)}
               className="px-3.5 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
@@ -821,7 +830,7 @@ export default function BOQReconciliationPage() {
               <span>Live Preview</span>
             </button>
 
-            <button
+            <button aria-label="Save BOQ Audit Ledger"
               onClick={triggerSaveToast}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
               title="Save BOQ Audit Ledger"
@@ -829,7 +838,7 @@ export default function BOQReconciliationPage() {
               <Save className="w-4 h-4 text-sky-400" />
             </button>
 
-            <button
+            <button aria-label="Export Full BOQ Ledger to CSV"
               onClick={handleExportCSV}
               className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
               title="Export Full BOQ Ledger to CSV"
@@ -837,7 +846,7 @@ export default function BOQReconciliationPage() {
               <Download className="w-4 h-4" />
             </button>
 
-            <button
+            <button aria-label="Print BOQ Audit Dossier"
               onClick={() => window.print()}
               className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer"
               title="Print BOQ Audit Dossier"
@@ -861,7 +870,7 @@ export default function BOQReconciliationPage() {
           >
             <Columns className="w-3.5 h-3.5" />
             <span>1. BOQ Quantity Ledger</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${activeTab === "matrix" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
+            <span className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${activeTab === "matrix" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
               {items.length}
             </span>
           </button>
@@ -876,7 +885,7 @@ export default function BOQReconciliationPage() {
           >
             <Scale className="w-3.5 h-3.5" />
             <span>2. Material Consumption Audit</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${activeTab === "materials" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
+            <span className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${activeTab === "materials" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>
               {materials.length}
             </span>
           </button>
@@ -908,7 +917,7 @@ export default function BOQReconciliationPage() {
 
         <Link
           href="/tpi-billing"
-          className="inline-flex items-center gap-1.5 text-xs text-[#003366] hover:underline font-bold"
+          className="inline-flex items-center gap-1.5 text-xs text-[#003366] dark:text-sky-300 hover:underline font-bold"
         >
           <span>Open Bill Verification (F-BILL-01)</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -921,17 +930,17 @@ export default function BOQReconciliationPage() {
           {/* Main Table Toolbar (Identical to Bill Verification) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+              <FileSpreadsheet className="w-4 h-4 text-brand-600" />
               <span>BOQ Measurement Ledger &amp; Reconciliation Matrix ({filteredItems.length} items)</span>
             </h2>
 
             <div className="flex flex-wrap items-center gap-2">
-              <input
+              <input aria-label="Search BOQ items"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search item code, description, JMR..."
-                className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
 
               {/* Inline Edit Toggle Button */}
@@ -940,7 +949,7 @@ export default function BOQReconciliationPage() {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-xs cursor-pointer ${
                   isInlineEditMode
                     ? "bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-amber-500/20"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                    : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 border-slate-300"
                 }`}
                 title="Toggle Inline Cell Editing Mode"
               >
@@ -976,7 +985,7 @@ export default function BOQReconciliationPage() {
               </button>
 
               <a
-                href="http://localhost:8000/api/v1/reports/pdf/boq-reconciliation"
+                href={`${API_BASE}/api/v1/reports/pdf/boq-reconciliation`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
@@ -988,7 +997,7 @@ export default function BOQReconciliationPage() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                className="px-3.5 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add BOQ Item #{items.length + 1}</span>
@@ -1008,7 +1017,7 @@ export default function BOQReconciliationPage() {
                 className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   selectedDiscipline === d
                     ? "bg-[#003366] text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 {d}
@@ -1025,7 +1034,7 @@ export default function BOQReconciliationPage() {
                 className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   selectedStatus === s
                     ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 {s.replace("_", " ")}
@@ -1087,18 +1096,18 @@ export default function BOQReconciliationPage() {
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-indigo-50/40 transition-colors ${isOver ? "bg-rose-50/30" : ""}`}
+                      className={`hover:bg-brand-50/40 transition-colors ${isOver ? "bg-rose-50/30" : ""}`}
                     >
                       <td className="p-3 text-center font-mono font-bold text-slate-700 bg-slate-50 border-r border-slate-100">
                         #{idx + 1}
                       </td>
-                      <td className="p-3 font-mono font-bold text-indigo-600 border-r border-slate-100 whitespace-nowrap">
+                      <td className="p-3 font-mono font-bold text-brand-600 border-r border-slate-100 whitespace-nowrap">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Item code for ${item.itemNo}`}
                             type="text"
                             value={item.itemNo}
                             onChange={(e) => handleInlineChange(item.id, "itemNo", e.target.value)}
-                            className="w-24 p-1 font-mono font-bold text-indigo-600 bg-white border border-indigo-300 rounded text-xs"
+                            className="w-24 p-1 font-mono font-bold text-brand-600 bg-white border border-brand-300 rounded text-xs"
                           />
                         ) : (
                           item.itemNo
@@ -1106,7 +1115,7 @@ export default function BOQReconciliationPage() {
                       </td>
                       <td className="p-3 border-r border-slate-100 font-medium">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Description for ${item.itemNo}`}
                             type="text"
                             value={item.description}
                             onChange={(e) => handleInlineChange(item.id, "description", e.target.value)}
@@ -1115,7 +1124,7 @@ export default function BOQReconciliationPage() {
                         ) : (
                           <>
                             <div className="font-semibold text-slate-900">{item.description}</div>
-                            <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-1.5">
+                            <div className="text-[11px] text-slate-400 font-mono mt-0.5 flex items-center gap-1.5">
                               <span className="text-blue-600 font-bold">[{item.discipline}]</span>
                               <span>&bull;</span>
                               <span>JMR: {item.jmrRef}</span>
@@ -1131,7 +1140,7 @@ export default function BOQReconciliationPage() {
                       </td>
                       <td className="p-3 text-center font-mono border-r border-slate-100 font-semibold">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Unit for ${item.itemNo}`}
                             type="text"
                             value={item.unit}
                             onChange={(e) => handleInlineChange(item.id, "unit", e.target.value)}
@@ -1143,7 +1152,7 @@ export default function BOQReconciliationPage() {
                       </td>
                       <td className="p-3 text-right font-mono border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Tender quantity for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.tenderQty}
@@ -1156,7 +1165,7 @@ export default function BOQReconciliationPage() {
                       </td>
                       <td className="p-3 text-right font-mono text-purple-600 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Approved variation quantity for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.approvedVariationQty}
@@ -1172,7 +1181,7 @@ export default function BOQReconciliationPage() {
                       </td>
                       <td className="p-3 text-right font-mono border-r border-slate-100 text-slate-500">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Previously certified quantity for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.prevCertifiedQty}
@@ -1187,7 +1196,7 @@ export default function BOQReconciliationPage() {
                       {/* Claimed Qty Cell (Supports Dual Edit: Inline vs Static) */}
                       <td className="p-3 text-right font-mono font-bold text-amber-800 bg-amber-50/40 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Claimed quantity for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.currentClaimedQty}
@@ -1202,7 +1211,7 @@ export default function BOQReconciliationPage() {
                       {/* Verified Qty Cell (Supports Dual Edit: Inline vs Static) */}
                       <td className="p-3 text-right font-mono font-bold text-emerald-800 bg-emerald-50/40 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Verified quantity for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.currentVerifiedQty}
@@ -1229,7 +1238,7 @@ export default function BOQReconciliationPage() {
                       {/* Unit Rate Cell */}
                       <td className="p-3 text-right font-mono border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Contract rate for ${item.itemNo}`}
                             type="number"
                             step="any"
                             value={item.contractRate}
@@ -1255,7 +1264,7 @@ export default function BOQReconciliationPage() {
 
                       <td className="p-3 border-r border-slate-100 text-[11px] leading-tight text-slate-700">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Remarks for ${item.itemNo}`}
                             type="text"
                             value={item.remarks || ""}
                             onChange={(e) => handleInlineChange(item.id, "remarks", e.target.value)}
@@ -1269,10 +1278,10 @@ export default function BOQReconciliationPage() {
 
                       <td className="p-3 text-center border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <select
+                          <select aria-label={`Status for ${item.itemNo}`}
                             value={item.status}
                             onChange={(e) => handleInlineChange(item.id, "status", e.target.value as any)}
-                            className="p-1 rounded text-[10px] font-bold bg-white border border-slate-300"
+                            className="p-1 rounded text-[11px] font-bold bg-white border border-slate-300"
                           >
                             <option value="APPROVED">APPROVED</option>
                             <option value="OVER_CLAIM">OVER_CLAIM</option>
@@ -1281,7 +1290,7 @@ export default function BOQReconciliationPage() {
                           </select>
                         ) : (
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                               item.status === "APPROVED"
                                 ? "bg-emerald-100 text-emerald-800"
                                 : item.status === "OVER_CLAIM"
@@ -1297,27 +1306,27 @@ export default function BOQReconciliationPage() {
                       {/* Row Action Buttons (Identical to Bill Verification) */}
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <button
+                          <button aria-label={item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                             onClick={() => handleToggleLockItem(item.id)}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               item.isLocked
                                 ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                : "bg-slate-100 hover:bg-slate-200 text-slate-500"
+                                : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"
                             }`}
                             title={item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                           >
                             {item.isLocked ? <Lock className="w-3.5 h-3.5 text-amber-700" /> : <Unlock className="w-3.5 h-3.5 text-slate-500" />}
                           </button>
 
-                          <button
+                          <button aria-label="View Full Item Audit Dossier"
                             onClick={() => setDetailsItem(item)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-700 transition-colors cursor-pointer"
                             title="View Full Item Audit Dossier"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label={item.isLocked ? "Item Locked" : "Edit Item in Full Modal Form"}
                             onClick={() => !item.isLocked && setEditingItem({ ...item })}
                             disabled={item.isLocked}
                             className={`p-1.5 rounded-lg transition-colors ${
@@ -1330,7 +1339,7 @@ export default function BOQReconciliationPage() {
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Download Single Row CSV"
                             onClick={() => handleExportSingleRowCSV(item)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
                             title="Download Single Row CSV"
@@ -1338,7 +1347,7 @@ export default function BOQReconciliationPage() {
                             <Download className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Live Preview Single Item PDF Certificate"
                             onClick={() => {
                               setShowPdfPreview(true);
                             }}
@@ -1348,9 +1357,9 @@ export default function BOQReconciliationPage() {
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Download Single PDF Report"
                             onClick={() => {
-                              window.open("http://localhost:8000/api/v1/reports/pdf/boq-reconciliation", "_blank");
+                              window.open(`${API_BASE}/api/v1/reports/pdf/boq-reconciliation`, "_blank");
                             }}
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                             title="Download Single PDF Report"
@@ -1358,7 +1367,7 @@ export default function BOQReconciliationPage() {
                             <FileText className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Duplicate BOQ Item"
                             onClick={() => handleDuplicateItem(item)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-700 transition-colors cursor-pointer"
                             title="Duplicate BOQ Item"
@@ -1366,7 +1375,7 @@ export default function BOQReconciliationPage() {
                             <Copy className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Remove Line Item"
                             onClick={() => !item.isLocked && handleDeleteItem(item.id)}
                             disabled={item.isLocked}
                             className={`p-1.5 rounded-lg transition-colors ${
@@ -1393,27 +1402,27 @@ export default function BOQReconciliationPage() {
             <div className="flex items-center gap-2 text-slate-500">
               <span>Showing {filteredItems.length} of {items.length} BOQ line items</span>
               {isInlineEditMode && (
-                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[11px] font-bold">
                   Inline Edit Mode Active
                 </span>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-6">
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-mono block">Current Verified Total:</span>
+                <span className="text-slate-400 text-[11px] uppercase block">Current Verified Total:</span>
                 <span className="text-sm font-extrabold text-emerald-600 font-mono">
                   ₹{kpis.totalCurrentVerifiedVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-mono block">Disallowed Over-Claims:</span>
+                <span className="text-slate-400 text-[11px] uppercase block">Disallowed Over-Claims:</span>
                 <span className="text-sm font-extrabold text-rose-600 font-mono">
                   ₹{kpis.totalDisallowedVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[10px] uppercase font-mono block">Cumulative Value To-Date:</span>
-                <span className="text-sm font-extrabold text-[#003366] font-mono">
+                <span className="text-slate-400 text-[11px] uppercase block">Cumulative Value To-Date:</span>
+                <span className="text-sm font-extrabold text-[#003366] dark:text-sky-300 font-mono">
                   ₹{kpis.totalCumulativeVerifiedVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1427,7 +1436,7 @@ export default function BOQReconciliationPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <Scale className="w-5 h-5 text-[#003366]" />
+              <Scale className="w-5 h-5 text-[#003366] dark:text-sky-300" />
               <h2 className="text-sm font-extrabold text-slate-900 font-heading">
                 Material Consumption &amp; Reconciliation Protocol ({materials.length} Materials)
               </h2>
@@ -1438,7 +1447,7 @@ export default function BOQReconciliationPage() {
                 type="button"
                 onClick={() => setIsInlineEditMaterials(!isInlineEditMaterials)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isInlineEditMaterials ? "bg-amber-400 text-slate-950 font-black shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                  isInlineEditMaterials ? "bg-amber-400 text-slate-950 font-black shadow-sm" : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 border border-slate-200"
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -1488,30 +1497,30 @@ export default function BOQReconciliationPage() {
                     <td className="p-3 pl-4">
                       {isInlineEditMaterials ? (
                         <div className="space-y-1">
-                          <input
+                          <input aria-label="Material name"
                             type="text"
                             value={m.materialName}
                             onChange={(e) => setMaterials(materials.map((x) => (x.id === m.id ? { ...x, materialName: e.target.value } : x)))}
                             className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold"
                           />
-                          <input
+                          <input aria-label="Grade specification"
                             type="text"
                             value={m.gradeSpec}
                             onChange={(e) => setMaterials(materials.map((x) => (x.id === m.id ? { ...x, gradeSpec: e.target.value } : x)))}
-                            className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-[10px] font-mono"
+                            className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-[11px] font-mono"
                           />
                         </div>
                       ) : (
                         <>
                           <div className="font-bold text-slate-900">{m.materialName}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{m.gradeSpec}</div>
+                          <div className="text-[11px] text-slate-500 font-mono">{m.gradeSpec}</div>
                         </>
                       )}
                     </td>
                     <td className="p-3 text-slate-600 font-mono text-[11px]">{m.theoreticalNormPerUnit}</td>
                     <td className="p-3 text-center font-mono font-semibold">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Unit for ${m.materialName}`}
                           type="text"
                           value={m.unit}
                           onChange={(e) => setMaterials(materials.map((x) => (x.id === m.id ? { ...x, unit: e.target.value } : x)))}
@@ -1524,7 +1533,7 @@ export default function BOQReconciliationPage() {
                     <td className="p-3 text-right font-mono">{m.totalWorkExecutedQty.toLocaleString()}</td>
                     <td className="p-3 text-right font-mono text-slate-600">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Theoretical consumption for ${m.materialName}`}
                           type="number"
                           value={m.theoreticalConsumption}
                           onChange={(e) => {
@@ -1539,7 +1548,7 @@ export default function BOQReconciliationPage() {
                     </td>
                     <td className="p-3 text-right font-mono text-sky-600">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Actual issued quantity for ${m.materialName}`}
                           type="number"
                           value={m.actualIssuedQty}
                           onChange={(e) => {
@@ -1554,7 +1563,7 @@ export default function BOQReconciliationPage() {
                     </td>
                     <td className="p-3 text-right font-mono font-bold text-slate-900">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Actual consumed quantity for ${m.materialName}`}
                           type="number"
                           value={m.actualConsumedQty}
                           onChange={(e) => {
@@ -1569,7 +1578,7 @@ export default function BOQReconciliationPage() {
                     </td>
                     <td className="p-3 text-right font-mono text-slate-500">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Permissible wastage percent for ${m.materialName}`}
                           type="number"
                           value={m.permissibleWastagePercent}
                           onChange={(e) => {
@@ -1587,24 +1596,24 @@ export default function BOQReconciliationPage() {
                     </td>
                     <td className="p-3 text-center whitespace-nowrap">
                       {m.status === "NORMAL" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                           Within Tolerance
                         </span>
                       )}
                       {m.status === "EXCESS_WASTAGE" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
                           Excess Wastage
                         </span>
                       )}
                       {m.status === "SAVING" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
                           Material Saving
                         </span>
                       )}
                     </td>
                     <td className="p-3 text-right font-mono text-slate-600">
                       {isInlineEditMaterials ? (
-                        <input
+                        <input aria-label={`Recovery rate per unit for ${m.materialName}`}
                           type="number"
                           value={m.recoveryRatePerUnit}
                           onChange={(e) => {
@@ -1622,7 +1631,7 @@ export default function BOQReconciliationPage() {
                     </td>
                     {isInlineEditMaterials && (
                       <td className="p-3 text-center">
-                        <button
+                        <button aria-label="Delete Material Row"
                           type="button"
                           onClick={() => setMaterials(materials.filter((x) => x.id !== m.id))}
                           className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
@@ -1641,7 +1650,7 @@ export default function BOQReconciliationPage() {
           <div className="p-3 bg-slate-50 border-t border-slate-200 rounded-xl flex items-center justify-between text-xs font-semibold">
             <span className="text-slate-500">Material audit governed per CPWD Specification 2021 &amp; Contract Clause 42</span>
             <div className="flex items-center gap-3">
-              <span className="text-slate-400 text-[10px] uppercase font-mono">Total Excess Material Recovery:</span>
+              <span className="text-slate-400 text-[11px] uppercase">Total Excess Material Recovery:</span>
               <span className="text-sm font-extrabold text-rose-600 font-mono">
                 ₹{kpis.totalMaterialExcessRecovery.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
@@ -1666,7 +1675,7 @@ export default function BOQReconciliationPage() {
                 type="button"
                 onClick={() => setIsInlineEditVariations(!isInlineEditVariations)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isInlineEditVariations ? "bg-amber-400 text-slate-950 font-black shadow-sm" : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                  isInlineEditVariations ? "bg-amber-400 text-slate-950 font-black shadow-sm" : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 border border-slate-200"
                 }`}
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -1695,7 +1704,7 @@ export default function BOQReconciliationPage() {
             {variations.map((v) => (
               <div key={v.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 relative group">
                 {isInlineEditVariations && (
-                  <button
+                  <button aria-label="Delete Change Order"
                     type="button"
                     onClick={() => setVariations(variations.filter((x) => x.id !== v.id))}
                     className="absolute top-3 right-3 p-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 shadow-sm cursor-pointer z-10"
@@ -1706,31 +1715,31 @@ export default function BOQReconciliationPage() {
                 )}
                 <div className="flex items-center justify-between pr-8">
                   {isInlineEditVariations ? (
-                    <input
+                    <input aria-label="Change order number"
                       type="text"
                       value={v.coNumber}
                       onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, coNumber: e.target.value } : x)))}
-                      className="font-bold text-xs uppercase text-slate-700 font-mono p-1 bg-amber-50 border border-amber-300 rounded"
+                      className="font-bold text-xs uppercase text-slate-700 p-1 bg-amber-50 border border-amber-300 rounded"
                     />
                   ) : (
-                    <span className="font-bold text-xs uppercase text-slate-500 font-mono">{v.coNumber}</span>
+                    <span className="font-bold text-xs uppercase text-slate-500">{v.coNumber}</span>
                   )}
                   {isInlineEditVariations ? (
-                    <input
+                    <input aria-label="Change order status"
                       type="text"
                       value={v.status}
                       onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, status: e.target.value } : x)))}
-                      className="text-[10px] font-bold p-1 bg-amber-50 border border-amber-300 rounded"
+                      className="text-[11px] font-bold p-1 bg-amber-50 border border-amber-300 rounded"
                     />
                   ) : (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${v.status === "Client Approved" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${v.status === "Client Approved" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                       {v.status}
                     </span>
                   )}
                 </div>
 
                 {isInlineEditVariations ? (
-                  <input
+                  <input aria-label="Change order title"
                     type="text"
                     value={v.title}
                     onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, title: e.target.value } : x)))}
@@ -1741,7 +1750,7 @@ export default function BOQReconciliationPage() {
                 )}
 
                 {isInlineEditVariations ? (
-                  <textarea
+                  <textarea aria-label="Change order description"
                     rows={2}
                     value={v.description}
                     onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, description: e.target.value } : x)))}
@@ -1753,7 +1762,7 @@ export default function BOQReconciliationPage() {
 
                 <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
                   {isInlineEditVariations ? (
-                    <input
+                    <input aria-label="Quantity variation"
                       type="text"
                       value={v.qtyVariation}
                       onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, qtyVariation: e.target.value } : x)))}
@@ -1764,7 +1773,7 @@ export default function BOQReconciliationPage() {
                     <span className="text-slate-500">Qty Variation: {v.qtyVariation}</span>
                   )}
                   {isInlineEditVariations ? (
-                    <input
+                    <input aria-label="Variation value"
                       type="text"
                       value={v.value}
                       onChange={(e) => setVariations(variations.map((x) => (x.id === v.id ? { ...x, value: e.target.value } : x)))}
@@ -1783,7 +1792,7 @@ export default function BOQReconciliationPage() {
 
       {/* TAB 4: TPI AUDIT SIGN-OFF CERTIFICATE */}
       {activeTab === "signoff" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+        <div className="keep-light bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900 font-heading">
@@ -1800,7 +1809,7 @@ export default function BOQReconciliationPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="font-bold text-slate-500 uppercase font-mono block">1. Gross Work Certified</span>
+              <span className="font-bold text-slate-500 uppercase block">1. Gross Work Certified</span>
               <div className="text-xl font-extrabold text-slate-900 font-mono">
                 ₹{kpis.totalCurrentVerifiedVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -1810,7 +1819,7 @@ export default function BOQReconciliationPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="font-bold text-slate-500 uppercase font-mono block">2. Total Technical Deductions</span>
+              <span className="font-bold text-slate-500 uppercase block">2. Total Technical Deductions</span>
               <div className="text-xl font-extrabold text-rose-600 font-mono">
                 ₹{(kpis.totalDisallowedVal + kpis.totalMaterialExcessRecovery).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -1820,7 +1829,7 @@ export default function BOQReconciliationPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="font-bold text-slate-500 uppercase font-mono block">3. Net Certified for RA Billing</span>
+              <span className="font-bold text-slate-500 uppercase block">3. Net Certified for RA Billing</span>
               <div className="text-xl font-extrabold text-emerald-600 font-mono">
                 ₹{(kpis.totalCurrentVerifiedVal - kpis.totalMaterialExcessRecovery).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -1832,28 +1841,28 @@ export default function BOQReconciliationPage() {
 
           <div className="pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
             <div className="p-4 rounded-xl border border-dashed border-slate-300 space-y-3">
-              <div className="text-slate-400 font-mono uppercase text-[10px]">TPI Lead Inspection Engineer</div>
+              <div className="text-slate-400 uppercase text-[11px]">TPI Lead Inspection Engineer</div>
               <div className="font-bold text-sm text-slate-900">Alok Gupta, PE</div>
               <div className="text-[11px] text-slate-500">Emp ID: IQE-TPI-8821 &bull; Certified Date: 2026-09-29</div>
-              <div className="pt-1 text-emerald-600 font-mono text-[10px] font-bold flex items-center gap-1">
+              <div className="pt-1 text-emerald-600 font-mono text-[11px] font-bold flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Digitally Verified via IQE Engine
               </div>
             </div>
 
             <div className="p-4 rounded-xl border border-dashed border-slate-300 space-y-3">
-              <div className="text-slate-400 font-mono uppercase text-[10px]">Contractor Project Manager</div>
+              <div className="text-slate-400 uppercase text-[11px]">Contractor Project Manager</div>
               <div className="font-bold text-sm text-slate-900">{projectInfo.epcContractor}</div>
               <div className="text-[11px] text-slate-500">Acceptance: Endorsed without objections</div>
-              <div className="pt-1 text-slate-500 font-mono text-[10px] font-bold flex items-center gap-1">
+              <div className="pt-1 text-slate-500 font-mono text-[11px] font-bold flex items-center gap-1">
                 <Check className="w-3.5 h-3.5" /> Physical MB Endorsed
               </div>
             </div>
 
             <div className="p-4 rounded-xl border border-dashed border-slate-300 space-y-3">
-              <div className="text-slate-400 font-mono uppercase text-[10px]">Employer / Client Quality Lead</div>
+              <div className="text-slate-400 uppercase text-[11px]">Employer / Client Quality Lead</div>
               <div className="font-bold text-sm text-slate-900">{selectedClient}</div>
               <div className="text-[11px] text-slate-500">Concurrence: Approved for Billing Payment</div>
-              <div className="pt-1 text-blue-600 font-mono text-[10px] font-bold flex items-center gap-1">
+              <div className="pt-1 text-blue-600 font-mono text-[11px] font-bold flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Forwarded to Accounts
               </div>
             </div>
@@ -1885,7 +1894,7 @@ export default function BOQReconciliationPage() {
                   </p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 type="button"
                 onClick={() => setEditingItem(null)}
                 className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
@@ -1902,11 +1911,11 @@ export default function BOQReconciliationPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#1</span>
+                    <label htmlFor="boq-item-code" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#1</span>
                       Item Code *
                     </label>
-                    <input
+                    <input id="boq-item-code"
                       type="text"
                       required
                       value={editingItem.itemNo}
@@ -1916,11 +1925,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#2</span>
+                    <label htmlFor="boq-discipline" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#2</span>
                       Discipline *
                     </label>
-                    <select
+                    <select id="boq-discipline"
                       value={editingItem.discipline}
                       onChange={(e) => setEditingItem({ ...editingItem, discipline: e.target.value as any })}
                       className="w-full px-3 py-2 bg-white text-slate-900 border border-slate-300 rounded-xl font-bold"
@@ -1934,11 +1943,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#3</span>
+                    <label htmlFor="boq-unit-of-measure-uom" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#3</span>
                       Unit of Measure (UOM) *
                     </label>
-                    <input
+                    <input id="boq-unit-of-measure-uom"
                       type="text"
                       required
                       value={editingItem.unit}
@@ -1948,11 +1957,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#4</span>
+                    <label htmlFor="boq-work-description-and-scope-specification" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#4</span>
                       Work Description &amp; Scope Specification *
                     </label>
-                    <textarea
+                    <textarea id="boq-work-description-and-scope-specification"
                       required
                       rows={2}
                       value={editingItem.description}
@@ -1970,11 +1979,11 @@ export default function BOQReconciliationPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#5</span>
+                    <label htmlFor="boq-tender-qty" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#5</span>
                       Tender Qty
                     </label>
-                    <input
+                    <input id="boq-tender-qty"
                       type="number"
                       step="any"
                       min={0}
@@ -1985,11 +1994,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#6</span>
+                    <label htmlFor="boq-approved-variation" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#6</span>
                       Approved Variation
                     </label>
-                    <input
+                    <input id="boq-approved-variation"
                       type="number"
                       step="any"
                       value={editingItem.approvedVariationQty}
@@ -2000,7 +2009,7 @@ export default function BOQReconciliationPage() {
 
                   <div>
                     <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#7</span>
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#7</span>
                       Revised Ceiling Cap
                     </label>
                     <div className="px-3 py-2 bg-blue-50/80 font-mono font-extrabold text-blue-900 border border-blue-200 rounded-xl">
@@ -2009,11 +2018,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#8</span>
+                    <label htmlFor="boq-contract-unit-rate" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#8</span>
                       Contract Unit Rate (₹) *
                     </label>
-                    <input
+                    <input id="boq-contract-unit-rate"
                       type="number"
                       step="any"
                       min={0}
@@ -2032,11 +2041,11 @@ export default function BOQReconciliationPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#9</span>
+                    <label htmlFor="boq-previously-certified-qty" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#9</span>
                       Previously Certified Qty
                     </label>
-                    <input
+                    <input id="boq-previously-certified-qty"
                       type="number"
                       step="any"
                       min={0}
@@ -2047,11 +2056,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-mono text-[10px] mr-1">#10</span>
+                    <label htmlFor="boq-contractor-claimed-qty" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-mono text-[11px] mr-1">#10</span>
                       Contractor Claimed Qty
                     </label>
-                    <input
+                    <input id="boq-contractor-claimed-qty"
                       type="number"
                       step="any"
                       min={0}
@@ -2069,11 +2078,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] mr-1">#11</span>
+                    <label htmlFor="boq-tpi-verified-qty" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[11px] mr-1">#11</span>
                       TPI Verified Qty
                     </label>
-                    <input
+                    <input id="boq-tpi-verified-qty"
                       type="number"
                       step="any"
                       min={0}
@@ -2092,7 +2101,7 @@ export default function BOQReconciliationPage() {
 
                   <div>
                     <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-mono text-[10px] mr-1">#12</span>
+                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-mono text-[11px] mr-1">#12</span>
                       Disallowed Over-Claim Qty
                     </label>
                     <div className={`px-3 py-2 font-mono font-extrabold rounded-xl border ${
@@ -2113,11 +2122,11 @@ export default function BOQReconciliationPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#13</span>
+                    <label htmlFor="boq-jmr-sheet-mb-page-ref" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#13</span>
                       JMR Sheet / MB Page Ref
                     </label>
-                    <input
+                    <input id="boq-jmr-sheet-mb-page-ref"
                       type="text"
                       value={editingItem.jmrRef}
                       onChange={(e) => setEditingItem({ ...editingItem, jmrRef: e.target.value })}
@@ -2126,11 +2135,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#14</span>
+                    <label htmlFor="boq-gfc-drawing-ref" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#14</span>
                       GFC Drawing Ref
                     </label>
-                    <input
+                    <input id="boq-gfc-drawing-ref"
                       type="text"
                       value={editingItem.drawingRef || ""}
                       onChange={(e) => setEditingItem({ ...editingItem, drawingRef: e.target.value })}
@@ -2140,11 +2149,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#15</span>
+                    <label htmlFor="boq-audit-status" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#15</span>
                       Audit Status
                     </label>
-                    <select
+                    <select id="boq-audit-status"
                       value={editingItem.status}
                       onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value as any })}
                       className="w-full px-3 py-2 bg-white text-slate-900 border border-slate-300 rounded-xl font-bold"
@@ -2157,11 +2166,11 @@ export default function BOQReconciliationPage() {
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="block text-slate-800 font-bold mb-1">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] mr-1">#16</span>
+                    <label htmlFor="boq-tpi-technical-observation-and-non" className="block text-slate-800 font-bold mb-1">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[11px] mr-1">#16</span>
                       TPI Technical Observation &amp; Non-Conformance Remarks
                     </label>
-                    <input
+                    <input id="boq-tpi-technical-observation-and-non"
                       type="text"
                       value={editingItem.remarks || ""}
                       onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}
@@ -2212,7 +2221,7 @@ export default function BOQReconciliationPage() {
                   </p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setDetailsItem(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
@@ -2222,32 +2231,32 @@ export default function BOQReconciliationPage() {
 
             <div className="space-y-3">
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-bold uppercase text-slate-500 font-mono block">Description</span>
+                <span className="text-[11px] font-bold uppercase text-slate-500 block">Description</span>
                 <p className="font-semibold text-slate-900 mt-1 leading-relaxed">{detailsItem.description}</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block font-mono">Tender Qty</span>
+                  <span className="text-[11px] text-slate-500 block font-mono">Tender Qty</span>
                   <span className="font-extrabold font-mono text-sm text-slate-900">{detailsItem.tenderQty.toLocaleString()} {detailsItem.unit}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                  <span className="text-[10px] text-purple-700 block font-mono">Variation Qty</span>
+                  <span className="text-[11px] text-purple-700 block font-mono">Variation Qty</span>
                   <span className="font-extrabold font-mono text-sm text-purple-700">+{detailsItem.approvedVariationQty} {detailsItem.unit}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-                  <span className="text-[10px] text-blue-700 block font-mono">Revised Cap</span>
+                  <span className="text-[11px] text-blue-700 block font-mono">Revised Cap</span>
                   <span className="font-extrabold font-mono text-sm text-blue-900">{(detailsItem.tenderQty + detailsItem.approvedVariationQty).toLocaleString()} {detailsItem.unit}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] text-slate-500 block font-mono">Unit Rate</span>
+                  <span className="text-[11px] text-slate-500 block font-mono">Unit Rate</span>
                   <span className="font-extrabold font-mono text-sm text-slate-900">₹{detailsItem.contractRate.toLocaleString()}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-                  <span className="text-[10px] text-amber-800 font-bold block uppercase font-mono">Contractor Claimed</span>
+                  <span className="text-[11px] text-amber-800 font-bold block uppercase">Contractor Claimed</span>
                   <span className="font-extrabold font-mono text-lg text-amber-900">
                     {detailsItem.currentClaimedQty.toLocaleString()} {detailsItem.unit}
                   </span>
@@ -2257,7 +2266,7 @@ export default function BOQReconciliationPage() {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <span className="text-[10px] text-emerald-800 font-bold block uppercase font-mono">TPI Verified Value</span>
+                  <span className="text-[11px] text-emerald-800 font-bold block uppercase">TPI Verified Value</span>
                   <span className="font-extrabold font-mono text-lg text-emerald-900">
                     {detailsItem.currentVerifiedQty.toLocaleString()} {detailsItem.unit}
                   </span>
@@ -2267,7 +2276,7 @@ export default function BOQReconciliationPage() {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
-                  <span className="text-[10px] text-rose-800 font-bold block uppercase font-mono">Disallowed Over-Claim</span>
+                  <span className="text-[11px] text-rose-800 font-bold block uppercase">Disallowed Over-Claim</span>
                   <span className="font-extrabold font-mono text-lg text-rose-900">
                     {Math.max(0, detailsItem.currentClaimedQty - detailsItem.currentVerifiedQty).toLocaleString()} {detailsItem.unit}
                   </span>
@@ -2279,7 +2288,7 @@ export default function BOQReconciliationPage() {
 
               {detailsItem.remarks && (
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase font-mono block">Auditor Observation</span>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase block">Auditor Observation</span>
                   <p className="font-medium text-slate-800 mt-1">{detailsItem.remarks}</p>
                 </div>
               )}
@@ -2305,7 +2314,7 @@ export default function BOQReconciliationPage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Add New BOQ Line Item #{items.length + 1}
               </h3>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setShowAddModal(false)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
@@ -2344,8 +2353,8 @@ export default function BOQReconciliationPage() {
             >
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Item Code *</label>
-                  <input
+                  <label htmlFor="boq-item-code-2" className="block text-slate-700 font-bold mb-1">Item Code *</label>
+                  <input id="boq-item-code-2"
                     type="text"
                     name="itemNo"
                     required
@@ -2354,8 +2363,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Discipline *</label>
-                  <select name="discipline" className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold">
+                  <label htmlFor="boq-discipline-2" className="block text-slate-700 font-bold mb-1">Discipline *</label>
+                  <select id="boq-discipline-2" name="discipline" className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold">
                     <option value="Civil">Civil</option>
                     <option value="Structural">Structural</option>
                     <option value="Piping">Piping</option>
@@ -2366,8 +2375,8 @@ export default function BOQReconciliationPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Description *</label>
-                <textarea
+                <label htmlFor="boq-description" className="block text-slate-700 font-bold mb-1">Description *</label>
+                <textarea id="boq-description"
                   name="description"
                   required
                   rows={2}
@@ -2378,8 +2387,8 @@ export default function BOQReconciliationPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">UOM *</label>
-                  <input
+                  <label htmlFor="boq-uom" className="block text-slate-700 font-bold mb-1">UOM *</label>
+                  <input id="boq-uom"
                     type="text"
                     name="unit"
                     required
@@ -2388,8 +2397,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Tender Qty *</label>
-                  <input
+                  <label htmlFor="boq-tender-qty-2" className="block text-slate-700 font-bold mb-1">Tender Qty *</label>
+                  <input id="boq-tender-qty-2"
                     type="number"
                     name="tenderQty"
                     step="any"
@@ -2399,8 +2408,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Approved Var</label>
-                  <input
+                  <label htmlFor="boq-approved-var" className="block text-slate-700 font-bold mb-1">Approved Var</label>
+                  <input id="boq-approved-var"
                     type="number"
                     name="approvedVariationQty"
                     step="any"
@@ -2412,8 +2421,8 @@ export default function BOQReconciliationPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Claimed Qty *</label>
-                  <input
+                  <label htmlFor="boq-claimed-qty" className="block text-slate-700 font-bold mb-1">Claimed Qty *</label>
+                  <input id="boq-claimed-qty"
                     type="number"
                     name="currentClaimedQty"
                     step="any"
@@ -2423,8 +2432,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Verified Qty *</label>
-                  <input
+                  <label htmlFor="boq-verified-qty" className="block text-slate-700 font-bold mb-1">Verified Qty *</label>
+                  <input id="boq-verified-qty"
                     type="number"
                     name="currentVerifiedQty"
                     step="any"
@@ -2434,8 +2443,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Rate (₹) *</label>
-                  <input
+                  <label htmlFor="boq-rate" className="block text-slate-700 font-bold mb-1">Rate (₹) *</label>
+                  <input id="boq-rate"
                     type="number"
                     name="contractRate"
                     step="any"
@@ -2448,8 +2457,8 @@ export default function BOQReconciliationPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">JMR Reference</label>
-                  <input
+                  <label htmlFor="boq-jmr-reference" className="block text-slate-700 font-bold mb-1">JMR Reference</label>
+                  <input id="boq-jmr-reference"
                     type="text"
                     name="jmrRef"
                     defaultValue="JMR-SITE/01"
@@ -2457,8 +2466,8 @@ export default function BOQReconciliationPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Status</label>
-                  <select name="status" className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold">
+                  <label htmlFor="boq-status" className="block text-slate-700 font-bold mb-1">Status</label>
+                  <select id="boq-status" name="status" className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold">
                     <option value="APPROVED">APPROVED</option>
                     <option value="OVER_CLAIM">OVER_CLAIM</option>
                     <option value="VARIATION_PENDING">VARIATION_PENDING</option>
@@ -2467,8 +2476,8 @@ export default function BOQReconciliationPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Engineering Remarks</label>
-                <input
+                <label htmlFor="boq-engineering-remarks" className="block text-slate-700 font-bold mb-1">Engineering Remarks</label>
+                <input id="boq-engineering-remarks"
                   type="text"
                   name="remarks"
                   placeholder="Verification observations..."
@@ -2486,7 +2495,7 @@ export default function BOQReconciliationPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md cursor-pointer flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-md cursor-pointer flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Line Item</span>
@@ -2551,7 +2560,7 @@ export default function BOQReconciliationPage() {
         }}
         title="BOQ Reconciliation & Material Audit Report"
         reportNo="F-BOQ-01"
-        pdfUrl="http://localhost:8000/api/v1/reports/pdf/boq-reconciliation"
+        pdfUrl={`${API_BASE}/api/v1/reports/pdf/boq-reconciliation`}
       />
     </div>
   );

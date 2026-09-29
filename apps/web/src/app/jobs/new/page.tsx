@@ -173,7 +173,7 @@ export default function NewJobPage() {
       </Link>
 
       <div className="p-6 md:p-8 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
               <Briefcase className="w-5 h-5" />
@@ -185,7 +185,7 @@ export default function NewJobPage() {
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">Assignment ID Preview</span>
+            <span className="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Assignment ID Preview</span>
             <span className="font-mono text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-lg">
               {nextJobId}
             </span>
@@ -196,15 +196,16 @@ export default function NewJobPage() {
           {/* Job Title & Preset Selector */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-slate-700">Job Title / Scope *</label>
+              <label htmlFor="job-title" className="block text-xs font-semibold text-slate-700">Job Title / Scope *</label>
             </div>
             <input
+              id="job-title"
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Boiler & Pressure Vessel Weld Quality Audit"
-              className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all mb-2"
+              className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all mb-2"
             />
             {/* Quick Preset Badges */}
             <div className="flex flex-wrap gap-1.5 pt-1">
@@ -214,7 +215,7 @@ export default function NewJobPage() {
                   type="button"
                   key={t}
                   onClick={() => setTitle(t)}
-                  className="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 text-[10px] font-medium text-slate-600 hover:text-indigo-700 border border-slate-200 transition-colors"
+                  className="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-brand-50 text-[11px] font-medium text-slate-600 hover:text-brand-700 border border-slate-200 transition-colors"
                 >
                   {t}
                 </button>
@@ -226,16 +227,20 @@ export default function NewJobPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Auto-Populating Client Selector */}
             <div className="relative" ref={clientDropdownRef}>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Client Name / Client ID *</label>
+              <label htmlFor="job-client" className="block text-xs font-semibold text-slate-700 mb-1">Client Name / Client ID *</label>
 
-              <div
+              <button
+                type="button"
+                id="job-client"
+                aria-haspopup="listbox"
+                aria-expanded={clientDropdownOpen}
                 onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 bg-white transition-all cursor-pointer flex items-center justify-between min-h-[40px]"
+                className="w-full text-left px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-brand-500 bg-white transition-all cursor-pointer flex items-center justify-between min-h-[40px]"
               >
                 {clientName ? (
                   <div className="flex items-center gap-2 overflow-hidden">
                     {selectedClientId && (
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold ${selectedClientId.startsWith('M-') ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}`}>
+                      <span className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold ${selectedClientId.startsWith('M-') ? 'bg-amber-100 text-amber-800' : 'bg-brand-100 text-brand-800'}`}>
                         {selectedClientId}
                       </span>
                     )}
@@ -245,7 +250,7 @@ export default function NewJobPage() {
                   <span className="text-slate-400">Select Client or Manufacturer...</span>
                 )}
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-              </div>
+              </button>
 
               {clientDropdownOpen && (
                 <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-hidden flex flex-col">
@@ -256,6 +261,7 @@ export default function NewJobPage() {
                       autoFocus
                       value={clientSearchQuery}
                       onChange={(e) => setClientSearchQuery(e.target.value)}
+                      aria-label="Search clients and manufacturers"
                       placeholder="Search 200 clients by name or ID (e.g. C-014)..."
                       className="w-full text-xs bg-transparent focus:outline-none text-slate-800 placeholder-slate-400"
                     />
@@ -264,7 +270,8 @@ export default function NewJobPage() {
                   <div className="overflow-y-auto max-h-48 divide-y divide-slate-50">
                     {filteredClientOptions.length > 0 ? (
                       filteredClientOptions.map((opt) => (
-                        <div
+                        <button
+                          type="button"
                           key={`${opt.type}-${opt.id}`}
                           onClick={() => {
                             setSelectedClientId(opt.id);
@@ -272,16 +279,16 @@ export default function NewJobPage() {
                             setClientSearchQuery("");
                             setClientDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 text-xs hover:bg-indigo-50/70 cursor-pointer flex items-center justify-between transition-colors ${
-                            selectedClientId === opt.id ? "bg-indigo-50 font-medium" : ""
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-50/70 cursor-pointer flex items-center justify-between transition-colors ${
+                            selectedClientId === opt.id ? "bg-brand-50 font-medium" : ""
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
                             <span
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 ${
+                              className={`px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold shrink-0 ${
                                 opt.type === "manufacturer"
                                   ? "bg-amber-100 text-amber-800"
-                                  : "bg-indigo-100 text-indigo-800"
+                                  : "bg-brand-100 text-brand-800"
                               }`}
                             >
                               {opt.id}
@@ -289,9 +296,9 @@ export default function NewJobPage() {
                             <span className="text-slate-800 truncate">{opt.name}</span>
                           </div>
                           {opt.city && (
-                            <span className="text-[10px] text-slate-400 shrink-0 ml-2">{opt.city}</span>
+                            <span className="text-[11px] text-slate-400 shrink-0 ml-2">{opt.city}</span>
                           )}
-                        </div>
+                        </button>
                       ))
                     ) : (
                       <div className="p-3 text-center text-xs text-slate-400">
@@ -305,15 +312,19 @@ export default function NewJobPage() {
 
             {/* Auto-Populating Inspector Selector (200 Inspectors) */}
             <div className="relative" ref={inspectorDropdownRef}>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Assign Lead Inspector (200 Available)</label>
+              <label htmlFor="job-inspector" className="block text-xs font-semibold text-slate-700 mb-1">Assign Lead Inspector (200 Available)</label>
 
-              <div
+              <button
+                type="button"
+                id="job-inspector"
+                aria-haspopup="listbox"
+                aria-expanded={inspectorDropdownOpen}
                 onClick={() => setInspectorDropdownOpen(!inspectorDropdownOpen)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 bg-white transition-all cursor-pointer flex items-center justify-between min-h-[40px]"
+                className="w-full text-left px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-brand-500 bg-white transition-all cursor-pointer flex items-center justify-between min-h-[40px]"
               >
                 {selectedInspectorName ? (
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-100 text-emerald-800">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800">
                       {selectedInspectorId}
                     </span>
                     <span className="font-medium text-slate-900 truncate">{selectedInspectorName}</span>
@@ -322,7 +333,7 @@ export default function NewJobPage() {
                   <span className="text-slate-400">Select Inspector (e.g. INS-001)...</span>
                 )}
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-              </div>
+              </button>
 
               {inspectorDropdownOpen && (
                 <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-hidden flex flex-col">
@@ -333,6 +344,7 @@ export default function NewJobPage() {
                       autoFocus
                       value={inspectorSearchQuery}
                       onChange={(e) => setInspectorSearchQuery(e.target.value)}
+                      aria-label="Search inspectors"
                       placeholder="Search 200 inspectors by name or INS-XXX code..."
                       className="w-full text-xs bg-transparent focus:outline-none text-slate-800 placeholder-slate-400"
                     />
@@ -341,7 +353,8 @@ export default function NewJobPage() {
                   <div className="overflow-y-auto max-h-48 divide-y divide-slate-50">
                     {filteredInspectors.length > 0 ? (
                       filteredInspectors.map((ins) => (
-                        <div
+                        <button
+                          type="button"
                           key={ins.user_id}
                           onClick={() => {
                             setSelectedInspectorId(ins.inspector_code);
@@ -349,18 +362,18 @@ export default function NewJobPage() {
                             setInspectorSearchQuery("");
                             setInspectorDropdownOpen(false);
                           }}
-                          className={`px-3 py-2 text-xs hover:bg-emerald-50/70 cursor-pointer flex items-center justify-between transition-colors ${
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-emerald-50/70 cursor-pointer flex items-center justify-between transition-colors ${
                             selectedInspectorId === ins.inspector_code ? "bg-emerald-50 font-medium" : ""
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold shrink-0 bg-emerald-100 text-emerald-800">
+                            <span className="px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold shrink-0 bg-emerald-100 text-emerald-800">
                               {ins.inspector_code}
                             </span>
                             <span className="text-slate-800 truncate">{ins.full_name}</span>
                           </div>
-                          <span className="text-[10px] text-slate-400 truncate ml-2">{ins.email}</span>
-                        </div>
+                          <span className="text-[11px] text-slate-400 truncate ml-2">{ins.email}</span>
+                        </button>
                       ))
                     ) : (
                       <div className="p-3 text-center text-xs text-slate-400">
@@ -375,33 +388,36 @@ export default function NewJobPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Budget (₹)</label>
+              <label htmlFor="job-budget" className="block text-xs font-semibold text-slate-700 mb-1">Budget (₹)</label>
               <input
+                id="job-budget"
                 type="number"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 placeholder="e.g. 250000"
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Requested Start</label>
+              <label htmlFor="job-start" className="block text-xs font-semibold text-slate-700 mb-1">Requested Start</label>
               <input
+                id="job-start"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Requested End</label>
+              <label htmlFor="job-end" className="block text-xs font-semibold text-slate-700 mb-1">Requested End</label>
               <input
+                id="job-end"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -416,7 +432,7 @@ export default function NewJobPage() {
             <button
               type="submit"
               disabled={loading || !clientName}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold text-xs shadow-lg glow-indigo hover:opacity-95 disabled:opacity-50 transition-all flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 text-white font-semibold text-xs shadow-lg glow-indigo hover:opacity-95 disabled:opacity-50 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>{loading ? "Creating..." : "Save & Open Assessment"}</span>

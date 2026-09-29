@@ -130,27 +130,24 @@ class ReportService:
         lock_badge = "LOCKED - CERTIFIED & SEALED" if is_locked else "UNLOCKED - DRAFT RECORD"
 
         # Scannable QR Code encoding all item details & LAN link
-        verification_payload = (
-            f"IDEAL QUALITY ENGINEERS (IQE) - ISO 9001:2015 AUDIT CERTIFICATE\n"
-            f"--------------------------------------------------\n"
-            f"BOQ Item Code  : {boq_item}\n"
-            f"RA Bill Ref    : {ra_bill}\n"
-            f"Client Name    : {client}\n"
-            f"Contractor     : {vendor}\n"
-            f"Work Desc      : {description}\n"
-            f"Claimed Qty    : {claimed_qty:.2f} {unit}\n"
-            f"TPI Verified   : {verified_qty:.2f} {unit}\n"
-            f"Variance Qty   : {diff_qty:.2f} {unit}\n"
-            f"Unit Rate      : Rs. {unit_rate:,.2f}\n"
-            f"Recommended    : Rs. {recommended_amt:,.2f}\n"
-            f"Savings Amt    : Rs. {savings_amt:,.2f}\n"
-            f"Closure Status : {closure_status}\n"
-            f"Security Lock  : {'LOCKED - SEALED' if is_locked else 'UNLOCKED'}\n"
-            f"Link: http://192.168.0.127:3000/tpi-billing?verify_boq={boq_item}"
-        )
-        qr = QrCodeWidget(verification_payload)
-        qr_drawing = Drawing(56, 56)
-        qr_drawing.add(qr)
+        from urllib.parse import urlencode
+        from core.qr import verify_url, qr_drawing as make_qr
+
+        item_query = urlencode({
+            "boq_item": boq_item, "ra_bill": ra_bill, "vendor": vendor, "client": client,
+            "description": description, "unit": unit, "drawing_ref": drawing_ref, "boq_qty": boq_qty,
+            "claimed_qty": claimed_qty, "verified_qty": verified_qty, "unit_rate": unit_rate,
+            "observation": observation, "closure_status": closure_status, "is_locked": str(is_locked).lower(),
+        })
+        qr_drawing = make_qr(verify_url(
+            title="BOQ Item Verification Certificate",
+            ref=f"{ra_bill} / {boq_item}",
+            client=client,
+            status=f"{closure_status} - {'Locked' if is_locked else 'Draft'}",
+            date=datetime.now().strftime('%Y-%m-%d'),
+            form="F-BILL-01",
+            pdf_path=f"/api/v1/reports/pdf/tpi-billing-item?{item_query}",
+        ), size=58)
 
         header_p = Paragraph(
             "<b>IDEAL QUALITY ENGINEERS (I) PVT LTD</b><br/>"
@@ -397,19 +394,17 @@ class ReportService:
             except Exception:
                 logo_img = None
 
-        qr_payload = (
-            "IDEAL QUALITY ENGINEERS (IQE) - ISO/IEC 17020 TYPE A INSPECTION BODY\n"
-            "-----------------------------------------------------------------\n"
-            "Report: Revised Schedule M (2024) Pharma EPC Audit Certificate\n"
-            f"Date  : {datetime.now().strftime('%Y-%m-%d')}\n"
-            "Client: Granules Consumer Health / CDSCO Regulatory Facility\n"
-            "Scope : HVAC HEPA Integrity, Cleanroom Classification, URS Traceability\n"
-            "Score : 94.5% Statutory Compliance Rate\n"
-            "Portal: http://localhost:3000/schedule-m-pharma-epc"
-        )
-        qr = QrCodeWidget(qr_payload)
-        d = Drawing(56, 56)
-        d.add(qr)
+        from core.qr import verify_url, qr_drawing as make_qr
+
+        d = make_qr(verify_url(
+            title="Schedule M Pharma EPC Audit Report",
+            ref="IQE/SCH-M/2026/04",
+            client="Granules Consumer Health",
+            status="94.5% Statutory Compliance",
+            date=datetime.now().strftime('%Y-%m-%d'),
+            form="F-01 to F-14",
+            pdf_path=f"/api/v1/reports/pdf/schedule-m-pharma-epc?site_id={site_id}",
+        ), size=58)
 
         header_title_p = Paragraph(
             "<b>IDEAL QUALITY ENGINEERS (I) PRIVATE LIMITED</b><br/>"
@@ -556,7 +551,6 @@ class ReportService:
         from docx.shared import Inches, Pt, RGBColor
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.enum.table import WD_TABLE_ALIGNMENT
-        import qrcode
         import os
 
         doc = docx.Document()
@@ -575,16 +569,15 @@ class ReportService:
         tbl.autofit = False
 
         # Generate QR Code image buffer
-        qr_img = qrcode.make(
-            "IDEAL QUALITY ENGINEERS (IQE) - ISO/IEC 17020 TYPE A INSPECTION BODY\n"
-            "Quality & Quantity Bill Verification Audit Report\n"
-            f"Date: {datetime.now().strftime('%Y-%m-%d')}\n"
-            "Status: VERIFIED & PAYABLE AUTHORIZED\n"
-            "http://localhost:3000/quality-bill-verification"
-        )
-        qr_buf = BytesIO()
-        qr_img.save(qr_buf, format="PNG")
-        qr_buf.seek(0)
+        from core.qr import verify_url, qr_png
+        qr_buf = qr_png(verify_url(
+            title="Quality & Quantity Bill Verification Report",
+            ref="IQE/QVR/2026/084",
+            status="Verified & Payable Authorized",
+            date=datetime.now().strftime('%Y-%m-%d'),
+            form="F-QUAL-01",
+            pdf_path=f"/api/v1/reports/pdf/quality-bill-verification?site_id={site_id}",
+        ))
 
         # Cell 1: Logo
         cell_logo = tbl.cell(0, 0)
@@ -689,7 +682,6 @@ class ReportService:
         import openpyxl
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
         from openpyxl.drawing.image import Image as OpenPyxlImage
-        import qrcode
         import os
 
         wb = openpyxl.Workbook()
@@ -711,16 +703,15 @@ class ReportService:
         ws["A3"] = f"Report Date: {datetime.now().strftime('%Y-%m-%d')} | Report Ref: IQE/QVR/2026/084 | Site: {site_id}"
 
         # Add QR Code Image if possible
-        qr_img = qrcode.make(
-            "IDEAL QUALITY ENGINEERS (IQE) - ISO/IEC 17020 TYPE A INSPECTION BODY\n"
-            "Quality & Quantity Bill Verification Audit Report\n"
-            f"Date: {datetime.now().strftime('%Y-%m-%d')}\n"
-            "Status: VERIFIED & PAYABLE AUTHORIZED\n"
-            "http://localhost:3000/quality-bill-verification"
-        )
-        qr_buf = BytesIO()
-        qr_img.save(qr_buf, format="PNG")
-        qr_buf.seek(0)
+        from core.qr import verify_url, qr_png
+        qr_buf = qr_png(verify_url(
+            title="Quality & Quantity Bill Verification Report",
+            ref="IQE/QVR/2026/084",
+            status="Verified & Payable Authorized",
+            date=datetime.now().strftime('%Y-%m-%d'),
+            form="F-QUAL-01",
+            pdf_path=f"/api/v1/reports/pdf/quality-bill-verification?site_id={site_id}",
+        ))
         try:
             xl_img = OpenPyxlImage(qr_buf)
             xl_img.width = 60

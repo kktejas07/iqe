@@ -126,43 +126,50 @@ export default function ProposedAssignmentPage() {
 
       {/* Stepper Navigation Header Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div
+        <button
+          type="button"
           onClick={() => setCurrentStep(1)}
-          className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
+          aria-current={currentStep === 1 ? "step" : undefined}
+          className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 text-left w-full ${
             currentStep === 1
               ? "bg-[#003366] text-white border-[#003366] shadow-md"
               : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800"
           }`}
         >
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 1 ? "bg-white text-[#003366]" : "bg-slate-100 text-slate-700"}`}>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 1 ? "bg-[#ffffff] text-[#003366]" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}>
             1
           </div>
           <div>
             <h3 className="font-extrabold text-xs">Step 1: Audit &amp; Components</h3>
-            <p className="text-[10px] opacity-80 font-medium">Select audit job components</p>
+            <p className="text-[11px] opacity-80 font-medium">Select audit job components</p>
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setCurrentStep(2)}
-          className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
+          aria-current={currentStep === 2 ? "step" : undefined}
+          className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 text-left w-full ${
             currentStep === 2
               ? "bg-[#003366] text-white border-[#003366] shadow-md"
               : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800"
           }`}
         >
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 2 ? "bg-white text-[#003366]" : "bg-slate-100 text-slate-700"}`}>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 2 ? "bg-[#ffffff] text-[#003366]" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}>
             2
           </div>
           <div>
             <h3 className="font-extrabold text-xs">Step 2: Client Inspector Sign-off</h3>
-            <p className="text-[10px] opacity-80 font-medium">Client approval email workflow</p>
+            <p className="text-[11px] opacity-80 font-medium">Client approval email workflow</p>
           </div>
-        </div>
+        </button>
 
-        <div
-          onClick={() => clientApprovalState === "approved" && setCurrentStep(3)}
-          className={`p-4 rounded-2xl border transition-all flex items-center gap-3 ${
+        <button
+          type="button"
+          onClick={() => setCurrentStep(3)}
+          disabled={clientApprovalState !== "approved"}
+          aria-current={currentStep === 3 ? "step" : undefined}
+          className={`p-4 rounded-2xl border transition-all flex items-center gap-3 text-left w-full ${
             clientApprovalState !== "approved"
               ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-800"
               : currentStep === 3
@@ -170,14 +177,14 @@ export default function ProposedAssignmentPage() {
               : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800 cursor-pointer"
           }`}
         >
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 3 ? "bg-white text-[#003366]" : "bg-slate-100 text-slate-700"}`}>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-extrabold font-mono text-xs ${currentStep === 3 ? "bg-[#ffffff] text-[#003366]" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}>
             3
           </div>
           <div>
             <h3 className="font-extrabold text-xs">Step 3: Budget &amp; Scope Completion</h3>
-            <p className="text-[10px] opacity-80 font-medium">Rate options &amp; contract scope</p>
+            <p className="text-[11px] opacity-80 font-medium">Rate options &amp; contract scope</p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* STEP 1: AUDIT & TECHNICAL COMPONENTS */}
@@ -194,8 +201,8 @@ export default function ProposedAssignmentPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Proposed Job Title / Scope *</label>
-              <input
+              <label htmlFor="pa-title" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Proposed Job Title / Scope *</label>
+              <input id="pa-title"
                 type="text"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
@@ -204,8 +211,8 @@ export default function ProposedAssignmentPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Industry Audit Category</label>
-              <select
+              <label htmlFor="pa-audit-type" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Industry Audit Category</label>
+              <select id="pa-audit-type"
                 value={auditType}
                 onChange={(e) => setAuditType(e.target.value)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-900 dark:text-slate-100"
@@ -219,31 +226,30 @@ export default function ProposedAssignmentPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-2">
+            <p id="pa-components-label" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-2">
               Multi-Select Required Quality Inspection Components (Tick All That Apply)
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            </p>
+            <div role="group" aria-labelledby="pa-components-label" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {components.map((comp) => (
-                <div
+                <label
                   key={comp.id}
-                  onClick={() => toggleComponent(comp.id)}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
                     comp.selected
                       ? "bg-blue-50/80 dark:bg-slate-800 border-[#003366] dark:border-sky-400 ring-1 ring-[#003366]"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   <input
                     type="checkbox"
                     checked={comp.selected}
-                    onChange={() => {}}
+                    onChange={() => toggleComponent(comp.id)}
                     className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
-                  <div>
+                  <div className="min-w-0">
                     <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100 block">{comp.name}</span>
-                    <span className="text-[10px] text-slate-500 font-mono font-semibold">{comp.category}</span>
+                    <span className="text-[11px] text-slate-500 font-mono font-semibold">{comp.category}</span>
                   </div>
-                </div>
+                </label>
               ))}
             </div>
           </div>
@@ -274,8 +280,8 @@ export default function ProposedAssignmentPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Selected Client / Corporate Partner</label>
-              <select
+              <label htmlFor="pa-client" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Selected Client / Corporate Partner</label>
+              <select id="pa-client"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-900 dark:text-slate-100"
@@ -290,8 +296,8 @@ export default function ProposedAssignmentPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Assign Lead TPI Inspector *</label>
-              <select
+              <label htmlFor="pa-inspector" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Assign Lead TPI Inspector *</label>
+              <select id="pa-inspector"
                 value={inspectorName}
                 onChange={(e) => {
                   setInspectorName(e.target.value);
@@ -311,7 +317,7 @@ export default function ProposedAssignmentPage() {
           <div className="p-6 rounded-3xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-200 dark:border-blue-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#003366] text-white text-[10px] font-mono font-extrabold uppercase">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#003366] text-white text-[11px] font-extrabold uppercase">
                   Simulated Client Approval Portal
                 </span>
                 <h3 className="font-extrabold text-sm text-[#003366] dark:text-sky-300 mt-1">
@@ -319,7 +325,7 @@ export default function ProposedAssignmentPage() {
                 </h3>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleSimulateClientApproval(true)}
@@ -399,8 +405,8 @@ export default function ProposedAssignmentPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Billing Rate Structure</label>
-              <select
+              <label htmlFor="pa-rate-type" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Billing Rate Structure</label>
+              <select id="pa-rate-type"
                 value={rateType}
                 onChange={(e) => setRateType(e.target.value as any)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-900 dark:text-slate-100"
@@ -412,8 +418,8 @@ export default function ProposedAssignmentPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Total Budget Amount (Rs.)</label>
-              <input
+              <label htmlFor="pa-amount" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Total Budget Amount (Rs.)</label>
+              <input id="pa-amount"
                 type="number"
                 value={contractAmount}
                 onChange={(e) => setContractAmount(e.target.value)}
@@ -422,8 +428,8 @@ export default function ProposedAssignmentPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Planned Duration (Days)</label>
-              <input
+              <label htmlFor="pa-days" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Planned Duration (Days)</label>
+              <input id="pa-days"
                 type="number"
                 value={plannedDays}
                 onChange={(e) => setPlannedDays(e.target.value)}
@@ -433,8 +439,8 @@ export default function ProposedAssignmentPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Inspection Plant Location &amp; Yard</label>
-            <input
+            <label htmlFor="pa-location" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Inspection Plant Location &amp; Yard</label>
+            <input id="pa-location"
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -443,8 +449,8 @@ export default function ProposedAssignmentPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Detailed Scope of Work &amp; Inspection Protocol</label>
-            <textarea
+            <label htmlFor="pa-scope" className="block text-xs font-extrabold text-slate-800 dark:text-slate-200 mb-1.5">Detailed Scope of Work &amp; Inspection Protocol</label>
+            <textarea id="pa-scope"
               rows={3}
               value={scopeDetails}
               onChange={(e) => setScopeDetails(e.target.value)}

@@ -225,18 +225,16 @@ class ConstructionBillVerificationService:
             except Exception:
                 logo_img = None
 
-        qr_text = (
-            "IDEAL QUALITY ENGINEERS (IQE) - CONSTRUCTION BILL VERIFICATION\n"
-            "----------------------------------------------------------------\n"
-            f"Site: Mudigonda CHC ({site_id})\n"
-            "RA Bill: RA-CBV-2026-004\n"
-            "Contractor: Suguna Metals & Civil Contractors Ltd.\n"
-            f"Date: {datetime.now().strftime('%Y-%m-%d')}\n"
-            "Status: VERIFIED & PAYABLE CLEARANCE AUTHORIZED"
-        )
-        qr = QrCodeWidget(qr_text)
-        qr_drawing = Drawing(54, 54)
-        qr_drawing.add(qr)
+        from core.qr import verify_url, qr_drawing as make_qr
+
+        qr_drawing = make_qr(verify_url(
+            title="Construction Bill Verification Certificate",
+            ref="IQE/CBV/2026/088 - RA-CBV-2026-004",
+            client="Mudigonda CHC Site",
+            status="Verified & Payable Clearance Authorized",
+            date=datetime.now().strftime('%Y-%m-%d'),
+            pdf_path=f"/api/v1/construction-bill-verification/export/pdf?site_id={site_id}",
+        ), size=56)
 
         header_p = Paragraph(
             "<b>IDEAL QUALITY ENGINEERS (I) PRIVATE LIMITED</b><br/>"

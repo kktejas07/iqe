@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
@@ -48,6 +49,7 @@ import {
   Loader2,
 } from "@/components/icons";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
+import { confirmDialog } from "@/components/feedback";
 
 export interface ReleaseItem {
   id: string;
@@ -339,10 +341,17 @@ export default function InspectionReleaseNotePage() {
     );
   };
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm("Remove released item from IRN?")) {
-      setItems((prev) => prev.filter((i) => i.id !== id));
-    }
+  const handleDeleteItem = async (id: string) => {
+    if (
+      !(await confirmDialog({
+        title: "Remove this item from the release note?",
+        message: "The item will be taken off this IRN.",
+        confirmLabel: "Remove",
+        danger: true,
+      }))
+    )
+      return;
+    setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
   const kpis = useMemo(() => {
@@ -423,7 +432,7 @@ export default function InspectionReleaseNotePage() {
       <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <PackageCheck className="w-6 h-6 text-emerald-600" />
               <span>Inspection Release Note (IRN)</span>
             </h1>
@@ -432,13 +441,14 @@ export default function InspectionReleaseNotePage() {
             </span>
 
             {/* Select Client Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
-              <Users className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-slate-600 font-extrabold">Select Client:</span>
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
+              <Users className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <label htmlFor="report-client-select" className="text-slate-600 font-extrabold shrink-0">Select Client:</label>
               <select
+                id="report-client-select"
                 value={selectedClient}
                 onChange={(e) => handleClientChange(e.target.value)}
-                className="bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="min-w-0 flex-1 sm:flex-none truncate bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 {CLIENT_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -454,7 +464,7 @@ export default function InspectionReleaseNotePage() {
               <span className="text-slate-800 font-extrabold font-mono">{irnNo}</span>
               <span className="text-slate-300">|</span>
               <span className="text-slate-500 text-[11px] font-bold">Type:</span>
-              <select
+              <select aria-label="Release type"
                 value={releaseType}
                 onChange={(e) => setReleaseType(e.target.value as any)}
                 className="bg-white text-slate-900 font-bold border border-slate-300 rounded text-xs p-0.5"
@@ -477,7 +487,7 @@ export default function InspectionReleaseNotePage() {
               <span>Preview Live PDF</span>
             </button>
 
-            <button
+            <button aria-label="Save IRN"
               onClick={triggerSaveToast}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
               title="Save IRN"
@@ -485,7 +495,7 @@ export default function InspectionReleaseNotePage() {
               <Save className="w-4 h-4 text-sky-400" />
             </button>
 
-            <button
+            <button aria-label="Export CSV"
               onClick={handleExportCSV}
               className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
               title="Export CSV"
@@ -493,7 +503,7 @@ export default function InspectionReleaseNotePage() {
               <Download className="w-4 h-4" />
             </button>
 
-            <button
+            <button aria-label="Print IRN Certificate"
               onClick={() => window.print()}
               className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer"
               title="Print IRN Certificate"
@@ -512,7 +522,7 @@ export default function InspectionReleaseNotePage() {
             <span>Navigating to section...</span>
           </div>
         )}
-        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
+        <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
         {[
           { id: "sec-1", label: "1.0 Release Status" },
           { id: "sec-2", label: "2.0 Report References" },
@@ -541,7 +551,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* Controlled Document Running Header */}
-      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+      <div className="keep-light border border-slate-200 rounded-xl p-4 bg-slate-50 text-slate-900 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-slate-200 pb-3 gap-2">
           <div>
             <h2 className="font-extrabold text-sm sm:text-base text-slate-900 uppercase tracking-tight">
@@ -672,7 +682,7 @@ export default function InspectionReleaseNotePage() {
                     onChange={() => setReleaseDecision(decision as any)}
                     className="text-[#003366]"
                   />
-                  <span className={releaseDecision === decision ? "text-[#003366] font-extrabold" : "text-slate-700"}>
+                  <span className={releaseDecision === decision ? "text-[#003366] dark:text-sky-300 font-extrabold" : "text-slate-700"}>
                     {decision}
                   </span>
                 </label>
@@ -696,7 +706,7 @@ export default function InspectionReleaseNotePage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">2.0 INSPECTION REPORT REFERENCES</span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{reports.length} reports</span>
+            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{reports.length} reports</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -710,7 +720,7 @@ export default function InspectionReleaseNotePage() {
             </button>
             <button
               onClick={handleAddReport}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Report Ref</span>
@@ -736,22 +746,22 @@ export default function InspectionReleaseNotePage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditReports ? (
-                      <input
+                      <input aria-label="Report No."
                         type="text"
                         value={r.reportNo}
                         onChange={(e) => {
                           const val = e.target.value;
                           setReports((prev) => prev.map((item) => (item.id === r.id ? { ...item, reportNo: val } : item)));
                         }}
-                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-[#003366]"
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-[#003366] dark:text-sky-300"
                       />
                     ) : (
-                      <span className="font-mono font-bold text-[#003366]">{r.reportNo}</span>
+                      <span className="font-mono font-bold text-[#003366] dark:text-sky-300">{r.reportNo}</span>
                     )}
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditReports ? (
-                      <input
+                      <input aria-label="Date"
                         type="date"
                         value={r.date}
                         onChange={(e) => {
@@ -766,7 +776,7 @@ export default function InspectionReleaseNotePage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditReports ? (
-                      <input
+                      <input aria-label="Stage"
                         type="text"
                         value={r.stage}
                         onChange={(e) => {
@@ -781,7 +791,7 @@ export default function InspectionReleaseNotePage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditReports ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={r.remarks}
                         onChange={(e) => {
@@ -795,7 +805,7 @@ export default function InspectionReleaseNotePage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Report Reference"
                       onClick={() => setReports((prev) => prev.filter((item) => item.id !== r.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Report Reference"
@@ -815,7 +825,7 @@ export default function InspectionReleaseNotePage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">3.0 COMPLIANCE / DEVIATION REFERENCES</span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{deviations.length} records</span>
+            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{deviations.length} records</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -829,7 +839,7 @@ export default function InspectionReleaseNotePage() {
             </button>
             <button
               onClick={handleAddDeviation}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Deviation</span>
@@ -855,7 +865,7 @@ export default function InspectionReleaseNotePage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDeviations ? (
-                      <input
+                      <input aria-label="Concession No."
                         type="text"
                         value={d.concessionNo}
                         onChange={(e) => {
@@ -870,7 +880,7 @@ export default function InspectionReleaseNotePage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDeviations ? (
-                      <input
+                      <input aria-label="Date"
                         type="date"
                         value={d.date}
                         onChange={(e) => {
@@ -885,7 +895,7 @@ export default function InspectionReleaseNotePage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDeviations ? (
-                      <select
+                      <select aria-label="Status"
                         value={d.status}
                         onChange={(e) => {
                           const val = e.target.value as DeviationRef["status"];
@@ -904,7 +914,7 @@ export default function InspectionReleaseNotePage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDeviations ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={d.remarks}
                         onChange={(e) => {
@@ -918,7 +928,7 @@ export default function InspectionReleaseNotePage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Deviation Record"
                       onClick={() => setDeviations((prev) => prev.filter((item) => item.id !== d.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Deviation Record"
@@ -937,7 +947,7 @@ export default function InspectionReleaseNotePage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">4.0 ITEMS RELEASED</span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{filteredItems.length} items</span>
+            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">{filteredItems.length} items</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -951,7 +961,7 @@ export default function InspectionReleaseNotePage() {
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Item</span>
@@ -962,17 +972,17 @@ export default function InspectionReleaseNotePage() {
         <div className="p-4 bg-white space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+              <FileSpreadsheet className="w-4 h-4 text-brand-600" />
               <span>Section 4.0 Items Released for Dispatch ({filteredItems.length} items)</span>
             </h2>
 
             <div className="flex flex-wrap items-center gap-2">
-              <input
+              <input aria-label="Search"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search description, tag, drawing..."
-                className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
 
               <button
@@ -1007,7 +1017,7 @@ export default function InspectionReleaseNotePage() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                className="px-3.5 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Item #{items.length + 1}</span>
@@ -1040,14 +1050,14 @@ export default function InspectionReleaseNotePage() {
                 {filteredItems.map((item, idx) => {
                   const balance = Math.max(0, item.poQty - (item.prevReleasedQty + item.currentReleasedQty));
                   return (
-                    <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors">
+                    <tr key={item.id} className="hover:bg-brand-50/40 transition-colors">
                       <td className="p-3 text-center font-mono font-bold text-slate-700 bg-slate-50 border-r border-slate-100">
                         #{item.poItemNo}
                       </td>
 
                       <td className="p-3 border-r border-slate-100 font-medium">
                         {isInlineEditMode && !item.isLocked ? (
-                          <textarea
+                          <textarea aria-label="Description"
                             rows={2}
                             value={item.description}
                             onChange={(e) => handleInlineChange(item.id, "description", e.target.value)}
@@ -1060,7 +1070,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 font-mono text-slate-600 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Drawing Ref."
                             type="text"
                             value={item.drawingRef}
                             onChange={(e) => handleInlineChange(item.id, "drawingRef", e.target.value)}
@@ -1071,13 +1081,13 @@ export default function InspectionReleaseNotePage() {
                         )}
                       </td>
 
-                      <td className="p-3 font-mono font-bold text-indigo-600 border-r border-slate-100">
+                      <td className="p-3 font-mono font-bold text-brand-600 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Tag No."
                             type="text"
                             value={item.tagNo}
                             onChange={(e) => handleInlineChange(item.id, "tagNo", e.target.value)}
-                            className="w-24 p-1 bg-white border border-slate-300 rounded text-xs font-mono font-bold text-indigo-600"
+                            className="w-24 p-1 bg-white border border-slate-300 rounded text-xs font-mono font-bold text-brand-600"
                           />
                         ) : (
                           item.tagNo
@@ -1086,7 +1096,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-center font-mono border-r border-slate-100 font-semibold">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Unit"
                             type="text"
                             value={item.unit}
                             onChange={(e) => handleInlineChange(item.id, "unit", e.target.value)}
@@ -1099,7 +1109,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-right font-mono border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="PO Qty"
                             type="number"
                             value={item.poQty}
                             onChange={(e) => handleInlineChange(item.id, "poQty", parseFloat(e.target.value) || 0)}
@@ -1112,7 +1122,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-right font-mono border-r border-slate-100 text-slate-500">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Prev released Qty"
                             type="number"
                             value={item.prevReleasedQty}
                             onChange={(e) => handleInlineChange(item.id, "prevReleasedQty", parseFloat(e.target.value) || 0)}
@@ -1125,7 +1135,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-right font-mono font-bold text-blue-800 bg-blue-50/40 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Inspected Qty"
                             type="number"
                             value={item.inspectedQty}
                             onChange={(e) => handleInlineChange(item.id, "inspectedQty", parseFloat(e.target.value) || 0)}
@@ -1138,7 +1148,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-right font-mono font-bold text-emerald-800 bg-emerald-50/40 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Accepted Qty"
                             type="number"
                             value={item.acceptedQty}
                             onChange={(e) => handleInlineChange(item.id, "acceptedQty", parseFloat(e.target.value) || 0)}
@@ -1151,7 +1161,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 text-right font-mono font-extrabold text-emerald-950 bg-emerald-100/60 border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Current released Qty"
                             type="number"
                             value={item.currentReleasedQty}
                             onChange={(e) => handleInlineChange(item.id, "currentReleasedQty", parseFloat(e.target.value) || 0)}
@@ -1168,7 +1178,7 @@ export default function InspectionReleaseNotePage() {
 
                       <td className="p-3 border-r border-slate-100 text-[11px] leading-tight text-slate-700">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label="Remarks"
                             type="text"
                             value={item.remarks}
                             onChange={(e) => handleInlineChange(item.id, "remarks", e.target.value)}
@@ -1182,7 +1192,7 @@ export default function InspectionReleaseNotePage() {
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           {/* 1. Lock/Unlock */}
-                          <button
+                          <button aria-label={item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                             onClick={() => handleToggleLock(item.id)}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               item.isLocked
@@ -1195,16 +1205,16 @@ export default function InspectionReleaseNotePage() {
                           </button>
 
                           {/* 2. View Details Modal */}
-                          <button
+                          <button aria-label="View Row Details"
                             onClick={() => setViewingItem(item)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-700 transition-colors cursor-pointer"
                             title="View Row Details"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
                           {/* 3. Edit Row */}
-                          <button
+                          <button aria-label={item.isLocked ? "Item Locked" : "Edit Row Values"}
                             onClick={() => !item.isLocked && setEditingItem({ ...item })}
                             disabled={item.isLocked}
                             className={`p-1.5 rounded-lg transition-colors ${
@@ -1218,7 +1228,7 @@ export default function InspectionReleaseNotePage() {
                           </button>
 
                           {/* 4. Single CSV */}
-                          <button
+                          <button aria-label="Download Single Row CSV"
                             onClick={() => handleExportSingleRowCSV(item)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
                             title="Download Single Row CSV"
@@ -1227,7 +1237,7 @@ export default function InspectionReleaseNotePage() {
                           </button>
 
                           {/* 5. Live Preview Single Item PDF */}
-                          <button
+                          <button aria-label="Live Preview Single Item PDF Certificate"
                             onClick={() => setShowPdfPreview(true)}
                             className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
                             title="Live Preview Single Item PDF Certificate"
@@ -1236,8 +1246,8 @@ export default function InspectionReleaseNotePage() {
                           </button>
 
                           {/* 6. Download Single Item PDF */}
-                          <button
-                            onClick={() => window.open("http://localhost:8000/api/v1/reports/pdf/inspection-release-note", "_blank")}
+                          <button aria-label="Download Single PDF Report"
+                            onClick={() => window.open(`${API_BASE}/api/v1/reports/pdf/inspection-release-note`, "_blank")}
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                             title="Download Single PDF Report"
                           >
@@ -1245,7 +1255,7 @@ export default function InspectionReleaseNotePage() {
                           </button>
 
                           {/* 7. Delete */}
-                          <button
+                          <button aria-label="Delete Row"
                             onClick={() => !item.isLocked && handleDeleteItem(item.id)}
                             disabled={item.isLocked}
                             className={`p-1.5 rounded-lg transition-colors ${
@@ -1390,7 +1400,7 @@ export default function InspectionReleaseNotePage() {
               ].map((inst, idx) => (
                 <tr key={idx} className="hover:bg-slate-50">
                   <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800 flex items-center gap-2">
-                    <Truck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    <Truck className="w-3.5 h-3.5 text-brand-600 shrink-0" />
                     <span>{inst.title}</span>
                   </td>
                   <td className="p-2.5 text-center">
@@ -1420,6 +1430,7 @@ export default function InspectionReleaseNotePage() {
         </div>
         <div className="p-4 bg-white space-y-3">
           <textarea
+            aria-label="Remarks and conditions of release"
             rows={3}
             defaultValue="All items released under this IRN have undergone visual, dimensional, hydrostatic pressure testing and positive material identification (PMI) satisfactorily in accordance with approved QAP and client purchase order. Vendor shall ensure nitrogen positive charge (0.5 bar) is verified prior to dispatch. Material Test Certificates and Calibration Certificates are reviewed and endorsed."
             className="w-full text-xs p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366] text-slate-800 bg-slate-50/50"
@@ -1437,7 +1448,7 @@ export default function InspectionReleaseNotePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {/* Supplier / Manufacturer */}
             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
-              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+              <span className="font-extrabold text-sm text-[#003366] dark:text-sky-300 block border-b border-slate-200 pb-2">
                 Supplier / Manufacturer
               </span>
               <div className="space-y-2">
@@ -1470,7 +1481,7 @@ export default function InspectionReleaseNotePage() {
 
             {/* Ideal Quality Engineers (I) Pvt. Ltd. */}
             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
-              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+              <span className="font-extrabold text-sm text-[#003366] dark:text-sky-300 block border-b border-slate-200 pb-2">
                 Ideal Quality Engineers (I) Pvt. Ltd.
               </span>
               <div className="space-y-2">
@@ -1503,8 +1514,9 @@ export default function InspectionReleaseNotePage() {
           </div>
 
           <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
-            <span className="text-xs font-bold text-slate-700 block mb-1">Supplier&apos;s Comments (if any):</span>
+            <label htmlFor="supplier-comments" className="text-xs font-bold text-slate-700 block mb-1">Supplier&apos;s Comments (if any):</label>
             <input
+              id="supplier-comments"
               type="text"
               defaultValue="All items packed seaworthy per contract requirements. Ready for client logistics carrier pickup."
               className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg text-slate-700"
@@ -1515,7 +1527,7 @@ export default function InspectionReleaseNotePage() {
 
       {/* 10.0 DISCLAIMER & LIMITATION OF LIABILITY */}
       <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl p-4 bg-slate-50/80 space-y-3 text-xs text-slate-600 leading-relaxed">
-        <h4 className="font-extrabold text-[#003366] uppercase text-xs tracking-wider">
+        <h4 className="font-extrabold text-[#003366] dark:text-sky-300 uppercase text-xs tracking-wider">
           10.0 DISCLAIMER &amp; LIMITATION OF LIABILITY
         </h4>
         <p>
@@ -1530,7 +1542,7 @@ export default function InspectionReleaseNotePage() {
         <div className="pt-3 border-t border-slate-200 text-center font-extrabold text-slate-700 tracking-wider">
           &mdash; END OF INSPECTION RELEASE NOTE &mdash;
         </div>
-        <div className="flex items-center justify-between text-[10px] text-slate-600 border-t border-slate-200 pt-2 font-mono">
+        <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-slate-200 pt-2 font-mono">
           <span>IQE-TP-04 | Rev. 00 | Controlled Document</span>
           <span>Page 2 of 2</span>
         </div>
@@ -1541,7 +1553,7 @@ export default function InspectionReleaseNotePage() {
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Document:</span>
-          <span className="text-xs font-extrabold text-[#003366] font-mono">IQE-TP-04 &bull; {irnNo}</span>
+          <span className="text-xs font-extrabold text-[#003366] dark:text-sky-300 font-mono">IQE-TP-04 &bull; {irnNo}</span>
           <span className="text-xs text-slate-300">|</span>
           <span className="text-xs font-semibold text-slate-600">{items.length} Release Items</span>
         </div>
@@ -1571,7 +1583,7 @@ export default function InspectionReleaseNotePage() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700">
                   <Eye className="w-4 h-4" />
                 </div>
                 <div>
@@ -1581,7 +1593,7 @@ export default function InspectionReleaseNotePage() {
                   <p className="text-[11px] text-slate-500 font-mono">{viewingItem.tagNo}</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setViewingItem(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
@@ -1591,35 +1603,35 @@ export default function InspectionReleaseNotePage() {
 
             <div className="grid grid-cols-2 gap-3 py-2">
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Description of Material</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Description of Material</span>
                 <span className="font-semibold text-slate-800 text-xs">{viewingItem.description}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Drawing Ref</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Drawing Ref</span>
                 <span className="font-mono text-slate-700">{viewingItem.drawingRef}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Tag / Heat No</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Tag / Heat No</span>
                 <span className="font-mono font-bold text-slate-800">{viewingItem.tagNo}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">PO Quantity</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">PO Quantity</span>
                 <span className="font-bold text-slate-900">{viewingItem.poQty} {viewingItem.unit}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Previously Released</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Previously Released</span>
                 <span className="font-bold text-slate-600">{viewingItem.prevReleasedQty} {viewingItem.unit}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Inspected / Accepted</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Inspected / Accepted</span>
                 <span className="font-bold text-emerald-700">{viewingItem.inspectedQty} / {viewingItem.acceptedQty} {viewingItem.unit}</span>
               </div>
               <div className="bg-sky-50 p-2.5 rounded-xl border border-sky-100">
-                <span className="text-[10px] text-sky-600 uppercase font-bold tracking-wider block">Current Released Qty</span>
+                <span className="text-[11px] text-sky-600 uppercase font-bold tracking-wider block">Current Released Qty</span>
                 <span className="font-black text-sky-800 text-sm">{viewingItem.currentReleasedQty} {viewingItem.unit}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Remarks / Notes</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Remarks / Notes</span>
                 <span className="text-slate-700 italic">{viewingItem.remarks || "—"}</span>
               </div>
             </div>
@@ -1645,7 +1657,7 @@ export default function InspectionReleaseNotePage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Edit Release Item &bull; {editingItem.tagNo}
               </h3>
-              <button onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+              <button aria-label="Close" title="Close" onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1661,7 +1673,7 @@ export default function InspectionReleaseNotePage() {
             >
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Description</label>
-                <textarea
+                <textarea aria-label="Description"
                   rows={2}
                   value={editingItem.description}
                   onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
@@ -1672,7 +1684,7 @@ export default function InspectionReleaseNotePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Tag / Serial No.</label>
-                  <input
+                  <input aria-label="Tag / Serial No."
                     type="text"
                     value={editingItem.tagNo}
                     onChange={(e) => setEditingItem({ ...editingItem, tagNo: e.target.value })}
@@ -1681,7 +1693,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Drawing Ref</label>
-                  <input
+                  <input aria-label="Drawing Ref"
                     type="text"
                     value={editingItem.drawingRef}
                     onChange={(e) => setEditingItem({ ...editingItem, drawingRef: e.target.value })}
@@ -1693,7 +1705,7 @@ export default function InspectionReleaseNotePage() {
               <div className="grid grid-cols-4 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">PO Qty</label>
-                  <input
+                  <input aria-label="PO Qty"
                     type="number"
                     value={editingItem.poQty}
                     onChange={(e) => setEditingItem({ ...editingItem, poQty: parseFloat(e.target.value) || 0 })}
@@ -1702,7 +1714,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Prev Released</label>
-                  <input
+                  <input aria-label="Prev Released"
                     type="number"
                     value={editingItem.prevReleasedQty}
                     onChange={(e) => setEditingItem({ ...editingItem, prevReleasedQty: parseFloat(e.target.value) || 0 })}
@@ -1711,7 +1723,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Current Release</label>
-                  <input
+                  <input aria-label="Current Release"
                     type="number"
                     value={editingItem.currentReleasedQty}
                     onChange={(e) => setEditingItem({ ...editingItem, currentReleasedQty: parseFloat(e.target.value) || 0 })}
@@ -1720,7 +1732,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">UOM</label>
-                  <input
+                  <input aria-label="UOM"
                     type="text"
                     value={editingItem.unit}
                     onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
@@ -1731,7 +1743,7 @@ export default function InspectionReleaseNotePage() {
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Dispatch Remarks</label>
-                <input
+                <input aria-label="Dispatch Remarks"
                   type="text"
                   value={editingItem.remarks}
                   onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}
@@ -1767,7 +1779,7 @@ export default function InspectionReleaseNotePage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Add Release Item #{items.length + 1}
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+              <button aria-label="Close" title="Close" onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1800,7 +1812,7 @@ export default function InspectionReleaseNotePage() {
             >
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Item Description *</label>
-                <textarea
+                <textarea aria-label="Item Description"
                   name="description"
                   required
                   rows={2}
@@ -1812,7 +1824,7 @@ export default function InspectionReleaseNotePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Tag / Serial No. *</label>
-                  <input
+                  <input aria-label="Tag / Serial No."
                     type="text"
                     name="tagNo"
                     required
@@ -1822,7 +1834,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Drawing Ref</label>
-                  <input
+                  <input aria-label="Drawing Ref"
                     type="text"
                     name="drawingRef"
                     defaultValue="DWG-GA-01"
@@ -1834,7 +1846,7 @@ export default function InspectionReleaseNotePage() {
               <div className="grid grid-cols-4 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">PO Qty</label>
-                  <input
+                  <input aria-label="PO Qty"
                     type="number"
                     name="poQty"
                     defaultValue={1}
@@ -1843,7 +1855,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Prev Released</label>
-                  <input
+                  <input aria-label="Prev Released"
                     type="number"
                     name="prevReleasedQty"
                     defaultValue={0}
@@ -1852,7 +1864,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Current Release</label>
-                  <input
+                  <input aria-label="Current Release"
                     type="number"
                     name="currentReleasedQty"
                     defaultValue={1}
@@ -1861,7 +1873,7 @@ export default function InspectionReleaseNotePage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">UOM</label>
-                  <input
+                  <input aria-label="UOM"
                     type="text"
                     name="unit"
                     defaultValue="Nos"
@@ -1872,7 +1884,7 @@ export default function InspectionReleaseNotePage() {
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Dispatch Remarks</label>
-                <input
+                <input aria-label="Dispatch Remarks"
                   type="text"
                   name="remarks"
                   placeholder="Packing & transit notes..."
@@ -1890,7 +1902,7 @@ export default function InspectionReleaseNotePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 text-white font-bold shadow-md hover:bg-indigo-700"
+                  className="px-5 py-2 rounded-xl bg-brand-600 text-white font-bold shadow-md hover:bg-brand-700"
                 >
                   Add Item
                 </button>
@@ -1958,7 +1970,7 @@ export default function InspectionReleaseNotePage() {
           dispatch_instructions: ["packing", "protect", "asbuilt", "dispatch_now"],
           remarks: "All items inspected as per approved QAP. Release granted for dispatch.",
         }}
-        pdfUrl="http://localhost:8000/api/tpi/preview/TP04.pdf"
+        pdfUrl={`${API_BASE}/api/tpi/preview/TP04.pdf`}
         title="IQE-TP-04 Inspection Release Note (IRN)"
         reportNo={irnNo}
       />

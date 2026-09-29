@@ -152,7 +152,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             <h1 className="font-extrabold text-sm sm:text-base 2xl:text-lg text-slate-800 dark:text-slate-200 font-heading tracking-tight block leading-tight">
               Ideal Quality Engineers (I) Pvt Ltd
             </h1>
-            <p className="text-[10px] sm:text-[11px] text-red-600 dark:text-red-400 font-semibold block leading-tight flex items-center gap-1">
+            <p className="text-[11px] sm:text-[11px] text-red-600 dark:text-red-400 font-semibold block leading-tight flex items-center gap-1">
               <span>An ISO 9001:2015 Certified Company</span>
               <span className="relative inline-flex w-1.5 h-1.5">
                 <span className="absolute inset-0 rounded-full bg-red-500 animate-ping-soft" />
@@ -234,7 +234,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
             {activeDropdown === "formats" && (
               <div className={`absolute top-full left-0 w-88 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
-                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-slate-400 font-mono tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Inspection Formats</span>
                   <span className="text-sky-500 font-bold">8 Formats</span>
                 </div>
@@ -251,7 +251,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Bill Verification</div>
-                    <div className="text-[10px] text-slate-400 truncate">RA Bills &amp; TPI Billing (F-BILL-01)</div>
+                    <div className="text-[11px] text-slate-400 truncate">RA Bills &amp; TPI Billing (F-BILL-01)</div>
                   </div>
                 </Link>
                 <Link
@@ -267,7 +267,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">BOQ Reconciliation</div>
-                    <div className="text-[10px] text-slate-400 truncate">Material &amp; Quantity Audit (F-BOQ-01)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Material &amp; Quantity Audit (F-BOQ-01)</div>
                   </div>
                 </Link>
                 <Link
@@ -283,7 +283,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Flash Inspection Report</div>
-                    <div className="text-[10px] text-slate-400 truncate">Preliminary Inspection (IQE-TP-02)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Preliminary Inspection (IQE-TP-02)</div>
                   </div>
                 </Link>
                 <Link
@@ -299,7 +299,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Inspection Visit Report</div>
-                    <div className="text-[10px] text-slate-400 truncate">Formal Visit &amp; Calibration (IQE-TP-03)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Formal Visit &amp; Calibration (IQE-TP-03)</div>
                   </div>
                 </Link>
                 <Link
@@ -315,7 +315,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Inspection Release Note</div>
-                    <div className="text-[10px] text-slate-400 truncate">Dispatch Clearance (IQE-TP-04)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Dispatch Clearance (IQE-TP-04)</div>
                   </div>
                 </Link>
                 <Link
@@ -331,7 +331,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Expediting Visit Report</div>
-                    <div className="text-[10px] text-slate-400 truncate">Supplier Progress &amp; Fab Audit (IQE-TP-05)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Supplier Progress &amp; Fab Audit (IQE-TP-05)</div>
                   </div>
                 </Link>
                 <Link
@@ -347,7 +347,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Quality Verification</div>
-                    <div className="text-[10px] text-slate-400 truncate">Concealed Work &amp; ISO 17020 (F-QUAL-01)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Concealed Work &amp; ISO 17020 (F-QUAL-01)</div>
                   </div>
                 </Link>
                 <Link
@@ -363,7 +363,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Mpharma EPC</div>
-                    <div className="text-[10px] text-slate-400 truncate">Inspection Formats F-01 to F-12</div>
+                    <div className="text-[11px] text-slate-400 truncate">Inspection Formats F-01 to F-12</div>
                   </div>
                 </Link>
               </div>
@@ -388,7 +388,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
             {activeDropdown === "sops" && (
               <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
-                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-slate-400 font-mono tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Standard Operating Procedures</span>
                   <span className="text-emerald-600 font-bold">SOP Hub</span>
                 </div>
@@ -406,7 +406,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">SOP Library</div>
-                    <div className="text-[10px] text-slate-400 truncate">SOP-01 to SOP-08 Procedures</div>
+                    <div className="text-[11px] text-slate-400 truncate">SOP-01 to SOP-08 Procedures</div>
                   </div>
                 </Link>
                 <Link
@@ -423,7 +423,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">TPI Process Flow</div>
-                    <div className="text-[10px] text-slate-400 truncate">RFQ to Certificate Workflow</div>
+                    <div className="text-[11px] text-slate-400 truncate">RFQ to Certificate Workflow</div>
                   </div>
                 </Link>
               </div>
@@ -448,7 +448,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
             {activeDropdown === "wi" && (
               <div className={`absolute top-full left-0 w-80 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
-                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-slate-400 font-mono tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Field Execution Protocols</span>
                   <span className="text-amber-600 font-bold">WI Library</span>
                 </div>
@@ -466,7 +466,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Field Inspection Protocols</div>
-                    <div className="text-[10px] text-slate-400 truncate">WI-01 to WI-08 Technical Guides</div>
+                    <div className="text-[11px] text-slate-400 truncate">WI-01 to WI-08 Technical Guides</div>
                   </div>
                 </Link>
                 <Link
@@ -481,7 +481,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Civil &amp; Structural Protocols</div>
-                    <div className="text-[10px] text-slate-400 truncate">Pre-pour, Rebar &amp; MEP Verification</div>
+                    <div className="text-[11px] text-slate-400 truncate">Pre-pour, Rebar &amp; MEP Verification</div>
                   </div>
                 </Link>
                 <Link
@@ -496,7 +496,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Mechanical &amp; NDT Protocols</div>
-                    <div className="text-[10px] text-slate-400 truncate">Weld Visual, NDT &amp; Hydrostatic</div>
+                    <div className="text-[11px] text-slate-400 truncate">Weld Visual, NDT &amp; Hydrostatic</div>
                   </div>
                 </Link>
               </div>
@@ -510,7 +510,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               onClick={() => setActiveDropdown(activeDropdown === "qp" ? null : "qp")}
               className={`flex items-center gap-1 px-2.5 py-1.5 xl:px-3 xl:py-2 rounded-xl transition-all cursor-pointer ${
               pathname.startsWith("/itps")
-                ? "bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-extrabold shadow-md"
+                ? "bg-gradient-to-r from-purple-600 to-brand-700 text-white font-extrabold shadow-md"
                 : isDark
                 ? "text-purple-400 hover:bg-slate-800 font-extrabold"
                 : "text-purple-800 hover:bg-purple-50 hover:text-purple-900 font-extrabold"
@@ -521,7 +521,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
             {activeDropdown === "qp" && (
               <div className={`absolute top-full left-0 w-80 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
-                <div className="px-3 py-1 text-[10px] font-extrabold uppercase text-slate-400 font-mono tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Inspection &amp; Test Plans (ITP)</span>
                   <span className="text-purple-600 font-bold">QA Plans</span>
                 </div>
@@ -539,7 +539,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Inspection &amp; Test Plans (ITP)</div>
-                    <div className="text-[10px] text-slate-400 truncate">Hold &amp; Witness Point Matrix</div>
+                    <div className="text-[11px] text-slate-400 truncate">Hold &amp; Witness Point Matrix</div>
                   </div>
                 </Link>
                 <Link
@@ -549,12 +549,12 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                     isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover/item:scale-110 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover/item:scale-110 bg-brand-100 dark:bg-brand-950/80 text-brand-600 flex items-center justify-center shrink-0">
                     <Shield className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="font-bold text-xs">ISO 17020 Quality Assurance</div>
-                    <div className="text-[10px] text-slate-400 truncate">Conformity &amp; Accreditation Matrix</div>
+                    <div className="text-[11px] text-slate-400 truncate">Conformity &amp; Accreditation Matrix</div>
                   </div>
                 </Link>
               </div>
@@ -655,7 +655,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
             {showThemeMenu && changeTheme && (
               <div role="menu" className="absolute right-0 top-11 w-56 origin-top-right animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 z-50 text-xs space-y-0.5">
-                <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">Appearance</div>
+                <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Appearance</div>
                 {([
                   { id: "iqe-brand", label: "IQE Brand", swatch: "from-[#0084bf] to-[#e35f14]" },
                   { id: "google-light", label: "Google Light", swatch: "from-slate-100 to-white" },
@@ -717,7 +717,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               className={`w-full pl-9 pr-20 py-1.5 text-xs font-semibold ${isDark ? "bg-slate-800 text-white border-slate-700 placeholder-slate-400" : "bg-white text-slate-900 border-slate-300 placeholder-slate-500"} border rounded-xl focus:outline-none focus:ring-4 focus:ring-[#0084bf]/15 focus:border-[#0084bf] shadow-inner`}
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 transition-colors group-focus-within/search:text-[#0084bf]" />
-            <kbd className={`hidden sm:flex absolute right-9 top-1.5 items-center gap-0.5 px-1.5 h-5 rounded-md border text-[10px] font-mono font-bold pointer-events-none transition-opacity group-focus-within/search:opacity-0 ${isDark ? "border-slate-600 text-slate-400 bg-slate-900" : "border-slate-200 text-slate-400 bg-slate-50"}`}>
+            <kbd className={`hidden sm:flex absolute right-9 top-1.5 items-center gap-0.5 px-1.5 h-5 rounded-md border text-[11px] font-mono font-bold pointer-events-none transition-opacity group-focus-within/search:opacity-0 ${isDark ? "border-slate-600 text-slate-400 bg-slate-900" : "border-slate-200 text-slate-400 bg-slate-50"}`}>
               Ctrl K
             </kbd>
             <button type="submit" className="absolute right-2 top-1 p-1 rounded-lg text-sky-500 hover:bg-sky-50 dark:hover:bg-slate-700" title="AI Search" aria-label="Run AI search">
@@ -728,10 +728,10 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
           {searchResults && (
             <div className="absolute top-10 left-0 w-full origin-top animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-50 max-h-80 overflow-y-auto">
               <div className="flex items-center justify-between px-2 mb-1 pb-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
                 </span>
-                <button onClick={() => setSearchResults(null)} className="text-[10px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">Esc</button>
+                <button onClick={() => setSearchResults(null)} className="text-[11px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-1.5 py-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">Esc</button>
               </div>
               {searchResults.length === 0 ? (
                 <div className="py-8 flex flex-col items-center gap-2 text-center animate-fade-in">
@@ -744,10 +744,10 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               ) : (
                 <div className="stagger space-y-0.5">
                   {searchResults.map((item: any, idx: number) => (
-                    <div key={idx} onClick={() => { setSearchResults(null); if (item.type === "job") router.push(`/jobs/${item.id}`); }} className="px-2.5 py-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer flex justify-between items-center gap-3 text-xs transition-colors">
+                    <button type="button" key={idx} onClick={() => { setSearchResults(null); if (item.type === "job") router.push(`/jobs/${item.id}`); }} className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer flex justify-between items-center gap-3 text-xs transition-colors">
                       <span className="font-semibold truncate">{item.title || item.id}</span>
-                      <span className="shrink-0 px-2 py-0.5 rounded-full badge-iqe text-[10px] uppercase font-mono font-bold">{item.type === 'job' ? 'Assignment' : item.type}</span>
-                    </div>
+                      <span className="shrink-0 px-2 py-0.5 rounded-full badge-iqe text-[11px] uppercase font-bold">{item.type === 'job' ? 'Assignment' : item.type}</span>
+                    </button>
                   ))}
                 </div>
               )}
@@ -761,7 +761,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
         <div className="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 max-h-[75vh] overflow-y-auto space-y-4 animate-dropdown-in shadow-2xl">
           {/* Section 1: ADMIN & ANALYTICS */}
           <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono mb-2 flex items-center gap-1.5">
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-500" /> ADMIN &amp; OVERVIEW
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
@@ -798,7 +798,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
 
           {/* Section 2: FORMATS */}
           <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-sky-500 font-mono mb-2 flex items-center justify-between">
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-sky-500 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <FileSpreadsheet className="w-3.5 h-3.5" /> INSPECTION FORMATS
               </span>
@@ -813,7 +813,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <FileSpreadsheet className="w-4 h-4 text-[#0084bf]" />
                 <div>
                   <div>Bill Verification</div>
-                  <div className="text-[10px] text-slate-400 font-normal">RA Bills &amp; TPI (F-BILL-01)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">RA Bills &amp; TPI (F-BILL-01)</div>
                 </div>
               </Link>
               <Link
@@ -824,7 +824,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <Layers className="w-4 h-4 text-purple-600" />
                 <div>
                   <div>BOQ Reconciliation</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Material Audit (F-BOQ-01)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Material Audit (F-BOQ-01)</div>
                 </div>
               </Link>
               <Link
@@ -835,7 +835,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <Zap className="w-4 h-4 text-amber-600" />
                 <div>
                   <div>Flash Inspection Report</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Preliminary (IQE-TP-02)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Preliminary (IQE-TP-02)</div>
                 </div>
               </Link>
               <Link
@@ -846,7 +846,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <div>
                   <div>Inspection Visit Report</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Formal Visit (IQE-TP-03)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Formal Visit (IQE-TP-03)</div>
                 </div>
               </Link>
               <Link
@@ -857,7 +857,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <PackageCheck className="w-4 h-4 text-emerald-600" />
                 <div>
                   <div>Inspection Release Note</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Dispatch Clearance (IQE-TP-04)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Dispatch Clearance (IQE-TP-04)</div>
                 </div>
               </Link>
               <Link
@@ -868,7 +868,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <Compass className="w-4 h-4 text-teal-600" />
                 <div>
                   <div>Expediting Visit Report</div>
-                  <div className="text-[10px] text-slate-400 font-normal">Supplier Audit (IQE-TP-05)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Supplier Audit (IQE-TP-05)</div>
                 </div>
               </Link>
               <Link
@@ -879,7 +879,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <div>
                   <div>Quality Verification</div>
-                  <div className="text-[10px] text-slate-400 font-normal">ISO 17020 (F-QUAL-01)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">ISO 17020 (F-QUAL-01)</div>
                 </div>
               </Link>
               <Link
@@ -890,7 +890,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <Pill className="w-4 h-4 text-[#e35f14]" />
                 <div>
                   <div>Mpharma EPC</div>
-                  <div className="text-[10px] text-slate-400 font-normal">F-01 to F-12 Formats</div>
+                  <div className="text-[11px] text-slate-400 font-normal">F-01 to F-12 Formats</div>
                 </div>
               </Link>
             </div>
@@ -900,7 +900,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
           <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div>
-                <p className="text-[10px] font-extrabold uppercase text-slate-400 mb-1">SOPS</p>
+                <p className="text-[11px] font-extrabold uppercase text-slate-400 mb-1">SOPS</p>
                 <Link
                   href="/sops"
                   onClick={() => setMobileMenuOpen(false)}
@@ -917,7 +917,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 </Link>
               </div>
               <div>
-                <p className="text-[10px] font-extrabold uppercase text-slate-400 mb-1">WORK INSTR.</p>
+                <p className="text-[11px] font-extrabold uppercase text-slate-400 mb-1">WORK INSTR.</p>
                 <Link
                   href="/work-instructions"
                   onClick={() => setMobileMenuOpen(false)}
@@ -934,7 +934,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 </Link>
               </div>
               <div>
-                <p className="text-[10px] font-extrabold uppercase text-slate-400 mb-1">QUALITY PLANS</p>
+                <p className="text-[11px] font-extrabold uppercase text-slate-400 mb-1">QUALITY PLANS</p>
                 <Link
                   href="/itps"
                   onClick={() => setMobileMenuOpen(false)}
@@ -951,7 +951,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 </Link>
               </div>
               <div>
-                <p className="text-[10px] font-extrabold uppercase text-slate-400 mb-1">QMS</p>
+                <p className="text-[11px] font-extrabold uppercase text-slate-400 mb-1">QMS</p>
                 <Link
                   href="/complaints"
                   onClick={() => setMobileMenuOpen(false)}

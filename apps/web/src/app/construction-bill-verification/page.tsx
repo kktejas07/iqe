@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useEffect } from "react";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 import {
@@ -335,10 +336,10 @@ export default function ConstructionBillVerificationPage() {
   const fetchData = async () => {
     try {
       const [absRes, steelRes, dailyRes, waybillRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/abstract"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/steel"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/daily-logs"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/waybills"),
+        fetch(`${API_BASE}/api/v1/construction-bill-verification/abstract`),
+        fetch(`${API_BASE}/api/v1/construction-bill-verification/steel`),
+        fetch(`${API_BASE}/api/v1/construction-bill-verification/daily-logs`),
+        fetch(`${API_BASE}/api/v1/construction-bill-verification/waybills`),
       ]);
 
       if (absRes.ok) setAbstractData(await absRes.json());
@@ -351,7 +352,7 @@ export default function ConstructionBillVerificationPage() {
   };
 
   const handleExport = (type: "pdf" | "excel" | "docx") => {
-    const url = `http://localhost:8000/api/v1/construction-bill-verification/export/${type}`;
+    const url = `${API_BASE}/api/v1/construction-bill-verification/export/${type}`;
     window.open(url, "_blank");
   };
 
@@ -368,7 +369,7 @@ export default function ConstructionBillVerificationPage() {
     const rate = item.unitRate || item.unit_rate || 1000;
     const status = item.closureStatus || item.verification_status || "Approved";
 
-    const url = `http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?boq_item=${encodeURIComponent(boq)}&ra_bill=${encodeURIComponent(ra)}&vendor=${encodeURIComponent(vendor)}&client=${encodeURIComponent(client)}&description=${encodeURIComponent(desc)}&unit=${encodeURIComponent(uom)}&drawing_ref=${encodeURIComponent(dwg)}&claimed_qty=${claimed}&verified_qty=${verified}&unit_rate=${rate}&closure_status=${encodeURIComponent(status)}`;
+    const url = `${API_BASE}/api/v1/reports/pdf/tpi-billing-item?boq_item=${encodeURIComponent(boq)}&ra_bill=${encodeURIComponent(ra)}&vendor=${encodeURIComponent(vendor)}&client=${encodeURIComponent(client)}&description=${encodeURIComponent(desc)}&unit=${encodeURIComponent(uom)}&drawing_ref=${encodeURIComponent(dwg)}&claimed_qty=${claimed}&verified_qty=${verified}&unit_rate=${rate}&closure_status=${encodeURIComponent(status)}`;
     window.open(url, "_blank");
   };
 
@@ -636,7 +637,7 @@ export default function ConstructionBillVerificationPage() {
         {/* Search Input */}
         <div className="relative pr-2">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-          <input
+          <input aria-label="Search bill items"
             type="text"
             placeholder="Search 100 items, code, dwg #..."
             value={searchQuery}
@@ -668,7 +669,7 @@ export default function ConstructionBillVerificationPage() {
                 className={`flex items-center px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
                   isInlineEditMode
                     ? "bg-amber-400 text-slate-950 border-amber-500 font-extrabold shadow-amber-500/20"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                    : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 border-slate-300"
                 }`}
                 title="Toggle Inline Cell Editing"
               >
@@ -701,7 +702,7 @@ export default function ConstructionBillVerificationPage() {
 
               <div className="flex items-center space-x-1.5 text-xs text-slate-600">
                 <span>Page Size:</span>
-                <select
+                <select aria-label="Rows per page"
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(Number(e.target.value));
@@ -782,7 +783,7 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-3 px-3 text-right font-mono text-slate-500">{(item.prevCertifiedQty || 0).toLocaleString()}</td>
                       <td className="py-2 px-2 text-right border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Claimed quantity for item ${sl}`}
                             type="number"
                             value={claimedQty}
                             onChange={(e) => handleInlineItemChange(sl, "claimedQty", e.target.value)}
@@ -794,7 +795,7 @@ export default function ConstructionBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-right border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Verified quantity for item ${sl}`}
                             type="number"
                             value={verifiedQty}
                             onChange={(e) => handleInlineItemChange(sl, "verifiedQty", e.target.value)}
@@ -807,7 +808,7 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-3 px-3 text-right font-mono text-amber-700 font-semibold">{diffQty > 0 ? `+${diffQty}` : "0.00"}</td>
                       <td className="py-2 px-2 text-right border-r border-slate-100">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Unit rate for item ${sl}`}
                             type="number"
                             value={unitRate}
                             onChange={(e) => handleInlineItemChange(sl, "unitRate", e.target.value)}
@@ -827,7 +828,7 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-3 px-4 text-slate-600 truncate max-w-[180px]">{item.measurementProtocol || "Joint Measurement"}</td>
                       <td className="py-2 px-2 text-slate-600 truncate max-w-[180px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Remarks for item ${sl}`}
                             type="text"
                             value={item.remarks || item.engineerRemarks || ""}
                             onChange={(e) => handleInlineItemChange(sl, "remarks", e.target.value)}
@@ -839,13 +840,13 @@ export default function ConstructionBillVerificationPage() {
                       </td>
                       <td className="py-3 px-4 text-slate-700 font-medium">{item.actionRequired || "Verified & Approved"}</td>
                       <td className="py-3 px-3 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${
                           (item.closureStatus || item.verification_status) === "Verified & Approved" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}>
                           {item.closureStatus || item.verification_status}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center font-mono text-[10px] font-bold text-emerald-800 bg-emerald-50/50 rounded">
+                      <td className="py-3 px-3 text-center font-mono text-[11px] font-bold text-emerald-800 bg-emerald-50/50 rounded">
                         {item.lockStatus || "LOCKED - SEALED"}
                       </td>
 
@@ -853,12 +854,12 @@ export default function ConstructionBillVerificationPage() {
                       <td className="py-2 px-3 text-center sticky right-0 bg-white z-10 border-l border-slate-200 shadow-sm whitespace-nowrap">
                         <div className="flex items-center justify-center space-x-1">
                           {/* 1. Lock/Unlock */}
-                          <button
+                          <button aria-label={item.lockStatus?.includes("LOCKED") || item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                             onClick={() => handleToggleLock(sl)}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                               item.lockStatus?.includes("LOCKED") || item.isLocked
                                 ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                : "bg-slate-100 hover:bg-slate-200 text-slate-500"
+                                : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500"
                             }`}
                             title={item.lockStatus?.includes("LOCKED") || item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                           >
@@ -870,16 +871,16 @@ export default function ConstructionBillVerificationPage() {
                           </button>
 
                           {/* 2. View Details Modal */}
-                          <button
+                          <button aria-label="View Full Item Audit Details"
                             onClick={() => setSelectedViewItem(item)}
                             title="View Full Item Audit Details"
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-700 transition-colors cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
                           {/* 3. Edit Quantity, Rate & Remarks */}
-                          <button
+                          <button aria-label="Edit Quantity, Rate & Remarks"
                             onClick={() => setSelectedEditItem({ ...item })}
                             title="Edit Quantity, Rate & Remarks"
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 transition-colors cursor-pointer"
@@ -888,7 +889,7 @@ export default function ConstructionBillVerificationPage() {
                           </button>
 
                           {/* 4. Single CSV */}
-                          <button
+                          <button aria-label="Download Single Row CSV"
                             onClick={() => handleExportSingleRowCSV(item)}
                             title="Download Single Row CSV"
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
@@ -897,7 +898,7 @@ export default function ConstructionBillVerificationPage() {
                           </button>
 
                           {/* 5. Live Preview Single Item PDF */}
-                          <button
+                          <button aria-label="Live Preview PDF"
                             onClick={() => setShowPdfModal(true)}
                             title="Live Preview PDF"
                             className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
@@ -906,7 +907,7 @@ export default function ConstructionBillVerificationPage() {
                           </button>
 
                           {/* 6. Download Single Item PDF Certificate */}
-                          <button
+                          <button aria-label="Download Single Item PDF Certificate"
                             onClick={() => handleSingleItemPdf(item)}
                             title="Download Single Item PDF Certificate"
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
@@ -968,7 +969,7 @@ export default function ConstructionBillVerificationPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     selectedSteelDia === dia
                       ? "bg-emerald-600 text-white shadow"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   {dia}
@@ -1038,7 +1039,7 @@ export default function ConstructionBillVerificationPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     selectedMaterialFilter === mat
                       ? "bg-emerald-600 text-white shadow"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   {mat}
@@ -1230,7 +1231,7 @@ export default function ConstructionBillVerificationPage() {
                   <p className="text-xs text-slate-400">ISO 17020 Type A Audit Certificate Record</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setSelectedViewItem(null)}
                 className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
               >
@@ -1307,7 +1308,7 @@ export default function ConstructionBillVerificationPage() {
                   <p className="text-xs text-slate-400">Modify TPI Verified Quantity, Rate & Remarks</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setSelectedEditItem(null)}
                 className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
               >
@@ -1322,8 +1323,8 @@ export default function ConstructionBillVerificationPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Contractor Claimed Qty:</label>
-                  <input
+                  <label htmlFor="cbv-contractor-claimed-qty" className="font-bold text-slate-700">Contractor Claimed Qty:</label>
+                  <input id="cbv-contractor-claimed-qty"
                     type="number"
                     value={selectedEditItem.claimedQty || selectedEditItem.total_consumed || 0}
                     onChange={(e) => setSelectedEditItem({ ...selectedEditItem, claimedQty: Number(e.target.value) })}
@@ -1332,8 +1333,8 @@ export default function ConstructionBillVerificationPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-emerald-700">TPI Verified Qty:</label>
-                  <input
+                  <label htmlFor="cbv-tpi-verified-qty" className="font-bold text-emerald-700">TPI Verified Qty:</label>
+                  <input id="cbv-tpi-verified-qty"
                     type="number"
                     value={selectedEditItem.verifiedQty || selectedEditItem.theoretical_consumed || 0}
                     onChange={(e) => setSelectedEditItem({ ...selectedEditItem, verifiedQty: Number(e.target.value) })}
@@ -1344,8 +1345,8 @@ export default function ConstructionBillVerificationPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Unit Rate (INR ₹):</label>
-                  <input
+                  <label htmlFor="cbv-unit-rate-inr" className="font-bold text-slate-700">Unit Rate (INR ₹):</label>
+                  <input id="cbv-unit-rate-inr"
                     type="number"
                     value={selectedEditItem.unitRate || selectedEditItem.unit_rate || 0}
                     onChange={(e) => setSelectedEditItem({ ...selectedEditItem, unitRate: Number(e.target.value) })}
@@ -1354,8 +1355,8 @@ export default function ConstructionBillVerificationPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Verification Closure Status:</label>
-                  <select
+                  <label htmlFor="cbv-verification-closure-status" className="font-bold text-slate-700">Verification Closure Status:</label>
+                  <select id="cbv-verification-closure-status"
                     value={selectedEditItem.closureStatus || selectedEditItem.verification_status || "Verified & Approved"}
                     onChange={(e) => setSelectedEditItem({ ...selectedEditItem, closureStatus: e.target.value, verification_status: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:outline-none focus:border-amber-500"
@@ -1369,8 +1370,8 @@ export default function ConstructionBillVerificationPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">TPI Inspection Remarks:</label>
-                <textarea
+                <label htmlFor="cbv-tpi-inspection-remarks" className="font-bold text-slate-700">TPI Inspection Remarks:</label>
+                <textarea id="cbv-tpi-inspection-remarks"
                   rows={3}
                   value={selectedEditItem.remarks || selectedEditItem.engineerRemarks || ""}
                   onChange={(e) => setSelectedEditItem({ ...selectedEditItem, remarks: e.target.value, engineerRemarks: e.target.value })}
@@ -1413,7 +1414,7 @@ export default function ConstructionBillVerificationPage() {
                   <p className="text-[11px] text-slate-500 font-mono">27-Column Precision Ledger</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setShowAddModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
               >
@@ -1425,8 +1426,8 @@ export default function ConstructionBillVerificationPage() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">BOQ Item Code</label>
-                    <input
+                    <label htmlFor="cbv-boq-item-code" className="font-bold text-slate-700 uppercase text-[11px]">BOQ Item Code</label>
+                    <input id="cbv-boq-item-code"
                       type="text"
                       placeholder="e.g. BOQ-CIV-101"
                       value={newItem.boqItem}
@@ -1435,8 +1436,8 @@ export default function ConstructionBillVerificationPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Unit of Measure</label>
-                    <select
+                    <label htmlFor="cbv-unit-of-measure" className="font-bold text-slate-700 uppercase text-[11px]">Unit of Measure</label>
+                    <select id="cbv-unit-of-measure"
                       value={newItem.unit}
                       onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
                       className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
@@ -1452,8 +1453,8 @@ export default function ConstructionBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Work Item Description *</label>
-                  <input
+                  <label htmlFor="cbv-work-item-description" className="font-bold text-slate-700 uppercase text-[11px]">Work Item Description *</label>
+                  <input id="cbv-work-item-description"
                     type="text"
                     required
                     placeholder="e.g. M 25 Grade Reinforced Concrete Beams & Slabs"
@@ -1465,8 +1466,8 @@ export default function ConstructionBillVerificationPage() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Contract Qty</label>
-                    <input
+                    <label htmlFor="cbv-contract-qty" className="font-bold text-slate-700 uppercase text-[11px]">Contract Qty</label>
+                    <input id="cbv-contract-qty"
                       type="number"
                       min={0}
                       value={newItem.contractQty}
@@ -1475,8 +1476,8 @@ export default function ConstructionBillVerificationPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Claimed Qty</label>
-                    <input
+                    <label htmlFor="cbv-claimed-qty" className="font-bold text-slate-700 uppercase text-[11px]">Claimed Qty</label>
+                    <input id="cbv-claimed-qty"
                       type="number"
                       min={0}
                       value={newItem.claimedQty}
@@ -1485,8 +1486,8 @@ export default function ConstructionBillVerificationPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-emerald-800 uppercase text-[10px]">Verified Qty</label>
-                    <input
+                    <label htmlFor="cbv-verified-qty" className="font-bold text-emerald-800 uppercase text-[11px]">Verified Qty</label>
+                    <input id="cbv-verified-qty"
                       type="number"
                       min={0}
                       value={newItem.verifiedQty}
@@ -1498,8 +1499,8 @@ export default function ConstructionBillVerificationPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Unit Rate (₹)</label>
-                    <input
+                    <label htmlFor="cbv-unit-rate" className="font-bold text-slate-700 uppercase text-[11px]">Unit Rate (₹)</label>
+                    <input id="cbv-unit-rate"
                       type="number"
                       min={0}
                       value={newItem.unitRate}
@@ -1508,8 +1509,8 @@ export default function ConstructionBillVerificationPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">TPI Verification Remarks</label>
-                    <input
+                    <label htmlFor="cbv-tpi-verification-remarks" className="font-bold text-slate-700 uppercase text-[11px]">TPI Verification Remarks</label>
+                    <input id="cbv-tpi-verification-remarks"
                       type="text"
                       placeholder="e.g. Joint site physical survey completed"
                       value={newItem.remarks}
@@ -1524,7 +1525,7 @@ export default function ConstructionBillVerificationPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1547,7 +1548,7 @@ export default function ConstructionBillVerificationPage() {
         onClose={() => setShowPdfModal(false)}
         title="Construction Bill Verification Certificate & Ledger"
         reportNo="SITE-MUDIGONDA-01"
-        pdfUrl="http://localhost:8000/api/v1/construction-bill-verification/export/pdf"
+        pdfUrl={`${API_BASE}/api/v1/construction-bill-verification/export/pdf`}
       />
     </div>
   );

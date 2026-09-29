@@ -1,3 +1,4 @@
+import { API_BASE as BACKEND_BASE } from "@/lib/config";
 /**
  * Analytics & Telemetry Tracking Utility
  * Instrument elements with data-analytics-id, data-analytics-key, data-analytics-name
@@ -16,7 +17,7 @@ export interface TrackParams {
   metadata?: Record<string, any>;
 }
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const rawApiUrl = BACKEND_BASE;
 const API_BASE = rawApiUrl.endsWith("/api/v1") ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 export async function trackEvent(params: TrackParams) {

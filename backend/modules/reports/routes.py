@@ -181,3 +181,34 @@ async def export_tpi_single_item_excel(boq_item: str = "1.01"):
     )
 
 
+
+
+# Inspection formats opened from the web pages' "PDF" buttons. They render the
+# controlled TP-02..TP-05 templates (with the scan-to-verify QR in the header).
+_INSPECTION_FORMS = {
+    "flash-inspection-report": ("TP02", "IQE_Flash_Inspection_Report.pdf"),
+    "inspection-visit-report": ("TP03", "IQE_Inspection_Visit_Report.pdf"),
+    "inspection-release-note": ("TP04", "IQE_Inspection_Release_Note.pdf"),
+    "expediting-visit-report": ("TP05", "IQE_Expediting_Visit_Report.pdf"),
+}
+
+
+def _inspection_pdf_response(form_code: str, filename: str, disposition: str) -> Response:
+    from app.pdf.service import render_pdf
+
+    disp = "attachment" if disposition == "attachment" else "inline"
+    return Response(
+        content=render_pdf(form_code, payload={}),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'{disp}; filename="{filename}"'},
+    )
+
+
+@router.get("/pdf/{report_slug}")
+async def export_inspection_form_pdf(report_slug: str, disposition: str = "inline"):
+    from fastapi import HTTPException
+
+    if report_slug not in _INSPECTION_FORMS:
+        raise HTTPException(status_code=404, detail=f"Unknown report: {report_slug}")
+    form_code, filename = _INSPECTION_FORMS[report_slug]
+    return _inspection_pdf_response(form_code, filename, disposition)

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { X, ExternalLink, Download, FileText, RefreshCw, Sparkles } from "@/components/icons";
 
@@ -40,13 +41,13 @@ export function PdfPreviewModal({
     // Default fallback url
     const fallbackUrl =
       pdfUrl ||
-      `http://localhost:8000/api/tpi/preview/${formCode || "TP02"}.pdf`;
+      `${API_BASE}/api/tpi/preview/${formCode || "TP02"}.pdf`;
 
     if (formCode && payload) {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8000/api/tpi/render/${formCode}.pdf`,
+          `${API_BASE}/api/tpi/render/${formCode}.pdf`,
           {
             method: "POST",
             headers: {
@@ -139,7 +140,7 @@ export function PdfPreviewModal({
                   </span>
                 )}
                 {isLiveSynced && (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5" />
                     <span>Live Synced</span>
                   </span>

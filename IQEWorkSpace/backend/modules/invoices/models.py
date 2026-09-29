@@ -25,12 +25,21 @@ class Invoice(Document):
     client_id: Optional[str] = None; client_name: Optional[str] = None
     invoice_type: str = "customer"
     invoice_number: str; invoice_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+    payment_status: str = "unpaid"  # unpaid, paid, partially_paid, overdue
+    payment_date: Optional[datetime] = None
+    payment_mode: Optional[str] = None  # NEFT, RTGS, Cheque, Wire
+    transaction_ref: Optional[str] = None
+    billing_type: str = "hourly"  # hourly vs bulk
+    hourly_rate: float = 0.0
+    total_hours: float = 0.0
+    overdue_alert: bool = False
     visit_ids: list[str] = []
     consolidated_charges: list[ChargeItem] = []
     annexure: list[AnnexureItem] = []
     subtotal: float = 0.0; cgst: float = 0.0; sgst: float = 0.0
     igst: float = 0.0; tds: float = 0.0; grand_total: float = 0.0
-    gst_percentage: float = 0.0
+    gst_percentage: float = 18.0
     pdf_path: Optional[str] = None
     frozen: bool = False
     cancelled: bool = False; cancellation_reason: Optional[str] = None

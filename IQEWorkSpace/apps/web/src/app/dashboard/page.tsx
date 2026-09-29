@@ -18,6 +18,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -60,67 +61,106 @@ export default function Dashboard() {
     { label: "Closed", value: stats.closed, icon: FileCheck, color: "from-slate-600 to-slate-800", light: "bg-slate-100 text-slate-700" },
   ];
 
-  return (
-    <div className="space-y-8">
-      {/* Top Banner Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl gradient-indigo-dark text-white border border-slate-800 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
-        <div className="relative z-10 space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-[11px] font-medium flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-indigo-300" /> Operational Overview
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold font-heading tracking-tight text-white">
-            Inspection Control Dashboard
-          </h1>
-          <p className="text-xs text-slate-400">
-            Real-time status of active jobs, inspector field visits, and invoice processing.
-          </p>
-        </div>
+  const metricCards = [
+    { label: "Clients", value: 118, icon: Building, href: "/clients" },
+    { label: "Manufacturers", value: 489, icon: Sparkles, href: "/manufacturers" },
+    { label: "Purchase Orders", value: 1338, icon: TrendingUp, href: "/service-orders" },
+    { label: "Service Orders", value: 148, icon: Briefcase, href: "/service-orders" },
+    { label: "Employees", value: 479, icon: Clock, href: null },
+    { label: "Visits", value: 2331, icon: Calendar, href: "/visits" },
+    { label: "Invoice Details", value: 11, icon: FileCheck, href: "/invoices" },
+    { label: "Payment Details", value: 0, icon: DollarSign, href: "/tpi-billing" },
+  ];
 
-        <div className="relative z-10 flex items-center gap-3">
+  const greeting = (() => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  })();
+
+  return (
+    <div className="space-y-6">
+      {/* Home Page Title */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold text-[#0084bf] dark:text-sky-400" suppressHydrationWarning>{greeting} 👋</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-heading tracking-tight">Home Page</h1>
+        </div>
+        <div className="flex items-center gap-2">
           <button
             onClick={loadData}
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition-colors text-xs flex items-center gap-1.5"
-            title="Refresh Metrics"
+            disabled={loading}
+            className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-sky-50 dark:hover:bg-slate-700 hover:border-sky-200 hover:text-[#00618e] disabled:opacity-70 transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
           </button>
-          <Link
-            href="/jobs/new"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold text-xs shadow-lg glow-indigo hover:opacity-95 transition-opacity flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Job</span>
-          </Link>
         </div>
       </div>
 
-      {/* KPI Metrics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <div
-              key={c.label}
-              className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-500 truncate">{c.label}</span>
-                <div className={`p-1.5 rounded-lg ${c.light}`}>
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl font-extrabold text-slate-900 font-heading">
-                  {loading ? "..." : c.value}
+      {/* Industrial Hero Banner Carousel (Screenshot 1) */}
+      <div className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-slate-900 h-56 sm:h-72 group">
+        {/* Plant Image Background */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-90 scale-105 group-hover:scale-110 transition-transform duration-[2000ms] ease-out-expo"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80')`,
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#001a2c]/90 via-[#001a2c]/50 to-transparent"></div>
+        </div>
+
+        {/* Top Left Slide Indicator */}
+        <div className="absolute top-4 left-4 px-3 py-1 rounded-md bg-black/40 backdrop-blur-md text-white text-xs font-mono font-bold border border-white/20">
+          2 / 2
+        </div>
+
+        {/* Banner Overlay Content */}
+        <div className="relative z-10 p-6 sm:p-8 h-full flex flex-col justify-end max-w-2xl text-white stagger">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#0084bf]/30 border border-sky-400/40 text-sky-200 text-[11px] font-bold tracking-wider uppercase mb-2 inline-flex items-center gap-1.5 w-fit backdrop-blur-sm">
+            <span className="relative flex w-1.5 h-1.5"><span className="absolute inset-0 rounded-full bg-[#e35f14] animate-ping-soft" /><span className="relative w-1.5 h-1.5 rounded-full bg-[#e35f14]" /></span>
+            Industrial Inspection Engine
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-heading leading-tight">
+            Ideal Quality Engineers <span className="text-gradient-iqe">Portal</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-200 mt-1 line-clamp-2">
+            Third Party Inspection (TPI), ISO 9001:2015 Compliance, Plant Pressure Vessel Audits &amp; BOQ Verification.
+          </p>
+        </div>
+
+        {/* Carousel Bottom Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-white/50"></span>
+          <span className="w-3 h-3 rounded-full bg-white shadow-md"></span>
+        </div>
+      </div>
+
+      {/* 8 Blue Metric Cards Grid (Screenshot 1) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 stagger">
+        {metricCards.map(({ label, value, icon: Icon, href }) => {
+          const body = (
+            <>
+              <div className="relative z-[2]">
+                <p className="text-xs font-medium text-sky-100 uppercase tracking-wider">{label}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold font-heading mt-1">
+                  {loading && label === "Clients" ? <span className="inline-block w-12 h-7 rounded-md bg-white/25 animate-pulse align-middle" /> : <AnimatedNumber value={value} />}
                 </p>
-                <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-1">
-                  <span>Active</span>
-                </div>
               </div>
+              <div className="relative z-[2] w-11 h-11 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 ring-1 ring-white/25 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:rotate-6">
+                <Icon className="w-5 h-5" />
+              </div>
+              {/* decorative orb */}
+              <span aria-hidden className="absolute -right-6 -bottom-8 w-24 h-24 rounded-full bg-white/10 transition-transform duration-700 ease-out-expo group-hover:scale-150" />
+            </>
+          );
+          const cls = "sheen group relative p-4 rounded-2xl bg-gradient-to-br from-sky-500 via-[#0084bf] to-[#00618e] text-white shadow-md flex items-center justify-between overflow-hidden";
+          return href ? (
+            <Link key={label} href={href} className={`${cls} card-hover hover:shadow-glow-blue`}>
+              {body}
+            </Link>
+          ) : (
+            <div key={label} className={cls}>
+              {body}
             </div>
           );
         })}
@@ -129,37 +169,57 @@ export default function Dashboard() {
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Recent Jobs Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+        <div className="lg:col-span-2 bg-white dark:bg-[#002235] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-soft p-6 space-y-4 animate-page-in [animation-delay:200ms]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-slate-900 font-heading">Recent Jobs</h2>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white font-heading">Recent Jobs</h2>
               <p className="text-xs text-slate-500">Latest active inspection job dispatches</p>
             </div>
             <Link
               href="/jobs"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="group text-xs font-semibold text-[#0084bf] hover:text-[#00618e] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-sky-50 transition-colors"
             >
               <span>View All Jobs</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-100 overflow-x-auto">
-            {recentJobs.length === 0 ? (
-              <p className="py-8 text-center text-xs text-slate-400">No recent jobs found.</p>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 overflow-x-auto">
+            {loading && recentJobs.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="py-3 px-2 flex items-center gap-3">
+                  <div className="skeleton w-8 h-8 shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="skeleton h-3 w-2/5" />
+                    <div className="skeleton h-2.5 w-1/4" />
+                  </div>
+                  <div className="skeleton h-5 w-16 rounded-full" />
+                </div>
+              ))
+            ) : recentJobs.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center animate-fade-in">
+                <div className="w-12 h-12 rounded-2xl bg-sky-50 text-[#0084bf] flex items-center justify-center animate-float">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-bold text-slate-700">No recent jobs yet</p>
+                <p className="text-xs text-slate-400">New inspection assignments will appear here.</p>
+                <Link href="/jobs/new" className="mt-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#0084bf] hover:bg-[#00618e] text-white text-xs font-semibold transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> New Assignment
+                </Link>
+              </div>
             ) : (
               recentJobs.map((job) => (
                 <Link
                   key={job.job_id}
                   href={`/jobs/${job.job_id}`}
-                  className="py-3 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl transition-colors group"
+                  className="py-3 px-2 flex items-center justify-between hover:bg-sky-50/60 dark:hover:bg-slate-800/60 rounded-xl transition-all duration-200 hover:translate-x-0.5 group animate-page-in"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-sky-50 text-[#0084bf] flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#0084bf] group-hover:text-white group-hover:scale-105">
                       <Briefcase className="w-4 h-4" />
                     </div>
                     <div className="truncate">
-                      <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-[#0084bf] transition-colors truncate">
                         {job.title}
                       </p>
                       <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
@@ -187,7 +247,7 @@ export default function Dashboard() {
                     >
                       {job.status}
                     </span>
-                    <span className="text-xs font-mono font-bold text-slate-700">
+                    <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">
                       ₹{(job.budget || 0).toLocaleString()}
                     </span>
                   </div>
@@ -200,65 +260,67 @@ export default function Dashboard() {
         {/* Right Column: AI Action Suite & Quick Links */}
         <div className="space-y-6">
           {/* AI Intelligence Card */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 border border-indigo-500/30 text-white shadow-lg space-y-4">
-            <div className="flex items-center gap-2 text-indigo-300">
-              <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
+          <div className="relative overflow-hidden p-6 rounded-2xl gradient-iqe-dark border border-[#0084bf]/30 text-white shadow-lg space-y-4 animate-page-in [animation-delay:260ms]">
+            <span aria-hidden className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-[#0084bf]/30 blur-2xl animate-blob" />
+            <span aria-hidden className="absolute -bottom-20 -left-10 w-40 h-40 rounded-full bg-[#e35f14]/20 blur-2xl animate-blob [animation-delay:-6s]" />
+            <div className="relative flex items-center gap-2 text-sky-300">
+              <Sparkles className="w-4 h-4 text-[#e35f14] animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-wider">Gemini AI Assistant</span>
             </div>
-            <div>
+            <div className="relative">
               <h3 className="text-lg font-bold font-heading text-white">Smart Match & Audit</h3>
-              <p className="text-xs text-indigo-200/80 mt-1 leading-relaxed">
+              <p className="text-xs text-sky-100/80 mt-1 leading-relaxed">
                 Utilize vector-based inspector scoring and automated anomaly flags on field visits.
               </p>
             </div>
-            <div className="space-y-2 pt-2">
+            <div className="relative space-y-2 pt-2">
               <Link
                 href="/visits"
-                className="w-full py-2 px-3 rounded-xl bg-indigo-600/40 hover:bg-indigo-600/60 border border-indigo-400/40 text-xs font-semibold text-white flex items-center justify-between transition-colors"
+                className="group sheen w-full py-2 px-3 rounded-xl bg-[#0084bf]/40 hover:bg-[#0084bf]/60 border border-sky-400/40 text-xs font-semibold text-white flex items-center justify-between transition-colors"
               >
                 <span>Run Anomaly Detection</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-indigo-300" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-sky-300 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
               <Link
                 href="/jobs"
-                className="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-between transition-colors"
+                className="group w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-600/60 text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-between transition-colors"
               >
                 <span>Suggest Optimal Inspectors</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </div>
           </div>
 
           {/* Navigation Quick Launcher */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 font-heading">Quick Operations</h3>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white dark:bg-[#002235] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-soft p-6 space-y-3 animate-page-in [animation-delay:320ms]">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white font-heading">Quick Operations</h3>
+            <div className="grid grid-cols-2 gap-2 stagger">
               <Link
                 href="/visits"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors flex items-center gap-2 text-xs font-semibold"
+                className="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00618e] border border-transparent hover:border-sky-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft flex items-center gap-2 text-xs font-semibold"
               >
-                <Calendar className="w-4 h-4 text-indigo-500" />
+                <Calendar className="w-4 h-4 text-indigo-500 transition-transform duration-300 group-hover:scale-125" />
                 <span>Field Visits</span>
               </Link>
               <Link
                 href="/invoices"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors flex items-center gap-2 text-xs font-semibold"
+                className="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00618e] border border-transparent hover:border-sky-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft flex items-center gap-2 text-xs font-semibold"
               >
-                <DollarSign className="w-4 h-4 text-purple-500" />
+                <DollarSign className="w-4 h-4 text-purple-500 transition-transform duration-300 group-hover:scale-125" />
                 <span>Invoices</span>
               </Link>
               <Link
                 href="/clients"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors flex items-center gap-2 text-xs font-semibold"
+                className="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00618e] border border-transparent hover:border-sky-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft flex items-center gap-2 text-xs font-semibold"
               >
-                <Building className="w-4 h-4 text-blue-500" />
+                <Building className="w-4 h-4 text-blue-500 transition-transform duration-300 group-hover:scale-125" />
                 <span>Clients</span>
               </Link>
               <Link
                 href="/service-orders"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors flex items-center gap-2 text-xs font-semibold"
+                className="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00618e] border border-transparent hover:border-sky-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft flex items-center gap-2 text-xs font-semibold"
               >
-                <FileCheck className="w-4 h-4 text-emerald-500" />
+                <FileCheck className="w-4 h-4 text-emerald-500 transition-transform duration-300 group-hover:scale-125" />
                 <span>Orders</span>
               </Link>
             </div>

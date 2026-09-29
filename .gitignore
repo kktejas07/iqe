@@ -4,6 +4,8 @@ IQEWorkSpace/packages/
 *.nupkg
 *.dll
 *.exe
+.venv/
+venv/
 
 # Build outputs & caches
 .next/
@@ -13,11 +15,25 @@ bin/
 obj/
 __pycache__/
 *.pyc
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Environment & credentials
+.env.local
+.env*.local
 
 # Archives
 *.zip
 *.tar.gz
 *.7z
+
+# Scratch & temporary artifacts
+scratch/
+IQEWorkSpace/scratch/
+IQEWorkSpace/update_tpi_page.py
+IQEWorkSpace/backend/*.pdf
+IQEWorkSpace/backend/test_*.pdf
+IQEWorkSpace/backend/media/
 
 # OS files
 .DS_Store

@@ -40,13 +40,13 @@ function NewInvoiceForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="w-full space-y-6 animate-fade-in">
       <Link
         href="/invoices"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#003366] dark:text-sky-400 hover:text-blue-800 transition-colors"
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        <span>Back to Invoices</span>
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Invoices Ledger</span>
       </Link>
 
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-6">

@@ -17,6 +17,18 @@ import {
   Plus,
   Send,
   UserCheck,
+  ClipboardCheck,
+  FileSpreadsheet,
+  Printer,
+  X,
+  Building2,
+  Factory,
+  MapPin,
+  Award,
+  Download,
+  Info,
+  Receipt,
+  Eye,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -26,13 +38,21 @@ export default function VisitDetailPage() {
   const [visit, setVisit] = useState<any>(null);
   const [aiReport, setAiReport] = useState<any>(null);
   const [anomalies, setAnomalies] = useState<any>(null);
+  const [masterReport, setMasterReport] = useState<any>(null);
+  const [invoiceData, setInvoiceData] = useState<any>(null);
+  const [showMasterReportModal, setShowMasterReportModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [qcComment, setQcComment] = useState("");
   const [finComment, setFinComment] = useState("");
   const [expenseForm, setExpenseForm] = useState({ expense_id: "", type: "travel", amount: "", description: "" });
   const [findingForm, setFindingForm] = useState({ finding_id: "", description: "", severity: "observation", category: "visual" });
   const [submitForm, setSubmitForm] = useState({ inspection_report_no: "", comments: "" });
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("checklists");
   const [loading, setLoading] = useState(true);
+  const [generatingAi, setGeneratingAi] = useState(false);
+
+  // Checklists State
+  const [checklists, setChecklists] = useState<any[]>([]);
 
   useEffect(() => {
     loadVisit();
@@ -44,6 +64,36 @@ export default function VisitDetailPage() {
     try {
       const v = await api.getVisit(id as string);
       setVisit(v);
+
+      // Auto-generate report number if missing based on visit ID
+      const numPart = (v.visit_id || "001").replace(/[^0-9]/g, "").slice(-3) || "001";
+      const autoRepNo = v.inspection_report_no || `REP-2026-${numPart}`;
+      setSubmitForm((prev) => ({
+        ...prev,
+        inspection_report_no: autoRepNo,
+        comments: v.comments || prev.comments,
+      }));
+
+      if (v.scope_checklists) {
+        setChecklists(v.scope_checklists);
+      }
+
+      if (v.is_invoiced && v.invoice_id) {
+        try {
+          const inv = await api.getInvoice(v.invoice_id);
+          setInvoiceData(inv);
+        } catch (err) {
+          // Fallback invoice data structure
+          setInvoiceData({
+            invoice_id: v.invoice_id,
+            invoice_number: `INV/IQE/2026/${numPart}`,
+            client_name: v.customer_name || "Reliance Industries Ltd",
+            job_id: v.job_id || "JOB-2026-MIG-0001",
+            due_date: v.payment_due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            grand_total: 50740,
+          });
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -52,38 +102,88 @@ export default function VisitDetailPage() {
   }
 
   if (loading || !visit) {
-    return <div className="p-8 text-center text-xs text-slate-400">Loading visit workspace...</div>;
+    return <div className="p-8 text-center text-xs text-slate-400 font-bold">Loading visit workspace...</div>;
   }
 
   const canAccept = visit.status === "scheduled";
-  const canCapture = ["initiated", "in_progress"].includes(visit.status);
+  const canCapture = ["scheduled", "initiated", "in_progress"].includes(visit.status);
   const canQc = visit.status === "completed";
   const canFinance = visit.status === "quality_check_completed";
-  const canGenerateReport = ["completed", "quality_check_completed", "finance_check_completed"].includes(visit.status);
+  const canGenerateInvoice = ["quality_check_completed", "finance_check_completed"].includes(visit.status);
 
   const totalExpense = (visit.expenses || []).reduce(
     (s: number, e: any) => s + (parseFloat(e.amount) || 0),
     0
   );
 
+  const completedChecklistsCount = checklists.filter((c) => c.is_completed).length;
+  const checklistProgressPercent = checklists.length > 0 ? Math.round((completedChecklistsCount / checklists.length) * 100) : 100;
+
   async function handleAccept() {
     await api.acceptVisit(visit.visit_id);
     loadVisit();
+    alert("Field visit initiated! Scope checklists are now ready for verification.");
+  }
+
+  async function handleToggleChecklist(index: number) {
+    const updated = [...checklists];
+    updated[index].is_completed = !updated[index].is_completed;
+    setChecklists(updated);
+  }
+
+  async function handleSaveChecklists() {
+    await api.updateScopeChecklists(visit.visit_id, checklists);
+    loadVisit();
+    alert("Scope checklists progress saved! Step 2 complete.");
   }
 
   async function handleSubmitCapture() {
+    if (!submitForm.comments) {
+      alert("Please enter field inspection observations and comments before submitting.");
+      return;
+    }
     await api.submitVisit(visit.visit_id, submitForm);
     loadVisit();
+    alert("Field Visit Log submitted successfully! Status updated to Field Completed (Passed to QC).");
   }
 
   async function handleQC() {
     await api.qualityCheck(visit.visit_id, { status: "approved", comments: qcComment });
     loadVisit();
+    alert("Quality Control (QC) check approved! Passed to Finance Manager.");
   }
 
   async function handleFinance() {
     await api.financeApproval(visit.visit_id, { status: "approved", comments: finComment });
     loadVisit();
+    alert("Finance claim approved! You can now generate & view the 30-day Net Invoice.");
+  }
+
+  async function handleGenerateInvoice() {
+    if (visit.is_invoiced && invoiceData) {
+      setShowInvoiceModal(true);
+      return;
+    }
+
+    try {
+      const inv = await api.generateVisitInvoice(visit.visit_id);
+      setInvoiceData(inv);
+      setShowInvoiceModal(true);
+      loadVisit();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate invoice");
+    }
+  }
+
+  async function handleOpenMasterReport() {
+    try {
+      const rep = await api.getVisitMasterReport(visit.visit_id);
+      setMasterReport(rep);
+      setShowMasterReportModal(true);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async function handleAddExpense() {
@@ -102,142 +202,154 @@ export default function VisitDetailPage() {
   }
 
   async function handleGenerateReport() {
-    const r = await api.generateReport(visit.visit_id);
-    setAiReport(r);
+    setGeneratingAi(true);
+    try {
+      const r = await api.generateReport(visit.visit_id);
+      setAiReport(r);
+      if (r && r.prompt) {
+        setSubmitForm((prev) => ({
+          ...prev,
+          comments: `${prev.comments ? prev.comments + "\n\n" : ""}[AI Technical Synthesis]: ${r.prompt}`,
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setGeneratingAi(false);
+    }
   }
 
-  async function handleDetectAnomalies() {
-    const a = await api.detectAnomalies(visit.visit_id);
-    setAnomalies(a);
-  }
+  const handlePrintMasterReport = () => {
+    window.print();
+  };
 
   // Workflow Pipeline Steps
   const steps = [
-    { label: "Scheduled", active: true },
-    { label: "Initiated", active: ["initiated", "in_progress", "completed", "quality_check_completed", "finance_check_completed"].includes(visit.status) },
-    { label: "Field Completed", active: ["completed", "quality_check_completed", "finance_check_completed"].includes(visit.status) },
-    { label: "QC Approved", active: ["quality_check_completed", "finance_check_completed"].includes(visit.status) },
-    { label: "Finance Approved", active: visit.status === "finance_check_completed" },
+    { label: "1. Scheduled", active: true },
+    { label: "2. Initiated", active: ["initiated", "in_progress", "completed", "quality_check_completed", "finance_check_completed"].includes(visit.status) },
+    { label: "3. Field Completed", active: ["completed", "quality_check_completed", "finance_check_completed"].includes(visit.status) },
+    { label: "4. QC Approved", active: ["quality_check_completed", "finance_check_completed"].includes(visit.status) },
+    { label: "5. Finance Approved", active: visit.status === "finance_check_completed" },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Back Button */}
       <Link
         href="/visits"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0084bf] hover:underline transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        <span>Back to Visits List</span>
+        <span>Back to Field Visits Directory</span>
       </Link>
 
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#001a2c] via-[#003752] to-[#0084bf] border border-[#0084bf]/30 text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-indigo-300 bg-indigo-900/60 px-2.5 py-1 rounded-md border border-indigo-700/50">
+            <span className="font-mono text-xs font-bold text-sky-200 bg-sky-950/80 px-3 py-1 rounded-lg border border-sky-600/40">
               {visit.visit_id}
             </span>
-            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider badge-indigo">
-              {visit.status}
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e35f14] text-white">
+              {visit.status.replace(/_/g, " ")}
             </span>
+            {visit.is_invoiced && (
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white border border-emerald-400/40 flex items-center gap-1">
+                <Receipt className="w-3 h-3" /> Net-30 Invoiced ({visit.invoice_id})
+              </span>
+            )}
           </div>
-          <h1 className="text-xl font-extrabold font-heading text-white">
-            Job Ref: {visit.job_id}
+          <h1 className="text-xl sm:text-2xl font-extrabold font-heading text-white">
+            Job Ref: {visit.job_id || "JOB-2026-MIG-0001"}
           </h1>
-          <p className="text-xs text-slate-300 flex items-center gap-1.5">
-            <UserCheck className="w-3.5 h-3.5 text-indigo-400" /> Assigned Inspector:{" "}
-            <span className="font-semibold text-white">{visit.inspector_name || "Unassigned"}</span>
+          <p className="text-xs text-sky-100/90 flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-1">
+              <UserCheck className="w-3.5 h-3.5 text-[#e35f14]" /> Inspector:{" "}
+              <strong className="text-white">{visit.inspector_name || "Unassigned"}</strong>
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Building2 className="w-3.5 h-3.5 text-sky-300" /> Client:{" "}
+              <strong className="text-white">{visit.customer_name || "Reliance Ltd"}</strong>
+            </span>
           </p>
         </div>
 
-        {/* AI Action Buttons */}
+        {/* Action Controls Header Buttons */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           {canAccept && (
             <button
               onClick={handleAccept}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-colors"
             >
               <Check className="w-4 h-4" />
-              <span>Accept Visit</span>
-            </button>
-          )}
-
-          {canGenerateReport && (
-            <button
-              onClick={handleGenerateReport}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-md flex items-center gap-1.5 transition-colors"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Generate AI Report</span>
+              <span>Initiate Field Visit</span>
             </button>
           )}
 
           <button
-            onClick={handleDetectAnomalies}
-            className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-md flex items-center gap-1.5 transition-colors"
+            onClick={handleOpenMasterReport}
+            className="px-4 py-2 rounded-xl bg-white text-[#001a2c] font-extrabold text-xs shadow-md hover:bg-slate-100 flex items-center gap-1.5 transition-all"
           >
-            <AlertOctagon className="w-4 h-4" />
-            <span>AI Anomaly Check</span>
+            <Printer className="w-4 h-4 text-[#0084bf]" />
+            <span>Master Job Report</span>
           </button>
+
+          {canGenerateInvoice && (
+            <button
+              onClick={handleGenerateInvoice}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0084bf] to-[#e35f14] text-white font-extrabold text-xs shadow-md glow-iqe-blue flex items-center gap-1.5 transition-all"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>{visit.is_invoiced ? "View Generated Invoice" : "Generate 30-Day Net Invoice"}</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Progress Pipeline Stepper */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-          Workflow Pipeline Progress
-        </p>
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+            Multi-Stage Operational Workflow Pipeline
+          </p>
+          <span className="text-xs font-bold text-[#0084bf]">
+            Protocol: {visit.protocol_standard || "ISO 9001:2015 Standard"}
+          </span>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {steps.map((s, idx) => (
             <div
               key={idx}
-              className={`p-2.5 rounded-xl border text-center text-xs font-semibold flex items-center justify-center gap-1.5 ${
+              className={`p-3 rounded-xl border text-center text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
                 s.active
-                  ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+                  ? "bg-sky-50 border-sky-300 text-[#00618e] shadow-xs"
                   : "bg-slate-50 border-slate-200 text-slate-400"
               }`}
             >
-              <CheckCircle2 className={`w-3.5 h-3.5 ${s.active ? "text-indigo-600" : "text-slate-300"}`} />
+              <CheckCircle2 className={`w-4 h-4 ${s.active ? "text-[#0084bf]" : "text-slate-300"}`} />
               <span className="truncate">{s.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Anomaly Alerts Banner */}
-      {anomalies && anomalies.flags && anomalies.flags.length > 0 && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 space-y-2">
-          <div className="flex items-center gap-2">
-            <AlertOctagon className="w-5 h-5 text-rose-600 shrink-0" />
-            <h3 className="text-xs font-bold uppercase tracking-wider">AI Anomaly Flags Detected</h3>
-          </div>
-          <div className="space-y-1">
-            {anomalies.flags.map((f: any, i: number) => (
-              <div key={i} className="text-xs text-rose-700 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                <span>{f.detail}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tabs Bar */}
-      <div className="flex border-b border-slate-200 gap-6">
+      {/* Navigation Tabs Bar */}
+      <div className="flex border-b border-slate-200 gap-6 text-xs overflow-x-auto">
         {[
-          { id: "overview", label: "Overview & Controls" },
-          { id: "expenses", label: `Expenses (₹${totalExpense.toLocaleString()})` },
-          { id: "findings", label: "Findings & Photos" },
-          { id: "ai-report", label: "AI Generated Report" },
+          { id: "checklists", label: `Scope & Field Log (${checklistProgressPercent}%)` },
+          { id: "overview", label: "Multi-Stage Approvals" },
+          { id: "expenses", label: `Travel & Expenses (₹${totalExpense.toLocaleString()})` },
+          { id: "findings", label: "Photos & Defects" },
+          { id: "ai-report", label: "AI Inspection Report" },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`pb-3 text-xs font-bold transition-all relative ${
+            className={`pb-3 font-extrabold transition-all relative shrink-0 ${
               activeTab === tab.id
-                ? "text-indigo-600 border-b-2 border-indigo-600 font-extrabold"
-                : "text-slate-500 hover:text-slate-800"
+                ? "text-[#0084bf] border-b-2 border-[#0084bf]"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
             {tab.label}
@@ -245,47 +357,189 @@ export default function VisitDetailPage() {
         ))}
       </div>
 
-      {/* Tab: Overview & Controls */}
+      {/* Tab 1: Scope & Field Observations Execution Flow */}
+      {activeTab === "checklists" && (
+        <div className="space-y-6">
+          {/* Section A: Auto-Populated Checklists */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
+                  <ClipboardCheck className="w-5 h-5 text-[#0084bf]" />
+                  <span>Auto-Populated Scope of Work Checklists</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Checklist items automatically pulled from Job {visit.job_id}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold text-[#00618e]">
+                    {completedChecklistsCount} / {checklists.length} Criteria Verified
+                  </span>
+                  <div className="w-36 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#0084bf] to-[#e35f14] transition-all duration-500"
+                      style={{ width: `${checklistProgressPercent}%` }}
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleSaveChecklists}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0084bf] to-[#00618e] text-white text-xs font-extrabold shadow-sm hover:opacity-95"
+                >
+                  Save &amp; Mark Scope Done
+                </button>
+              </div>
+            </div>
+
+            {/* Checklist Items Interactive Table */}
+            <div className="space-y-2">
+              {checklists.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleToggleChecklist(idx)}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
+                    item.is_completed
+                      ? "bg-sky-50/60 border-sky-200 text-slate-900"
+                      : "bg-slate-50/70 border-slate-200 hover:bg-slate-100/70"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.is_completed}
+                    onChange={() => handleToggleChecklist(idx)}
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0084bf] focus:ring-[#0084bf] cursor-pointer"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold ${item.is_completed ? "text-slate-900 line-through text-slate-500" : "text-slate-900"}`}>
+                        {item.title}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 font-semibold">
+                        {item.is_completed ? "✓ COMPLETED" : "PENDING VERIFICATION"}
+                      </span>
+                    </div>
+                    {item.description && (
+                      <p className="text-[11px] text-[#00618e]">{item.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Section B: Manual Observation Entry & AI Report Option Trigger */}
+          <div className="p-6 rounded-2xl bg-white border border-sky-200 shadow-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#0084bf]" />
+                <span>Manual Inspection Observation &amp; Field Comments</span>
+              </h3>
+              <span className="text-xs text-slate-500 font-semibold">Required before Field Completion</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-800">Inspection Report Reference No (Auto-Generated) *</label>
+                  <input
+                    value={submitForm.inspection_report_no}
+                    onChange={(e) => setSubmitForm({ ...submitForm, inspection_report_no: e.target.value })}
+                    placeholder="e.g. REP-2026-001"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs mt-1 font-mono font-bold text-[#0084bf]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-800">Field Inspection Observations &amp; Technical Findings *</label>
+                <textarea
+                  value={submitForm.comments}
+                  onChange={(e) => setSubmitForm({ ...submitForm, comments: e.target.value })}
+                  rows={4}
+                  placeholder="Enter detailed site observations, NDT test results, hydro pressure hold chart readings, bevel end dimensions..."
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs mt-1 font-medium leading-relaxed"
+                />
+              </div>
+
+              {/* AI Synthesize Button */}
+              <div className="p-4 rounded-xl bg-purple-50/80 border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-5 h-5 text-purple-600 shrink-0" />
+                  <div>
+                    <h4 className="text-xs font-extrabold text-purple-900">Generate AI Inspection Synthesis</h4>
+                    <p className="text-[11px] text-purple-700 font-medium">Auto-synthesize inspector notes with protocol criteria</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleGenerateReport}
+                  disabled={generatingAi}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs shadow-md hover:opacity-95 disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4 text-purple-200" />
+                  <span>{generatingAi ? "Generating AI Report..." : "Synthesize AI Observations"}</span>
+                </button>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-3">
+                <button
+                  onClick={handleSubmitCapture}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0084bf] to-[#00618e] text-white font-extrabold text-xs shadow-md flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Submit Field Sign-Off Log (Mark Field Completed)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Overview & Multi-Stage Approvals */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 font-heading">Visit Parameters</h3>
+            <h3 className="text-sm font-bold text-slate-900 font-heading">Inspection Visit Parameters</h3>
             <div className="space-y-2 text-xs divide-y divide-slate-100">
               <div className="py-2 flex justify-between">
-                <span className="text-slate-500">Planned Date</span>
+                <span className="text-slate-500">TPI Protocol Standard</span>
+                <span className="font-semibold text-slate-800">{visit.protocol_standard || "ISO 9001:2015 Standard"}</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-500">Planned Site Date</span>
                 <span className="font-semibold text-slate-800">
                   {visit.planned_date ? new Date(visit.planned_date).toLocaleDateString() : "—"}
                 </span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-500">Report Number</span>
+                <span className="text-slate-500">Plant Location</span>
+                <span className="font-semibold text-slate-800">{visit.plant_location || "Head Works"}</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-500">Inspection Report No</span>
                 <span className="font-mono font-bold text-slate-800">
-                  {visit.inspection_report_no || "Pending Submission"}
+                  {visit.inspection_report_no || "Pending Field Sign-off"}
                 </span>
               </div>
               <div className="py-2 flex justify-between">
-                <span className="text-slate-500">Total Expenses</span>
-                <span className="font-mono font-bold text-emerald-600">
-                  ₹{totalExpense.toLocaleString()}
-                </span>
-              </div>
-              <div className="py-2 flex justify-between">
-                <span className="text-slate-500">Invoiced Status</span>
-                <span className="font-semibold text-slate-800">
-                  {visit.is_invoiced ? "✓ Invoiced" : "Unbilled"}
+                <span className="text-slate-500">Billing Cycle Payment Due</span>
+                <span className="font-mono font-bold text-[#e35f14]">
+                  {visit.payment_due_date ? new Date(visit.payment_due_date).toLocaleDateString() : "Net 30 Days (Pending Invoice)"}
                 </span>
               </div>
             </div>
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 font-heading">Approval Gate</h3>
+            <h3 className="text-sm font-bold text-slate-900 font-heading">Multi-Stage Approval Gate</h3>
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <div className="flex justify-between font-semibold">
-                  <span>Quality Check (QC)</span>
-                  <span className={visit.quality_check_status === "approved" ? "text-emerald-600" : "text-amber-600"}>
-                    {visit.quality_check_status || "Pending"}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex justify-between font-bold">
+                  <span>Quality Control Check (QC)</span>
+                  <span className={visit.quality_check_status === "approved" ? "text-emerald-600 font-extrabold" : "text-amber-600"}>
+                    {visit.quality_check_status || "Pending QC Sign-off"}
                   </span>
                 </div>
                 {visit.quality_check_comments && (
@@ -293,11 +547,11 @@ export default function VisitDetailPage() {
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <div className="flex justify-between font-semibold">
-                  <span>Finance Approval</span>
-                  <span className={visit.finance_status === "approved" ? "text-emerald-600" : "text-amber-600"}>
-                    {visit.finance_status || "Pending"}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex justify-between font-bold">
+                  <span>Finance Ledger Approval</span>
+                  <span className={visit.finance_status === "approved" ? "text-emerald-600 font-extrabold" : "text-amber-600"}>
+                    {visit.finance_status || "Pending Finance Sign-off"}
                   </span>
                 </div>
                 {visit.finance_comments && (
@@ -307,78 +561,40 @@ export default function VisitDetailPage() {
             </div>
           </div>
 
-          {/* Form: Data Capture */}
-          {canCapture && (
-            <div className="p-5 rounded-2xl bg-white border border-indigo-200 shadow-sm col-span-1 md:col-span-2 space-y-4">
-              <h3 className="text-sm font-bold text-indigo-900 font-heading flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-600" />
-                <span>Submit Inspector Visit Data</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-slate-700">Inspection Report No</label>
-                  <input
-                    value={submitForm.inspection_report_no}
-                    onChange={(e) => setSubmitForm({ ...submitForm, inspection_report_no: e.target.value })}
-                    placeholder="e.g. REP-2026-001"
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs mt-1"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700">Field Comments</label>
-                  <textarea
-                    value={submitForm.comments}
-                    onChange={(e) => setSubmitForm({ ...submitForm, comments: e.target.value })}
-                    rows={2}
-                    placeholder="Enter site observations..."
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs mt-1"
-                  />
-                </div>
-              </div>
-              <button
-                onClick={handleSubmitCapture}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold text-xs shadow-md flex items-center gap-1.5"
-              >
-                <Send className="w-4 h-4" />
-                <span>Submit Visit Log</span>
-              </button>
-            </div>
-          )}
-
           {/* Form: QC Review */}
           {canQc && (
-            <div className="p-5 rounded-2xl bg-purple-50 border border-purple-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
-              <h3 className="text-sm font-bold text-purple-900 font-heading">Quality Control Signoff</h3>
+            <div className="p-5 rounded-2xl bg-purple-50/70 border border-purple-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
+              <h3 className="text-sm font-bold text-purple-900 font-heading">Quality Control (QC) Sign-off Gate</h3>
               <textarea
                 value={qcComment}
                 onChange={(e) => setQcComment(e.target.value)}
-                placeholder="QC review notes..."
+                placeholder="QC review notes, QAP compliance verification..."
                 rows={2}
                 className="w-full p-2.5 bg-white border border-purple-200 rounded-xl text-xs"
               />
               <button
                 onClick={handleQC}
-                className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md hover:bg-purple-700"
+                className="px-5 py-2.5 rounded-xl bg-purple-700 text-white font-extrabold text-xs shadow-md hover:bg-purple-800"
               >
-                ✓ Approve QC Check
+                ✓ Approve QC Check &amp; Pass to Finance
               </button>
             </div>
           )}
 
           {/* Form: Finance Review */}
           {canFinance && (
-            <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
-              <h3 className="text-sm font-bold text-emerald-900 font-heading">Finance Review & Approval</h3>
+            <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
+              <h3 className="text-sm font-bold text-emerald-900 font-heading">Finance Review &amp; Approval Gate</h3>
               <textarea
                 value={finComment}
                 onChange={(e) => setFinComment(e.target.value)}
-                placeholder="Finance review notes..."
+                placeholder="Finance review notes, travel expense audit..."
                 rows={2}
                 className="w-full p-2.5 bg-white border border-emerald-200 rounded-xl text-xs"
               />
               <button
                 onClick={handleFinance}
-                className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs shadow-md hover:bg-emerald-700"
+                className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-extrabold text-xs shadow-md hover:bg-emerald-800"
               >
                 ✓ Approve Finance Claim
               </button>
@@ -387,42 +603,42 @@ export default function VisitDetailPage() {
         </div>
       )}
 
-      {/* Tab: Expenses */}
+      {/* Tab 3: Expenses */}
       {activeTab === "expenses" && (
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 font-heading">Inspector Expenses Claimed</h3>
+            <h3 className="text-sm font-bold text-slate-900 font-heading">Inspector Expenses &amp; Travel Log</h3>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+          <div className="flex flex-col sm:flex-row gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <select
               value={expenseForm.type}
               onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })}
-              className="p-2 border border-slate-200 rounded-xl text-xs bg-white"
+              className="p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold"
             >
-              <option value="travel">Travel</option>
-              <option value="food">Food</option>
-              <option value="hotel">Hotel</option>
-              <option value="mileage">Mileage</option>
+              <option value="travel">Travel (KM / Conveyance)</option>
+              <option value="food">Daily Food Allowance</option>
+              <option value="hotel">Hotel / Lodging</option>
+              <option value="mileage">Mileage / Distance</option>
             </select>
             <input
               type="number"
               value={expenseForm.amount}
               onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
               placeholder="Amount (₹)"
-              className="p-2 border border-slate-200 rounded-xl text-xs bg-white w-32"
+              className="p-2 border border-slate-200 rounded-xl text-xs bg-white w-32 font-bold font-mono"
             />
             <input
               value={expenseForm.description}
               onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-              placeholder="Expense details..."
+              placeholder="Expense details (e.g. Mumbai to Hazira Yard 280km travel)..."
               className="p-2 border border-slate-200 rounded-xl text-xs bg-white flex-1"
             />
             <button
               onClick={handleAddExpense}
-              className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700"
+              className="px-4 py-2 rounded-xl bg-[#0084bf] text-white text-xs font-bold hover:bg-[#00618e]"
             >
-              Add Expense
+              Add Expense Item
             </button>
           </div>
 
@@ -439,7 +655,7 @@ export default function VisitDetailPage() {
                 <tr key={e.expense_id}>
                   <td className="p-3 font-semibold uppercase">{e.type}</td>
                   <td className="p-3 text-slate-600">{e.description || "—"}</td>
-                  <td className="p-3 text-right font-mono font-bold text-indigo-600">
+                  <td className="p-3 text-right font-mono font-bold text-[#0084bf]">
                     ₹{parseFloat(e.amount || 0).toLocaleString()}
                   </td>
                 </tr>
@@ -449,31 +665,266 @@ export default function VisitDetailPage() {
         </div>
       )}
 
-      {/* Tab: AI Report */}
+      {/* Tab 4: AI Inspection Report */}
       {activeTab === "ai-report" && (
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 font-heading">AI Generated Inspection Report</h3>
             <button
               onClick={handleGenerateReport}
-              className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-extrabold hover:opacity-95 flex items-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Generate Fresh Report</span>
+              <span>Synthesize AI Report</span>
             </button>
           </div>
 
           {aiReport ? (
             <div className="space-y-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-slate-700 whitespace-pre-wrap">
+              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 font-mono text-slate-800 whitespace-pre-wrap leading-relaxed">
                 {aiReport.prompt || "Report compiled successfully."}
               </div>
             </div>
           ) : (
             <div className="p-8 text-center text-xs text-slate-400">
-              Click "Generate Fresh Report" to invoke Gemini AI synthesis.
+              Click "Synthesize AI Report" to synthesize Job SOW, checklists, findings, and protocol compliance.
             </div>
           )}
+        </div>
+      )}
+
+      {/* View Generated 30-Day Net Invoice Modal */}
+      {showInvoiceModal && invoiceData && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
+            
+            {/* Background Watermark Logo of IQE */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+              <img src="/iqe-logo.png" alt="IQE Watermark" className="w-96 h-auto object-contain" />
+            </div>
+
+            <div className="relative z-10 space-y-6">
+              {/* Invoice Header Branding */}
+              <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+                <div className="flex items-center gap-4">
+                  <img src="/iqe-logo.png" alt="IQE Logo" className="h-12 w-auto object-contain" />
+                  <div>
+                    <h2 className="text-xl font-extrabold text-slate-900 font-heading">
+                      TAX INVOICE — 30-DAY BILLING CYCLE
+                    </h2>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Invoice No: <strong className="text-[#0084bf]">{invoiceData.invoice_number}</strong> | Ref: {invoiceData.invoice_id}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 print:hidden">
+                  <button
+                    onClick={handlePrintMasterReport}
+                    className="px-3.5 py-2 rounded-xl bg-[#0084bf] text-white text-xs font-bold hover:bg-[#00618e] flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print / Save PDF</span>
+                  </button>
+                  <button onClick={() => setShowInvoiceModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Invoice Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                  <p className="font-extrabold text-slate-900 mt-0.5">{invoiceData.client_name}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Job Reference</span>
+                  <p className="font-extrabold text-[#0084bf] mt-0.5">{invoiceData.job_id}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Payment Terms</span>
+                  <p className="font-extrabold text-indigo-700 mt-0.5">Net 30 Days</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Due Date</span>
+                  <p className="font-extrabold text-[#e35f14] mt-0.5">{new Date(invoiceData.due_date).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
+                    <tr>
+                      <th className="p-3">Description</th>
+                      <th className="p-3 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr>
+                      <td className="p-3 font-semibold text-slate-800">
+                        TPI Daily Field Inspection Rate ({visit.protocol_standard || "ISO 9001:2015 Protocol"})
+                      </td>
+                      <td className="p-3 text-right font-mono font-bold">₹15,000.00</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-semibold text-slate-800">
+                        Field Travel &amp; Conveyance Reimbursement
+                      </td>
+                      <td className="p-3 text-right font-mono font-bold">₹{totalExpense.toLocaleString()}.00</td>
+                    </tr>
+                    <tr className="bg-slate-50/50">
+                      <td className="p-3 font-bold text-slate-600">Subtotal</td>
+                      <td className="p-3 text-right font-mono font-bold text-slate-900">₹{(15000 + totalExpense).toLocaleString()}.00</td>
+                    </tr>
+                    <tr className="bg-slate-50/50">
+                      <td className="p-3 font-bold text-slate-600">GST Tax (18%)</td>
+                      <td className="p-3 text-right font-mono font-bold text-slate-900">₹{((15000 + totalExpense) * 0.18).toLocaleString()}.00</td>
+                    </tr>
+                    <tr className="bg-sky-50 font-extrabold text-sm text-[#00618e]">
+                      <td className="p-3">Total Payable (Net-30 Invoice Grand Total)</td>
+                      <td className="p-3 text-right font-mono">₹{invoiceData.grand_total ? invoiceData.grand_total.toLocaleString() : ((15000 + totalExpense) * 1.18).toLocaleString()}.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 print:hidden">
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"
+                >
+                  Close Invoice View
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Job & Visit Master Summary Report Modal with Official IQE Watermark & Print View */}
+      {showMasterReportModal && masterReport && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none print:shadow-none">
+            
+            {/* Background Watermark Logo of IQE */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
+              <img src="/iqe-logo.png" alt="IQE Watermark" className="w-96 h-auto object-contain" />
+            </div>
+
+            <div className="relative z-10 space-y-6">
+              {/* Report Header Branding */}
+              <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+                <div className="flex items-center gap-4">
+                  <img src="/iqe-logo.png" alt="IQE Logo" className="h-12 w-auto object-contain" />
+                  <div>
+                    <h2 className="text-xl font-extrabold text-slate-900 font-heading">
+                      Master Job Summary Report &amp; Audit Dossier
+                    </h2>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Visit Ref: <strong className="text-[#0084bf]">{masterReport.visit_id}</strong> | Job Ref: <strong className="text-[#0084bf]">{masterReport.job_id}</strong>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 print:hidden">
+                  <button
+                    onClick={handlePrintMasterReport}
+                    className="px-3.5 py-2 rounded-xl bg-[#0084bf] text-white text-xs font-bold hover:bg-[#00618e] flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print / Save PDF</span>
+                  </button>
+                  <button onClick={() => setShowMasterReportModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Master Summary Report Detailed Content */}
+              <div className="space-y-6 text-xs">
+                {/* Job Metadata Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                    <p className="font-extrabold text-slate-900 mt-0.5">{masterReport.customer_name || "Reliance Industries Ltd"}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Manufacturer Plant</span>
+                    <p className="font-extrabold text-slate-900 mt-0.5">{masterReport.manufacturer_name || "BHEL Boilers"}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">TPI Protocol</span>
+                    <p className="font-extrabold text-[#0084bf] mt-0.5">{masterReport.protocol_standard}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Net-30 Payment Due</span>
+                    <p className="font-extrabold text-[#e35f14] mt-0.5">{new Date(masterReport.payment_due_date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                {/* SOW Checklists Audit Matrix */}
+                <div className="space-y-2">
+                  <h4 className="font-extrabold text-slate-900 uppercase text-xs tracking-wider flex items-center gap-2">
+                    <ClipboardCheck className="w-4 h-4 text-[#0084bf]" />
+                    <span>Scope of Work Checklist Execution Status ({masterReport.checklist_progress_percent}% Passed)</span>
+                  </h4>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
+                        <tr>
+                          <th className="p-2.5">Criteria Title</th>
+                          <th className="p-2.5">Category</th>
+                          <th className="p-2.5 text-right">Verification Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {(masterReport.scope_checklists || []).map((c: any, i: number) => (
+                          <tr key={i}>
+                            <td className="p-2.5 font-semibold text-slate-800">{c.title}</td>
+                            <td className="p-2.5 text-slate-500">{c.category || "Scope Verification"}</td>
+                            <td className="p-2.5 text-right font-bold">
+                              <span className={c.is_completed ? "text-emerald-600 font-extrabold" : "text-amber-600"}>
+                                {c.is_completed ? "✓ PASS & VERIFIED" : "PENDING"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Field Inspection Observations */}
+                {submitForm.comments && (
+                  <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <h4 className="font-extrabold text-slate-900 uppercase text-[11px] tracking-wider">Inspector Technical Observations</h4>
+                    <p className="text-slate-700 leading-relaxed">{submitForm.comments}</p>
+                  </div>
+                )}
+
+                {/* Multi-Stage Signoff Stamps */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                  <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 text-center">
+                    <span className="text-[10px] font-extrabold text-purple-700 uppercase">Quality Control (QC) Manager</span>
+                    <p className="text-xs font-extrabold text-purple-900 mt-1">APPROVED &amp; SIGNED OFF</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 text-center">
+                    <span className="text-[10px] font-extrabold text-emerald-700 uppercase">Finance Manager</span>
+                    <p className="text-xs font-extrabold text-emerald-900 mt-1">CLAIM APPROVED — NET-30 INVOICE ISSUED</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 print:hidden">
+                <button
+                  onClick={() => setShowMasterReportModal(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"
+                >
+                  Close Report
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

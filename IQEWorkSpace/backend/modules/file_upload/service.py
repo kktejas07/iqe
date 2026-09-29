@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 from fastapi import HTTPException, UploadFile
 
 
@@ -11,19 +12,21 @@ class FileUploadService:
             raise HTTPException(400, "No file provided")
         ext = os.path.splitext(file.filename)[1]
         file_guid = str(uuid.uuid4())
-        upload_dir = os.path.join("uploads", section_id)
-        os.makedirs(upload_dir, exist_ok=True)
-        file_path = os.path.join(upload_dir, f"{file_guid}{ext}")
+        upload_dir = Path("uploads") / str(section_id)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        file_path = upload_dir / f"{file_guid}{ext}"
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
+        # Using posix path format ensures cross-platform consistency (no Windows backslashes in URL)
+        posix_rel_path = file_path.as_posix()
         return {
             "file_id": file_guid,
             "title": file.filename,
-            "url": f"/files/{file_path}",
+            "url": f"/files/{posix_rel_path}",
             "guid": file_guid,
             "size": len(content),
-            "section_id": int(section_id) if section_id.isdigit() else 0,
+            "section_id": int(section_id) if str(section_id).isdigit() else 0,
         }
 
     @staticmethod

@@ -1,4 +1,4 @@
-﻿@using IQEApp.Domain
+@using IQEApp.Domain
 @model IQEApp.Web.Models.EnquiryModel.EnquiryDetailsModel
 
 <link href="~/Content/multiselectcheckbox/css/bootstrap-multiselect.css" rel="stylesheet" />
@@ -127,6 +127,14 @@
         align-items: start;
     }
 
+    .billverification-grid {
+        display: grid;
+        grid-template-columns: 10px 1fr 1fr 140px 140px 260px;
+        column-gap: 10px;
+        row-gap: 10px;
+        align-items: start;
+    }
+
     .c1 {
         grid-column: 1;
     }
@@ -246,6 +254,10 @@
                                     <b>@category.Name </b>
                                 </label>
                             }
+                            <label class="ms-2">
+                                <input type="radio" name="EnquiryCategoryId" value="5" class="form-check-input me-1 enquiry-type" data_type="5" />
+                                <b>Bill Verification </b>
+                            </label>
                         </div>
                     </div>
 
@@ -715,6 +727,75 @@
                         </div>
                     </div>
 
+                    <!-- Bill Verification Section (6 Elements) -->
+                    <div class="d-flex align-items-stretch mt-3 design-wrapper row-item hidden-category" style="display:none;" id="billverification">
+                        <div class="container1 sno-container">
+                            <div class="billverification-grid">
+                                <div class="c1">
+                                    @Html.LabelFor(m => m.LstEnquiryCategoryModel[0].SNo)
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].SNo, new { @class = "form-control sno", @readonly = "readonly", style = "width:36px;height:36px;" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container2 content-container">
+                            <div class="billverification-grid">
+                                <!-- Element 1: Item Description / Details -->
+                                <div class="c2">
+                                    @Html.Label("Item Description / Details (Elem 1)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].Details, new { @class = "form-control redborder", required = "required", placeholder = "e.g. 90 Deg Forged Elbows" })
+                                    @Html.ValidationMessageFor(m => m.LstEnquiryCategoryModel[0].Details, "Please Enter Details", new { @class = "text-danger" })
+                                </div>
+
+                                <!-- Element 2: Verification Scope -->
+                                <div class="c3">
+                                    @Html.Label("Verification Scope (Elem 2)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].Scope, new { @class = "form-control redborder", required = "required", placeholder = "e.g. Joint Physical Verification" })
+                                    @Html.ValidationMessageFor(m => m.LstEnquiryCategoryModel[0].Scope, "Please Enter Scope", new { @class = "text-danger" })
+                                </div>
+
+                                <!-- Element 3: RA Bill Ref No -->
+                                <div class="c4">
+                                    @Html.Label("RA Bill Ref (Elem 3)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].ApplicableCodeStandards, new { @class = "form-control redborder", required = "required", style = "max-width:140px;", placeholder = "e.g. RA-BILL-001" })
+                                    @Html.ValidationMessageFor(m => m.LstEnquiryCategoryModel[0].ApplicableCodeStandards, "Please Enter RA Bill Ref", new { @class = "text-danger" })
+                                </div>
+
+                                <!-- Element 4: Contractor Claimed Qty -->
+                                <div class="c5">
+                                    @Html.Label("Claimed Qty (Elem 4)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].Qty, new { @class = "form-control", type = "number", style = "max-width:90px;", placeholder = "Qty" })
+                                </div>
+
+                                <!-- Element 5: TPI Verified Rate / Amount -->
+                                <div class="c6">
+                                    @Html.Label("Verified Rate / Amt (Elem 5)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].Budget, new { @class = "form-control", type = "number", style = "max-width:140px;", placeholder = "Rate / Amount" })
+                                </div>
+
+                                <!-- Element 6: Verification Remarks -->
+                                <div class="c7">
+                                    @Html.Label("Verification Remarks (Elem 6)")
+                                    @Html.TextBoxFor(m => m.LstEnquiryCategoryModel[0].Remarks, new { @class = "form-control", placeholder = "e.g. Approved for payment" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container3">
+                            <button type="button" class="btn btn-success btn-sm addRow" title="+ Add Row">
+                                <i class="fa fa-plus"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-warning btn-sm hideRow" title="Hide Row">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-danger btn-sm removeRow" title="Delete Row">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="row mt-3">
                         <button type='button' class="btn btn-secondary pull-right" id="btnCloseAddEnquriy" onclick="enquiryList();"><i class="fa fa-ban"></i> Cancel </button>
                         <button type="submit" class="btn btn-success pull-right mr5" id="btnSaveEnquiry"><i class="fa fa-floppy-o"></i> Save </button>
@@ -746,7 +827,7 @@
 
     // --- Bootstrap: tag the base template rows with their category ---
     $(function () {
-        $('#design, #inspection, #training, #secondement').each(function () {
+        $('#design, #inspection, #training, #secondement, #billverification').each(function () {
             var id = this.id;
             if (id) $(this).attr('data-category', id);
         });
@@ -768,6 +849,7 @@
         if (v === "2") return "inspection";
         if (v === "3") return "training";
         if (v === "4") return "secondement";
+        if (v === "5") return "billverification";
         return null;
     }
 
@@ -1079,7 +1161,7 @@
 
     $(".enquiry-type").on("change", function () {
         var toShow = getSelectedCategory();
-        var cats = ['design', 'inspection', 'training', 'secondement'];
+        var cats = ['design', 'inspection', 'training', 'secondement', 'billverification'];
 
         // Hide all and disable their inputs
         cats.forEach(function (cat) {

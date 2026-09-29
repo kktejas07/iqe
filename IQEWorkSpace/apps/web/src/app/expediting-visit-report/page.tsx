@@ -1,0 +1,1853 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  FileText,
+  Clock,
+  Calendar,
+  Building2,
+  Factory,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Plus,
+  Save,
+  Printer,
+  Search,
+  Filter,
+  Camera,
+  Layers,
+  Check,
+  UserCheck,
+  Shield,
+  ShieldCheck,
+  ArrowRight,
+  TrendingUp,
+  Percent,
+  FileCheck2,
+  Users,
+  Compass,
+  FileSpreadsheet,
+  Trash2,
+  Eye,
+  Download,
+  Edit3,
+  X,
+} from "lucide-react";
+import { PdfPreviewModal } from "@/components/PdfPreviewModal";
+
+interface ExpeditingItem {
+  id: string;
+  itemNo: number;
+  description: string;
+  poQty: number;
+  tagNo: string;
+  promisedDelivery: string;
+  currentExpectedDelivery: string;
+  qtyProduced: number;
+  status: "On Schedule" | "At Risk" | "Delayed" | "Completed";
+  remarks: string;
+}
+
+interface Personnel {
+  id: string;
+  name: string;
+  designation: string;
+  company: string;
+  role: string;
+}
+
+interface DocDetail {
+  id: string;
+  docTitle: string;
+  docNo: string;
+  rev: string;
+  status: string;
+  approvalStatus: "Approved" | "Pending" | "Under Review";
+  remarks: string;
+}
+
+interface SubOrderMaterial {
+  id: string;
+  component: string;
+  supplier: string;
+  orderRef: string;
+  qtyOrdered: string;
+  qtyReceived: string;
+  expectedBalance: string;
+  status: string;
+}
+
+interface ManufacturingActivity {
+  id: string;
+  activity: string;
+  plannedFinish: string;
+  actualExpectedFinish: string;
+  percentComplete: number;
+  status: "In Progress" | "Completed" | "Pending" | "Delayed";
+  remarks: string;
+}
+
+interface InspectionTestActivity {
+  id: string;
+  activity: string;
+  plannedDate: string;
+  actualDate: string;
+  status: "Passed" | "Scheduled" | "Pending NCR" | "Witnessed";
+  rfiRef: string;
+  remarks: string;
+}
+
+interface ActionFollowUp {
+  id: string;
+  action: string;
+  responsibility: string;
+  targetDate: string;
+  status: "Open" | "Closed";
+  remarks: string;
+}
+
+const CLIENT_OPTIONS = [
+  "Granules India Limited - Gagillapur",
+  "Atom Project (New Atom Project)",
+  "Suven Pharmaceuticals Ltd (Chonce Life Science)",
+  "MCGM (Greater Mumbai Corp)",
+  "S2 / Standard Client",
+];
+
+interface ClientExpeditingMeta {
+  reportNo: string;
+  date: string;
+  callRef: string;
+  previousVisit: string;
+  nextPlannedVisit: string;
+  location: string;
+  customer: string;
+  supplier: string;
+  project: string;
+  subSupplier: string;
+  supplierPONo: string;
+  iqeExpeditor: string;
+}
+
+const CLIENT_METADATA_MAP: Record<string, ClientExpeditingMeta> = {
+  "Granules India Limited - Gagillapur": {
+    reportNo: "EXP-2026-IQE-042",
+    date: "2026-09-29",
+    callRef: "CALL-GIL-EXP-088 (26-Sep-2026)",
+    previousVisit: "2026-08-15 (Visit #02)",
+    nextPlannedVisit: "2026-10-15 (Visit #04)",
+    location: "BHEL Heavy Fabrication Works, Trichy, Tamil Nadu",
+    customer: "Granules India Limited (Bio-Pharma Div)",
+    supplier: "L&T Heavy Engineering Ltd.",
+    project: "Biopharma Manufacturing Facility Expansion - Block C",
+    subSupplier: "BHEL Trichy Boilers & Heavy Vessels",
+    supplierPONo: "PO/GIL/2026/094 Dt. 12-May-2026",
+    iqeExpeditor: "Alok Gupta (Senior Lead Expeditor & TPI Engineer)",
+  },
+  "Atom Project (New Atom Project)": {
+    reportNo: "EXP-2026-IQE-043",
+    date: "2026-09-29",
+    callRef: "CALL-ATM-EXP-012 (25-Sep-2026)",
+    previousVisit: "2026-08-20 (Visit #01)",
+    nextPlannedVisit: "2026-10-20 (Visit #03)",
+    location: "Godrej Heavy Equipment Plant, Vikhroli, Mumbai",
+    customer: "Atom Life Sciences Pvt. Ltd.",
+    supplier: "Godrej & Boyce Heavy Engineering",
+    project: "Atom Active Pharmaceutical Ingredient Block-2",
+    subSupplier: "Midwest Forgings & Alloy Fittings",
+    supplierPONo: "PO/ATM/2026/118 Dt. 20-Jun-2026",
+    iqeExpeditor: "Ramesh Sharma (Senior QA/QC Expeditor)",
+  },
+  "Suven Pharmaceuticals Ltd (Chonce Life Science)": {
+    reportNo: "EXP-2026-IQE-044",
+    date: "2026-09-29",
+    callRef: "CALL-SUV-EXP-033 (27-Sep-2026)",
+    previousVisit: "2026-08-10 (Visit #03)",
+    nextPlannedVisit: "2026-10-12 (Visit #05)",
+    location: "Fabtech Cleanroom & Modular Works, Umbergaon, Gujarat",
+    customer: "Suven Pharmaceuticals Ltd",
+    supplier: "Fabtech Technologies International Ltd.",
+    project: "Suven OSD & Sterile Formulation Unit",
+    subSupplier: "Apex Clean Air Systems Pvt. Ltd.",
+    supplierPONo: "PO/SUV/2026/055 Dt. 04-Apr-2026",
+    iqeExpeditor: "K. V. Rao (Lead Process & HVAC Expeditor)",
+  },
+  "MCGM (Greater Mumbai Corp)": {
+    reportNo: "EXP-2026-IQE-045",
+    date: "2026-09-29",
+    callRef: "CALL-MCGM-EXP-109 (22-Sep-2026)",
+    previousVisit: "2026-08-05 (Visit #01)",
+    nextPlannedVisit: "2026-10-18 (Visit #03)",
+    location: "Kirloskar Pump & Valve Works, Kirloskarvadi, Maharashtra",
+    customer: "Municipal Corporation of Greater Mumbai",
+    supplier: "Kirloskar Brothers Limited",
+    project: "MCGM Water Treatment Plant Pumping Station Phase-II",
+    subSupplier: "Pioneer Foundry & Alloy Castings",
+    supplierPONo: "PO/MCGM/2026/782 Dt. 11-Jan-2026",
+    iqeExpeditor: "M. S. Patil (Senior Mechanical Auditor)",
+  },
+  "S2 / Standard Client": {
+    reportNo: "EXP-2026-IQE-046",
+    date: "2026-09-29",
+    callRef: "CALL-S2-EXP-004 (28-Sep-2026)",
+    previousVisit: "2026-08-25 (Visit #02)",
+    nextPlannedVisit: "2026-10-22 (Visit #04)",
+    location: "Isgec Pressure Vessel Works, Yamunanagar, Haryana",
+    customer: "S2 Engineering Industry Ltd.",
+    supplier: "Isgec Heavy Engineering Ltd.",
+    project: "Standard Industrial Process Skid Package",
+    subSupplier: "Bharat Forgings & Special Alloys",
+    supplierPONo: "PO/S2/2026/301 Dt. 15-Feb-2026",
+    iqeExpeditor: "Sunil Verma (Lead TPI Expeditor)",
+  },
+};
+
+export default function ExpeditingVisitReportPage() {
+  const [activeTab, setActiveTab] = useState<"overview" | "items" | "progress" | "manufacturing" | "actions" | "signatures">("overview");
+  const [showToast, setShowToast] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<string>("Granules India Limited - Gagillapur");
+
+  // 1.0 Header & Order Details
+  const [meta, setMeta] = useState<ClientExpeditingMeta>(CLIENT_METADATA_MAP["Granules India Limited - Gagillapur"]);
+
+  const handleClientChange = (client: string) => {
+    setSelectedClient(client);
+    if (CLIENT_METADATA_MAP[client]) {
+      setMeta(CLIENT_METADATA_MAP[client]);
+    }
+  };
+
+  const handleExportCSV = () => {
+    const csvRows = [
+      ["Item No", "Description", "Tag No", "PO Qty", "Qty Produced", "Promised Delivery", "Expected Delivery", "Status", "Remarks"],
+      ...items.map((it) => [
+        it.itemNo,
+        `"${it.description.replace(/"/g, '""')}"`,
+        `"${it.tagNo}"`,
+        it.poQty,
+        it.qtyProduced,
+        it.promisedDelivery,
+        it.currentExpectedDelivery,
+        it.status,
+        `"${it.remarks.replace(/"/g, '""')}"`,
+      ]),
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.map((e) => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Expediting_Report_${meta.reportNo}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 2.0 Items / Order Details
+  const [items, setItems] = useState<ExpeditingItem[]>([
+    {
+      id: "it-1",
+      itemNo: 1,
+      description: "SS 316L Multi-Column Distillation Plant Column Vessel 1500L (Design 6.0 Bar)",
+      poQty: 2,
+      tagNo: "V-101A / V-101B",
+      promisedDelivery: "2026-10-10",
+      currentExpectedDelivery: "2026-10-18",
+      qtyProduced: 1,
+      status: "At Risk",
+      remarks: "Shell rolling complete; nozzle fit-up in progress; 8-day forecast delay due to forging flange receipt",
+    },
+    {
+      id: "it-2",
+      itemNo: 2,
+      description: "Heat Exchanger Tube Bundle 316L (High Pressure Condenser Module)",
+      poQty: 4,
+      tagNo: "HE-201 to HE-204",
+      promisedDelivery: "2026-09-30",
+      currentExpectedDelivery: "2026-10-02",
+      qtyProduced: 4,
+      status: "On Schedule",
+      remarks: "Tube-to-tubesheet orbital welding completed; ready for final pneumatic test",
+    },
+    {
+      id: "it-3",
+      itemNo: 3,
+      description: "Purified Water Storage Tank 5000L with 0.2 Micron Hydrophobic Breather Filter",
+      poQty: 1,
+      tagNo: "TK-301",
+      promisedDelivery: "2026-10-25",
+      currentExpectedDelivery: "2026-10-25",
+      qtyProduced: 1,
+      status: "Completed",
+      remarks: "Factory Acceptance Test (FAT) witnessed; mechanical completion achieved",
+    },
+    {
+      id: "it-4",
+      itemNo: 4,
+      description: "Sanitary Diaphragm Valves & Clean Steam Traps skid assembly",
+      poQty: 12,
+      tagNo: "SKID-VAL-01",
+      promisedDelivery: "2026-11-05",
+      currentExpectedDelivery: "2026-11-05",
+      qtyProduced: 6,
+      status: "On Schedule",
+      remarks: "Hydrostatic witness completed for first batch of 6 units",
+    },
+  ]);
+
+  // 3.0 Progress Percentages
+  const [progress, setProgress] = useState({
+    orderStatus: "Partially Completed",
+    engineeringDesign: 95,
+    materialProcurement: 88,
+    manufacturingFabrication: 74,
+    inspectionTesting: 62,
+    documentation: 70,
+    overallCompletion: 76,
+  });
+
+  // 3.0 Summary Text
+  const [summaryText, setSummaryText] = useState(
+    "Expediting visit performed at BHEL Trichy works to evaluate progress of distillation column vessels and heat exchangers. Progress observed since previous visit includes shell welding completion and hydrostatic readiness for Heat Exchangers. Minor 8-day critical path delay noted on Item #1 due to imported SS316L forged flange delivery from sub-supplier. Mitigation plan submitted by vendor with double-shift assembly to recover lost time by 18-Oct-2026."
+  );
+
+  // 4.0 Personnel Present
+  const [personnel, setPersonnel] = useState<Personnel[]>([
+    { id: "p-1", name: "Alok Gupta", designation: "Senior Lead Auditor", company: "Ideal Quality Engineers (I) Pvt Ltd", role: "IQE Expeditor / TPI Lead" },
+    { id: "p-2", name: "R. Sundararajan", designation: "General Manager (Production)", company: "BHEL Trichy", role: "Shop Floor In-Charge" },
+    { id: "p-3", name: "D. Jayaprakash", designation: "Head QA/QC", company: "BHEL Trichy", role: "Quality Assurance Host" },
+    { id: "p-4", name: "M. K. Verma", designation: "Project Manager (Main Contractor)", company: "L&T Heavy Engineering", role: "Main Contractor Lead" },
+  ]);
+
+  // 5.0 Documentation Details
+  const [documents, setDocuments] = useState<DocDetail[]>([
+    { id: "d-1", docTitle: "Approved General Arrangement Drawing", docNo: "GA-DWG-BHEL-001", rev: "Rev 03", status: "Approved", approvalStatus: "Approved", remarks: "All nozzle orientation comments resolved" },
+    { id: "d-2", docTitle: "Welding Procedure Specification (WPS/PQR)", docNo: "WPS-SS316-GTAW-04", rev: "Rev 01", status: "Approved", approvalStatus: "Approved", remarks: "ASME Sec IX compliant; Charpy impact verified" },
+    { id: "d-3", docTitle: "Quality Assurance Plan (QAP)", docNo: "QAP-IQE-GIL-2026-09", rev: "Rev 02", status: "Approved", approvalStatus: "Approved", remarks: "Hold points marked for IQE inspection" },
+    { id: "d-4", docTitle: "Hydrostatic Test Procedure", docNo: "PROC-HYD-771", rev: "Rev 00", status: "Under Review", approvalStatus: "Under Review", remarks: "Submitted on 25-Sep; comments expected in 48h" },
+  ]);
+
+  // 6.0 Sub-Orders / Materials in Stock
+  const [subOrders, setSubOrders] = useState<SubOrderMaterial[]>([
+    { id: "m-1", component: "SS 316L Plates (12mm / 16mm)", supplier: "Jindal Stainless Ltd", orderRef: "SO-JSL-8841", qtyOrdered: "14.5 MT", qtyReceived: "14.5 MT", expectedBalance: "0 MT", status: "100% In Stock & Verified" },
+    { id: "m-2", component: "Sanitary Forged Flanges #150", supplier: "Metal Forge Specialities", orderRef: "SO-MFS-219", qtyOrdered: "28 Nos", qtyReceived: "20 Nos", expectedBalance: "8 Nos", status: "Balance 8 Nos expected by 04-Oct" },
+    { id: "m-3", component: "Seamless U-Tubes 19.05mm OD", supplier: "Sandvik Materials Tech", orderRef: "SO-SAN-774", qtyOrdered: "380 Mtrs", qtyReceived: "380 Mtrs", expectedBalance: "0 Mtrs", status: "100% Received & Eddy Current Tested" },
+  ]);
+
+  // 7.0 Manufacturing Status
+  const [mfgActivities, setMfgActivities] = useState<ManufacturingActivity[]>([
+    { id: "a-1", activity: "Plate Cutting, Edge Beveling & Rolling", plannedFinish: "2026-08-30", actualExpectedFinish: "2026-08-28", percentComplete: 100, status: "Completed", remarks: "100% complete with bevel angle visual sign-off" },
+    { id: "a-2", activity: "Longitudinal & Circumferential Seam Welding", plannedFinish: "2026-09-15", actualExpectedFinish: "2026-09-18", percentComplete: 100, status: "Completed", remarks: "Radiography testing (RT) passed on all Category A joints" },
+    { id: "a-3", activity: "Nozzle Stub Welding & Reinforcing Pads", plannedFinish: "2026-09-28", actualExpectedFinish: "2026-10-06", percentComplete: 65, status: "In Progress", remarks: "Awaiting final batch of 8 flanges; 2 welders assigned" },
+    { id: "a-4", activity: "Internal Pickling, Passivation & Electro-polishing", plannedFinish: "2026-10-05", actualExpectedFinish: "2026-10-12", percentComplete: 0, status: "Pending", remarks: "Scheduled immediately post hydro-test" },
+  ]);
+
+  // 8.0 Inspection / Testing Status
+  const [inspections, setInspections] = useState<InspectionTestActivity[]>([
+    { id: "i-1", activity: "Raw Material Visual & Mill TC Verification", plannedDate: "2026-08-10", actualDate: "2026-08-10", status: "Passed", rfiRef: "RFI-EXP-01", remarks: "PMI test 100% confirmed SS 316L chemical composition" },
+    { id: "i-2", activity: "100% Radiography Test (RT) on Long & Circ Welds", plannedDate: "2026-09-20", actualDate: "2026-09-21", status: "Witnessed", rfiRef: "RFI-EXP-07", remarks: "Radiographic films reviewed; ASME Sec VIII Div 1 UW-51 compliant" },
+    { id: "i-3", activity: "Hydrostatic Pressure Test (1.5x Design Pressure = 9.0 Bar)", plannedDate: "2026-10-02", actualDate: "2026-10-10", status: "Scheduled", rfiRef: "RFI-EXP-11", remarks: "Calibrated pressure gauges #IQE-PG-04 verified" },
+    { id: "i-4", activity: "Helium Leak Detection Test (1x10^-6 mbar.l/s)", plannedDate: "2026-10-08", actualDate: "2026-10-14", status: "Scheduled", rfiRef: "RFI-EXP-14", remarks: "Final acceptance test prior to packaging" },
+  ]);
+
+  // 9.0 Schedule & Delivery Assessment
+  const [scheduleAssessment, setScheduleAssessment] = useState({
+    deliveryAgainstPO: "At Risk",
+    criticalPathItems: "Identified (Forged Flanges & Final Passivation)",
+    recoveryPlanRequired: "Yes (Submitted & Approved in principle)",
+    supplierCommitment: "Vendor has instituted extended 12-hour shifts to recover 8 days delay",
+    iqeAssessment: "Concern",
+  });
+
+  // 10.0 Actions / Follow-Up
+  const [actions, setActions] = useState<ActionFollowUp[]>([
+    { id: "act-1", action: "Follow up with Metal Forge for dispatch of remaining 8 Nos sanitary flanges by air courier", responsibility: "BHEL Procurement (R. Sundararajan)", targetDate: "2026-10-04", status: "Open", remarks: "Daily tracking committed" },
+    { id: "act-2", action: "Submit calibrated gauge certificate and water analysis report (<25 ppm chloride) for hydro test", responsibility: "BHEL QA (D. Jayaprakash)", targetDate: "2026-10-08", status: "Open", remarks: "Prerequisite for test witness" },
+    { id: "act-3", action: "Provide revised detailed fabrication bar-chart showing catch-up milestones to client", responsibility: "L&T Main Contractor (M. K. Verma)", targetDate: "2026-10-01", status: "Closed", remarks: "Revised Rev-04 schedule submitted" },
+  ]);
+
+  // 11.0 Conclusion
+  const [conclusionText, setConclusionText] = useState(
+    "Overall workmanship and compliance with approved QAP standards are satisfactory. Quality of orbital TIG welding on heat exchangers is commendable. While an 8-day delay exists on Item #1, the supplier's recovery plan is feasible provided flange components arrive by 04-Oct-2026. Next expediting visit scheduled for 15-Oct-2026 to witness 9.0 Bar Hydrostatic test and final dimensional inspection."
+  );
+
+  const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
+  const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+
+  const [newItem, setNewItem] = useState({
+    description: "",
+    poQty: 1,
+    tagNo: "",
+    promisedDelivery: new Date().toISOString().split("T")[0],
+    currentExpectedDelivery: new Date().toISOString().split("T")[0],
+    qtyProduced: 0,
+    status: "On Schedule" as ExpeditingItem["status"],
+    remarks: "Order placed, engineering drawing under approval",
+  });
+
+  const handleInlineItemChange = (id: string, field: keyof ExpeditingItem, value: any) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const handleAddItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    const created: ExpeditingItem = {
+      id: `it-${Date.now()}`,
+      itemNo: items.length + 1,
+      description: newItem.description || `Expediting Item #${items.length + 1}`,
+      poQty: Number(newItem.poQty) || 1,
+      tagNo: newItem.tagNo || `TAG-EXP-${items.length + 1}`,
+      promisedDelivery: newItem.promisedDelivery || "2026-10-15",
+      currentExpectedDelivery: newItem.currentExpectedDelivery || "2026-10-15",
+      qtyProduced: Number(newItem.qtyProduced) || 0,
+      status: newItem.status,
+      remarks: newItem.remarks || "Item tracked under progressive expediting protocol",
+    };
+    setItems((prev) => [...prev, created]);
+    setShowAddModal(false);
+    setNewItem({
+      description: "",
+      poQty: 1,
+      tagNo: "",
+      promisedDelivery: new Date().toISOString().split("T")[0],
+      currentExpectedDelivery: new Date().toISOString().split("T")[0],
+      qtyProduced: 0,
+      status: "On Schedule",
+      remarks: "Order placed, engineering drawing under approval",
+    });
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleSave = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  return (
+    <div className="space-y-6 max-w-[1920px] mx-auto pb-12 animate-fade-in text-slate-800 dark:text-slate-100">
+      {/* TOP HEADER CONTAINER (Identical to Bill Verification Format Shell) */}
+      <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+              <Compass className="w-6 h-6 text-[#0084bf]" />
+              <span>Expediting Visit Report</span>
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] border border-blue-200 text-[11px] font-bold font-mono">
+              IQE-TP-05 &bull; REV 00
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
+              ISO 17020 Expediting Protocol
+            </span>
+
+            {/* Select Client Dropdown */}
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+              <Users className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-slate-600 font-extrabold">Select Client:</span>
+              <select
+                value={selectedClient}
+                onChange={(e) => handleClientChange(e.target.value)}
+                className="bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                {CLIENT_OPTIONS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quick Metadata Pill */}
+            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+              <span className="text-slate-500 text-[11px] font-bold">Report:</span>
+              <span className="text-slate-800 font-extrabold font-mono">{meta.reportNo}</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 text-[11px] font-bold">Date:</span>
+              <span className="text-slate-800 font-bold">{meta.date}</span>
+            </div>
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowPdfPreview(true)}
+              className="px-3 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              title="Preview Live PDF"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Preview Live PDF</span>
+            </button>
+
+            <button
+              onClick={handleSave}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
+              title="Save Report"
+            >
+              <Save className="w-4 h-4 text-sky-400" />
+            </button>
+
+            <button
+              onClick={handleExportCSV}
+              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-sm cursor-pointer"
+              title="Print Formal Dossier"
+            >
+              <Printer className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* 5-Card Project & Contract Metadata Strip */}
+        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-blue-700 uppercase font-extrabold tracking-wider">Project &amp; Location</p>
+              <p className="font-extrabold text-slate-900 truncate text-xs">{meta.project}</p>
+              <p className="text-[10px] text-slate-500 truncate">{meta.location}</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-emerald-700 uppercase font-extrabold tracking-wider">Customer / Client</p>
+              <p className="font-extrabold text-slate-900 truncate text-xs">{meta.customer}</p>
+              <p className="text-[10px] text-emerald-700 font-semibold truncate">{meta.callRef}</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <Factory className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-amber-800 uppercase font-extrabold tracking-wider">Vendor / Supplier</p>
+              <p className="font-extrabold text-slate-900 truncate text-xs">{meta.supplier}</p>
+              <p className="text-[10px] text-slate-500 truncate">Sub: {meta.subSupplier}</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-purple-700 uppercase font-extrabold tracking-wider">PO Ref &amp; Date</p>
+              <p className="font-extrabold text-slate-900 truncate text-xs">{meta.supplierPONo}</p>
+              <p className="text-[10px] text-purple-700 font-mono truncate">Next: {meta.nextPlannedVisit}</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 flex items-center gap-3">
+            <div className="w-8.5 h-8.5 rounded-lg bg-teal-100 flex items-center justify-center text-teal-700 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-teal-800 uppercase font-extrabold tracking-wider">Lead Expeditor (IQE)</p>
+              <p className="font-extrabold text-slate-900 truncate text-xs">{meta.iqeExpeditor}</p>
+              <p className="text-[10px] text-teal-700 font-semibold truncate">ISO 17020 Inspector</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 4-Card Summary Metric Strip (Matching Bill Verification) */}
+        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-2xs">
+            <div className="min-w-0 flex-1 pr-2">
+              <p className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider">Overall Progress</p>
+              <p className="text-xl font-extrabold font-mono text-slate-900 mt-0.5 truncate">{progress.overallCompletion}% Complete</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 truncate">Across 5 manufacturing phases</p>
+            </div>
+            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-extrabold text-sm shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between shadow-2xs">
+            <div className="min-w-0 flex-1 pr-2">
+              <p className="text-[9px] text-emerald-700 font-extrabold uppercase tracking-wider">PO Items On Track</p>
+              <p className="text-xl font-extrabold font-mono text-emerald-700 mt-0.5 truncate">
+                {items.filter(i => i.status === "On Schedule" || i.status === "Completed").length} / {items.length} Units
+              </p>
+              <p className="text-[10px] text-emerald-700/80 mt-0.5 truncate">Ready/Produced: {items.reduce((acc, i) => acc + i.qtyProduced, 0)} units</p>
+            </div>
+            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between shadow-2xs">
+            <div className="min-w-0 flex-1 pr-2">
+              <p className="text-[9px] text-amber-800 font-extrabold uppercase tracking-wider">Schedule Concerns</p>
+              <p className="text-xl font-extrabold font-mono text-amber-800 mt-0.5 truncate">
+                {items.filter(i => i.status === "At Risk" || i.status === "Delayed").length} Item At Risk
+              </p>
+              <p className="text-[10px] text-amber-700 mt-0.5 truncate">Item #1: 8-day forecast recovery</p>
+            </div>
+            <div className="w-8.5 h-8.5 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between shadow-2xs">
+            <div className="min-w-0 flex-1 pr-2">
+              <p className="text-[9px] text-purple-700 font-extrabold uppercase tracking-wider">Critical Action Items</p>
+              <p className="text-xl font-extrabold font-mono text-purple-700 mt-0.5 truncate">
+                {actions.filter(a => a.status === "Open").length} Open Actions
+              </p>
+              <p className="text-[10px] text-purple-600 mt-0.5 truncate">{actions.filter(a => a.status === "Closed").length} Closed &amp; Verified</p>
+            </div>
+            <div className="w-8.5 h-8.5 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Progress Bar Strip */}
+      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#0084bf]" />
+            <h2 className="text-sm font-extrabold text-slate-900 dark:text-white font-heading">
+              Order &amp; Manufacturing Milestones Progress Status
+            </h2>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-slate-400 font-mono">Overall Progress:</span>
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold font-mono text-sm border border-emerald-300">
+              {progress.overallCompletion}% Complete
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-xs">
+          <div>
+            <div className="flex justify-between font-semibold mb-1">
+              <span>Engineering &amp; Design</span>
+              <span className="font-mono text-sky-600 dark:text-sky-400">{progress.engineeringDesign}%</span>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-sky-500 rounded-full" style={{ width: `${progress.engineeringDesign}%` }} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between font-semibold mb-1">
+              <span>Material Procurement</span>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400">{progress.materialProcurement}%</span>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${progress.materialProcurement}%` }} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between font-semibold mb-1">
+              <span>Manufacturing &amp; Fab.</span>
+              <span className="font-mono text-amber-600 dark:text-amber-400">{progress.manufacturingFabrication}%</span>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full" style={{ width: `${progress.manufacturingFabrication}%` }} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between font-semibold mb-1">
+              <span>Inspection &amp; Testing</span>
+              <span className="font-mono text-purple-600 dark:text-purple-400">{progress.inspectionTesting}%</span>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-purple-500 rounded-full" style={{ width: `${progress.inspectionTesting}%` }} />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between font-semibold mb-1">
+              <span>QA Documentation</span>
+              <span className="font-mono text-teal-600 dark:text-teal-400">{progress.documentation}%</span>
+            </div>
+            <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-teal-500 rounded-full" style={{ width: `${progress.documentation}%` }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Jump Links Strip */}
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs">
+        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
+        {[
+          { id: "sec-1", label: "1.0 Items" },
+          { id: "sec-2", label: "2.0 Progress" },
+          { id: "sec-3", label: "3.0 Summary" },
+          { id: "sec-4", label: "4.0 Personnel" },
+          { id: "sec-5", label: "5.0 Docs" },
+          { id: "sec-6", label: "6.0 Sub-Orders" },
+          { id: "sec-7", label: "7.0 Manufacturing" },
+          { id: "sec-8", label: "8.0 Testing" },
+          { id: "sec-9", label: "9.0 Schedule" },
+          { id: "sec-10", label: "10.0 Actions" },
+          { id: "sec-11", label: "11.0 Conclusion" },
+          { id: "sec-12", label: "12.0 Photos" },
+          { id: "sec-13", label: "13.0 Sign-Off" },
+        ].map((sec) => (
+          <a
+            key={sec.id}
+            href={`#${sec.id}`}
+            className="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] hover:text-white rounded-md text-slate-700 font-semibold whitespace-nowrap transition-colors"
+          >
+            {sec.label}
+          </a>
+        ))}
+      </div>
+
+      {/* Controlled Document Running Header */}
+      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-slate-200 pb-3 gap-2">
+          <div>
+            <h2 className="font-extrabold text-sm sm:text-base text-slate-900 uppercase tracking-tight">
+              IDEAL QUALITY ENGINEERS (I) PVT. LTD.
+            </h2>
+            <p className="text-xs text-slate-500 font-semibold">Third Party Inspection &amp; Expediting Services</p>
+          </div>
+          <div className="text-right font-mono text-xs space-y-0.5 sm:self-auto">
+            <div className="font-extrabold text-slate-800">FORM NO.: IQE-TP-05</div>
+            <div className="text-slate-500 text-[11px]">REVISION: 00</div>
+            <div className="font-bold text-[#003366]">REPORT NO.: {meta.reportNo}</div>
+          </div>
+        </div>
+
+        <div className="text-center py-1">
+          <h3 className="text-lg sm:text-xl font-extrabold text-[#003366] uppercase tracking-tight">
+            EXPEDITING VISIT REPORT
+          </h3>
+          <p className="text-xs italic text-slate-500">Supplier progress, schedule, materials, manufacturing and action follow-up report</p>
+        </div>
+      </div>
+
+      {/* Top Document Metadata Table (IQE-TP-05 Page 1 as is) */}
+      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-xs border-collapse">
+            <colgroup>
+              <col className="w-1/4 bg-slate-50 border-r border-slate-200 font-medium text-slate-600" />
+              <col className="w-1/4 border-r border-slate-200 font-bold text-slate-900" />
+              <col className="w-1/4 bg-slate-50 border-r border-slate-200 font-medium text-slate-600" />
+              <col className="w-1/4 font-bold text-slate-900" />
+            </colgroup>
+            <tbody className="divide-y divide-slate-200">
+              <tr>
+                <td className="p-2.5">Report No.</td>
+                <td className="p-2.5 font-mono">{meta.reportNo}</td>
+                <td className="p-2.5">Date</td>
+                <td className="p-2.5 font-mono">{meta.date}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5">Call / Visit Reference &amp; Date</td>
+                <td className="p-2.5 font-mono">{meta.callRef}</td>
+                <td className="p-2.5">Previous Visit</td>
+                <td className="p-2.5 font-mono">{meta.previousVisit}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5">Next Planned Visit</td>
+                <td className="p-2.5 font-mono">{meta.nextPlannedVisit}</td>
+                <td className="p-2.5">Location</td>
+                <td className="p-2.5">{meta.location}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5">Customer</td>
+                <td className="p-2.5">{meta.customer}</td>
+                <td className="p-2.5">Supplier</td>
+                <td className="p-2.5">{meta.supplier}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5">Project</td>
+                <td className="p-2.5">{meta.project}</td>
+                <td className="p-2.5">Sub-Supplier / Manufacturer</td>
+                <td className="p-2.5">{meta.subSupplier}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5">Supplier PO No. &amp; Date</td>
+                <td className="p-2.5 font-mono">{meta.supplierPONo}</td>
+                <td className="p-2.5">IQE Expeditor</td>
+                <td className="p-2.5">{meta.iqeExpeditor}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 1.0 ITEMS / ORDER DETAILS */}
+      <div id="sec-1" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <div className="flex items-center gap-2">
+            <span className="uppercase tracking-wider">1.0 ITEMS / ORDER DETAILS</span>
+            <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 1.0</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              {items.length} line items
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsInlineEditMode(!isInlineEditMode)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isInlineEditMode ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+              title="Toggle Inline Editing Mode"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{isInlineEditMode ? "Exit Inline Edit" : "Inline Edit"}</span>
+            </button>
+
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              title="Add New Line Item"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Item</span>
+            </button>
+
+            <button
+              onClick={() => setShowPdfPreview(true)}
+              className="px-2.5 py-1 rounded-lg bg-[#0084bf] hover:bg-[#0073a8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Preview Live PDF"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Preview Live PDF</span>
+            </button>
+          </div>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse min-w-[900px]">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Item No.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[220px]">Item Description</th>
+                <th className="p-2.5 border-r border-slate-200 text-center w-20">PO Qty</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Tag / Unique Serial No.</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Promised Delivery</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Current Expected Delivery</th>
+                <th className="p-2.5 border-r border-slate-200 text-center w-24">Qty Available / Produced</th>
+                <th className="p-2.5 border-r border-slate-200 text-center w-28">Status</th>
+                <th className="p-2.5">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {items.map((it) => (
+                <tr key={it.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-[#003366] border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="number"
+                        value={it.itemNo}
+                        onChange={(e) => handleInlineItemChange(it.id, "itemNo", parseInt(e.target.value) || 0)}
+                        className="w-12 p-1 text-center font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                      />
+                    ) : (
+                      `#${it.itemNo}`
+                    )}
+                  </td>
+                  <td className="p-2.5 font-semibold text-slate-800 border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="text"
+                        value={it.description}
+                        onChange={(e) => handleInlineItemChange(it.id, "description", e.target.value)}
+                        className="w-full min-w-[200px] p-1 font-semibold bg-amber-50 border border-amber-300 rounded text-xs"
+                      />
+                    ) : (
+                      it.description
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center font-mono font-bold border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="number"
+                        value={it.poQty}
+                        onChange={(e) => handleInlineItemChange(it.id, "poQty", parseInt(e.target.value) || 0)}
+                        className="w-16 p-1 text-center font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                      />
+                    ) : (
+                      it.poQty
+                    )}
+                  </td>
+                  <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="text"
+                        value={it.tagNo}
+                        onChange={(e) => handleInlineItemChange(it.id, "tagNo", e.target.value)}
+                        className="w-28 p-1 font-mono text-purple-700 bg-amber-50 border border-amber-300 rounded text-xs"
+                      />
+                    ) : (
+                      it.tagNo
+                    )}
+                  </td>
+                  <td className="p-2.5 font-mono text-slate-600 border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="date"
+                        value={it.promisedDelivery}
+                        onChange={(e) => handleInlineItemChange(it.id, "promisedDelivery", e.target.value)}
+                        className="p-1 font-mono text-xs bg-amber-50 border border-amber-300 rounded"
+                      />
+                    ) : (
+                      it.promisedDelivery
+                    )}
+                  </td>
+                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="date"
+                        value={it.currentExpectedDelivery}
+                        onChange={(e) => handleInlineItemChange(it.id, "currentExpectedDelivery", e.target.value)}
+                        className="p-1 font-mono text-xs font-bold bg-amber-50 border border-amber-300 rounded"
+                      />
+                    ) : (
+                      it.currentExpectedDelivery
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center font-mono font-bold text-emerald-700 border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <input
+                        type="number"
+                        value={it.qtyProduced}
+                        onChange={(e) => handleInlineItemChange(it.id, "qtyProduced", parseInt(e.target.value) || 0)}
+                        className="w-16 p-1 text-center font-mono font-bold text-emerald-800 bg-amber-50 border border-amber-300 rounded text-xs"
+                      />
+                    ) : (
+                      it.qtyProduced
+                    )}
+                  </td>
+                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
+                    {isInlineEditMode ? (
+                      <select
+                        value={it.status}
+                        onChange={(e) => handleInlineItemChange(it.id, "status", e.target.value as any)}
+                        className="p-1 font-bold text-[10px] bg-white border border-slate-300 rounded"
+                      >
+                        <option value="On Schedule">On Schedule</option>
+                        <option value="At Risk">At Risk</option>
+                        <option value="Delayed">Delayed</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        it.status === "On Schedule" || it.status === "Completed"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}>
+                        {it.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">
+                    {isInlineEditMode ? (
+                      <input
+                        type="text"
+                        value={it.remarks}
+                        onChange={(e) => handleInlineItemChange(it.id, "remarks", e.target.value)}
+                        className="w-full min-w-[200px] p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                      />
+                    ) : (
+                      it.remarks
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 2.0 ORDER & PROGRESS STATUS */}
+      <div id="sec-2" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">2.0 ORDER &amp; PROGRESS STATUS</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 2.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-left border-r border-slate-200 w-1/3">Status / Progress</th>
+                <th className="p-2.5 text-left border-r border-slate-200 w-1/3">Current Status / %</th>
+                <th className="p-2.5 text-left w-1/3">Remarks / Evidence</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Order Status</td>
+                <td className="p-2.5 border-r border-slate-100">
+                  <div className="flex items-center gap-3">
+                    {["Complete", "Incomplete", "Partially Completed"].map((st) => (
+                      <label key={st} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name="orderProgressStatus" defaultChecked={st === "Partially Completed"} className="text-[#003366]" />
+                        <span className="text-[11px] font-semibold">{st}</span>
+                      </label>
+                    ))}
+                  </div>
+                </td>
+                <td className="p-2.5 text-slate-600">Material procured 92%; final assembly in progress</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Engineering / Design</td>
+                <td className="p-2.5 border-r border-slate-100 font-mono font-bold text-sky-700">{progress.engineeringDesign}%</td>
+                <td className="p-2.5 text-slate-600">All fabrication GA drawings approved by client</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Material Procurement / Availability</td>
+                <td className="p-2.5 border-r border-slate-100 font-mono font-bold text-emerald-700">{progress.materialProcurement}%</td>
+                <td className="p-2.5 text-slate-600">SS 316L plates &amp; tubes 100% in stock; flanges pending 8 pcs</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Manufacturing / Fabrication</td>
+                <td className="p-2.5 border-r border-slate-100 font-mono font-bold text-amber-700">{progress.manufacturingFabrication}%</td>
+                <td className="p-2.5 text-slate-600">Shell rolling complete; nozzle fit-up in progress</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Inspection / Testing</td>
+                <td className="p-2.5 border-r border-slate-100 font-mono font-bold text-purple-700">{progress.inspectionTesting}%</td>
+                <td className="p-2.5 text-slate-600">PMI &amp; RT completed; hydrotest scheduled next week</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Documentation</td>
+                <td className="p-2.5 border-r border-slate-100 font-mono font-bold text-teal-700">{progress.documentation}%</td>
+                <td className="p-2.5 text-slate-600">WPS/PQR, MTR dossier 80% compiled</td>
+              </tr>
+              <tr className="bg-slate-50 font-bold">
+                <td className="p-2.5 border-r border-slate-200 text-[#003366]">Overall Completion</td>
+                <td className="p-2.5 border-r border-slate-200 font-mono font-bold text-emerald-800">{progress.overallCompletion}%</td>
+                <td className="p-2.5 text-slate-700">On schedule for target delivery post recovery plan</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 3.0 SUMMARY */}
+      <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">3.0 SUMMARY</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 3.0</span>
+        </div>
+        <div className="p-4 bg-white space-y-2">
+          <p className="text-xs text-slate-500 font-semibold">
+            Overall status, progress since previous visit, key developments and significant concerns:
+          </p>
+          <textarea
+            rows={3}
+            value={summaryText}
+            onChange={(e) => setSummaryText(e.target.value)}
+            className="w-full text-xs p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366] text-slate-800 bg-slate-50/50"
+          />
+        </div>
+      </div>
+
+      {/* 4.0 PERSONNEL PRESENT */}
+      <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">4.0 PERSONNEL PRESENT</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 4.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200">Name</th>
+                <th className="p-2.5 border-r border-slate-200">Designation</th>
+                <th className="p-2.5 border-r border-slate-200">Company</th>
+                <th className="p-2.5">Role / Responsibility</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {personnel.map((p, idx) => (
+                <tr key={p.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{p.name}</td>
+                  <td className="p-2.5 text-slate-700 border-r border-slate-100">{p.designation}</td>
+                  <td className="p-2.5 font-semibold text-[#003366] border-r border-slate-100">{p.company}</td>
+                  <td className="p-2.5 text-slate-600">{p.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 5.0 DOCUMENTATION DETAILS */}
+      <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">5.0 DOCUMENTATION DETAILS</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 5.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[220px]">Document / Drawing / Procedure</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Document No.</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Rev.</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Approval Status</th>
+                <th className="p-2.5">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {documents.map((d, idx) => (
+                <tr key={d.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-semibold text-slate-900 border-r border-slate-100">{d.docTitle}</td>
+                  <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">{d.docNo}</td>
+                  <td className="p-2.5 text-center font-mono border-r border-slate-100">{d.rev}</td>
+                  <td className="p-2.5 text-center border-r border-slate-100">{d.status}</td>
+                  <td className="p-2.5 text-center border-r border-slate-100">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      {d.approvalStatus}
+                    </span>
+                  </td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">{d.remarks}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 6.0 SUB-ORDERS / MATERIALS IN STOCK */}
+      <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">6.0 SUB-ORDERS / MATERIALS IN STOCK</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 6.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[200px]">Component / Material</th>
+                <th className="p-2.5 border-r border-slate-200">Supplier / Sub-Supplier</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Order Ref.</th>
+                <th className="p-2.5 border-r border-slate-200 text-right">Qty Ordered</th>
+                <th className="p-2.5 border-r border-slate-200 text-right">Qty Received / In Stock</th>
+                <th className="p-2.5 border-r border-slate-200 text-right">Expected Balance</th>
+                <th className="p-2.5">Status / Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {subOrders.map((m, idx) => (
+                <tr key={m.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{m.component}</td>
+                  <td className="p-2.5 text-slate-700 border-r border-slate-100">{m.supplier}</td>
+                  <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">{m.orderRef}</td>
+                  <td className="p-2.5 text-right font-mono border-r border-slate-100">{m.qtyOrdered}</td>
+                  <td className="p-2.5 text-right font-mono font-bold text-emerald-700 border-r border-slate-100">{m.qtyReceived}</td>
+                  <td className="p-2.5 text-right font-mono text-slate-500 border-r border-slate-100">{m.expectedBalance}</td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">{m.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 7.0 MANUFACTURING STATUS */}
+      <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">7.0 MANUFACTURING STATUS</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 7.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[240px]">Manufacturing Activity</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Planned Finish</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Actual / Expected Finish</th>
+                <th className="p-2.5 border-r border-slate-200 text-right">% Complete</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
+                <th className="p-2.5">Remarks / Constraints</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {mfgActivities.map((a, idx) => (
+                <tr key={a.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{a.activity}</td>
+                  <td className="p-2.5 font-mono text-slate-500 border-r border-slate-100">{a.plannedFinish}</td>
+                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{a.actualExpectedFinish}</td>
+                  <td className="p-2.5 text-right font-mono font-bold text-[#003366] border-r border-slate-100">{a.percentComplete}%</td>
+                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      a.status === "Completed" ? "bg-emerald-100 text-emerald-800" :
+                      a.status === "In Progress" ? "bg-sky-100 text-sky-800" : "bg-amber-100 text-amber-800"
+                    }`}>
+                      {a.status}
+                    </span>
+                  </td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">{a.remarks}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 8.0 INSPECTION / TESTING STATUS */}
+      <div id="sec-8" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">8.0 INSPECTION / TESTING STATUS</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 8.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[220px]">Inspection / Test Activity</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Planned Date</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono font-bold">Actual / Expected Date</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">RFI / Report Ref.</th>
+                <th className="p-2.5">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {inspections.map((i, idx) => (
+                <tr key={i.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100">{i.activity}</td>
+                  <td className="p-2.5 font-mono text-slate-500 border-r border-slate-100">{i.plannedDate}</td>
+                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{i.actualDate}</td>
+                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                      {i.status}
+                    </span>
+                  </td>
+                  <td className="p-2.5 font-mono text-sky-700 border-r border-slate-100">{i.rfiRef}</td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">{i.remarks}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 9.0 SCHEDULE / DELIVERY ASSESSMENT */}
+      <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">9.0 SCHEDULE / DELIVERY ASSESSMENT</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 9.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-left border-r border-slate-200 w-1/4">Particular</th>
+                <th className="p-2.5 text-left border-r border-slate-200 w-1/3">Status</th>
+                <th className="p-2.5 text-left">Remarks / Recovery Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Delivery against PO</td>
+                <td className="p-2.5 border-r border-slate-100">
+                  <div className="flex items-center gap-3">
+                    {["On Schedule", "At Risk", "Delayed"].map((st) => (
+                      <label key={st} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name="delAgainstPO" defaultChecked={st === "At Risk"} className="text-[#003366]" />
+                        <span className="text-[11px] font-semibold">{st}</span>
+                      </label>
+                    ))}
+                  </div>
+                </td>
+                <td className="p-2.5 text-slate-600">8 days delay forecasted due to flange sub-order delivery</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Critical Path Items</td>
+                <td className="p-2.5 border-r border-slate-100">
+                  <div className="flex items-center gap-3">
+                    {["None", "Identified"].map((st) => (
+                      <label key={st} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name="critPath" defaultChecked={st === "Identified"} className="text-[#003366]" />
+                        <span className="text-[11px] font-semibold">{st}</span>
+                      </label>
+                    ))}
+                  </div>
+                </td>
+                <td className="p-2.5 text-slate-600">{scheduleAssessment.criticalPathItems}</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Recovery Plan Required</td>
+                <td className="p-2.5 border-r border-slate-100">
+                  <div className="flex items-center gap-3">
+                    {["No", "Yes"].map((st) => (
+                      <label key={st} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name="recovPlan" defaultChecked={st === "Yes"} className="text-[#003366]" />
+                        <span className="text-[11px] font-semibold">{st}</span>
+                      </label>
+                    ))}
+                  </div>
+                </td>
+                <td className="p-2.5 text-slate-600">Double shift implemented for welding and fit-up</td>
+              </tr>
+              <tr>
+                <td className="p-2.5 border-r border-slate-100 font-semibold text-slate-800">Supplier Commitment</td>
+                <td colSpan={2} className="p-2.5 text-slate-800 font-semibold">
+                  {scheduleAssessment.supplierCommitment}
+                </td>
+              </tr>
+              <tr className="bg-slate-50 font-bold">
+                <td className="p-2.5 border-r border-slate-200 text-[#003366]">IQE Assessment</td>
+                <td colSpan={2} className="p-2.5">
+                  <div className="flex items-center gap-4">
+                    {["Satisfactory", "Concern", "Critical"].map((st) => (
+                      <label key={st} className="flex items-center gap-1 cursor-pointer">
+                        <input type="radio" name="iqeAssessmentVal" defaultChecked={st === "Concern"} className="text-[#003366]" />
+                        <span className={`text-[11px] font-bold ${
+                          st === "Concern" ? "text-amber-700" : st === "Critical" ? "text-rose-700" : "text-emerald-700"
+                        }`}>
+                          {st}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 10.0 ACTIONS / FOLLOW-UP */}
+      <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">10.0 ACTIONS / FOLLOW-UP</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 10.0</span>
+        </div>
+        <div className="overflow-x-auto bg-white">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
+                <th className="p-2.5 text-center w-12 border-r border-slate-200">Sl.</th>
+                <th className="p-2.5 border-r border-slate-200 min-w-[260px]">Action / Observation</th>
+                <th className="p-2.5 border-r border-slate-200">Responsibility</th>
+                <th className="p-2.5 border-r border-slate-200 font-mono">Target Date</th>
+                <th className="p-2.5 border-r border-slate-200 text-center">Status</th>
+                <th className="p-2.5">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {actions.map((act, idx) => (
+                <tr key={act.id} className="hover:bg-slate-50">
+                  <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                  <td className="p-2.5 font-semibold text-slate-900 border-r border-slate-100">{act.action}</td>
+                  <td className="p-2.5 font-bold text-sky-700 border-r border-slate-100">{act.responsibility}</td>
+                  <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">{act.targetDate}</td>
+                  <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      act.status === "Closed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                    }`}>
+                      {act.status}
+                    </span>
+                  </td>
+                  <td className="p-2.5 text-slate-600 text-[11px]">{act.remarks}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 11.0 CONCLUSION */}
+      <div id="sec-11" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">11.0 CONCLUSION</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 11.0</span>
+        </div>
+        <div className="p-4 bg-white space-y-2">
+          <p className="text-xs text-slate-500 font-semibold">
+            Expeditor&apos;s overall assessment and recommendation:
+          </p>
+          <textarea
+            rows={3}
+            value={conclusionText}
+            onChange={(e) => setConclusionText(e.target.value)}
+            className="w-full text-xs p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#003366] text-slate-800 bg-slate-50/50"
+          />
+        </div>
+      </div>
+
+      {/* 12.0 PHOTOGRAPHS */}
+      <div id="sec-12" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">12.0 PHOTOGRAPHS</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 12.0</span>
+        </div>
+        <div className="p-4 bg-white space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
+              <span className="font-bold text-slate-700 block">Photo 1</span>
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+                [Insert Photograph 1]
+              </div>
+              <div className="font-semibold text-slate-700 text-[11px]">
+                Caption: V-101A Shell Rolling &amp; Seam Fit-Up
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
+              <span className="font-bold text-slate-700 block">Photo 2</span>
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+                [Insert Photograph 2]
+              </div>
+              <div className="font-semibold text-slate-700 text-[11px]">
+                Caption: HE-201 Tube-to-Tubesheet Orbital Welding
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
+              <span className="font-bold text-slate-700 block">Photo 3</span>
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+                [Insert Photograph 3]
+              </div>
+              <div className="font-semibold text-slate-700 text-[11px]">
+                Caption: Master Calibrated Pressure Gauge Check
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
+              <span className="font-bold text-slate-700 block">Photo 4</span>
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+                [Insert Photograph 4]
+              </div>
+              <div className="font-semibold text-slate-700 text-[11px]">
+                Caption: SS 316L Heat #HT-9884 Hard Punch Trace
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-500 italic">
+            Photographs are taken with prior permission from the supplier/vendor. Photographs shall be included as applicable.
+          </p>
+        </div>
+      </div>
+
+      {/* 13.0 ACKNOWLEDGEMENT & SIGNATURES */}
+      <div id="sec-13" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+          <span className="uppercase tracking-wider">13.0 ACKNOWLEDGEMENT &amp; SIGNATURES</span>
+          <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 13.0</span>
+        </div>
+        <div className="p-4 bg-white space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* Supplier / Manufacturer */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
+              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+                Supplier / Manufacturer
+              </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Name:</span>
+                  <span className="font-bold text-slate-800">R. Sundararajan</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Designation:</span>
+                  <span className="font-bold text-slate-800">General Manager - Production</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Signature:</span>
+                  <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    [Digitally Signed - R. Sundararajan]
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Date:</span>
+                  <span className="font-mono font-bold text-slate-800">{meta.date}</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200">
+                  <span className="text-[11px] text-slate-500 block">Company Stamp:</span>
+                  <div className="mt-1 h-14 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-[11px]">
+                    {meta.supplier} &bull; Works Division
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ideal Quality Engineers (I) Pvt. Ltd. */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
+              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+                Ideal Quality Engineers (I) Pvt. Ltd.
+              </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Name:</span>
+                  <span className="font-bold text-slate-800">{meta.iqeExpeditor}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">IQE Expeditor:</span>
+                  <span className="font-bold text-slate-800">Senior Lead Auditor &amp; Expeditor</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Signature:</span>
+                  <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    [Digitally Endorsed - Alok Gupta]
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-semibold">Date:</span>
+                  <span className="font-mono font-bold text-slate-800">{meta.date}</span>
+                </div>
+                <div className="pt-2 border-t border-slate-200">
+                  <span className="text-[11px] text-slate-500 block">IQE Stamp:</span>
+                  <div className="mt-1 h-14 border border-dashed border-blue-300 bg-blue-50/40 rounded-lg flex items-center justify-center text-blue-800 font-bold text-[11px]">
+                    IDEAL QUALITY ENGINEERS (I) PVT. LTD. &bull; EXPEDITING VERIFIED
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
+            <span className="text-xs font-bold text-slate-700 block mb-1">Supplier&apos;s Comments (if any):</span>
+            <input
+              type="text"
+              defaultValue="Manufacturer confirms commitment to expedited schedule and 12-hour dual shift working."
+              className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg text-slate-700"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* DISCLAIMER & FOOTER */}
+      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/80 space-y-3 text-xs text-slate-600 leading-relaxed">
+        <h4 className="font-extrabold text-[#003366] uppercase text-xs tracking-wider">
+          DISCLAIMER
+        </h4>
+        <p>
+          The report records observations and information made available to IQE during the expediting visit at the time and location stated herein. It does not relieve the supplier/manufacturer of its contractual, statutory or regulatory responsibilities or obligations under the Purchase Order and other approved documents.
+        </p>
+        <div className="pt-3 border-t border-slate-200 text-center font-extrabold text-slate-700 tracking-wider">
+          &mdash; END OF REPORT &mdash;
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-slate-600 border-t border-slate-200 pt-2 font-mono">
+          <span>IQE-TP-05 | Rev. 00 | Controlled Document</span>
+          <span>Page 3 of 3</span>
+        </div>
+      </div>
+
+      {/* STICKY BOTTOM ACTION BAR */}
+      <div className="sticky bottom-4 z-30 bg-white/95 backdrop-blur-md border border-slate-200 shadow-xl rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Document:</span>
+          <span className="text-xs font-extrabold text-[#003366] font-mono">IQE-TP-05 &bull; {meta.reportNo}</span>
+          <span className="text-xs text-slate-300">|</span>
+          <span className="text-xs font-semibold text-slate-600">{items.length} Expedited Items</span>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowPdfPreview(true)}
+            className="px-4 py-2 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-extrabold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            title="Preview Live PDF"
+          >
+            <Eye className="w-4 h-4" />
+            <span>Preview Live PDF</span>
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 rounded-xl bg-[#003366] hover:bg-[#002244] text-white font-bold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            title="Save Report"
+          >
+            <Save className="w-4 h-4 text-sky-400" />
+            <span>Save Report</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Save Success Toast */}
+      {showToast && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-emerald-600 text-white font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Expediting Visit Report (IQE-TP-05) successfully saved!</span>
+        </div>
+      )}
+      {/* Live Pixel-Matched PDF Preview Modal */}
+      <PdfPreviewModal
+        isOpen={showPdfPreview}
+        onClose={() => setShowPdfPreview(false)}
+        formCode="TP05"
+        payload={{
+          report_no: meta.reportNo,
+          date: meta.date,
+          visit_ref_and_date: meta.callRef,
+          previous_visit: meta.previousVisit,
+          next_planned_visit: meta.nextPlannedVisit,
+          location: meta.location,
+          customer: meta.customer,
+          supplier: meta.supplier,
+          project: meta.project,
+          sub_supplier: meta.subSupplier,
+          po_no_and_date: meta.supplierPONo,
+          expeditor: meta.iqeExpeditor,
+          items: items.map((i) => ({
+            item_no: i.itemNo,
+            description: i.description,
+            po_qty: i.poQty,
+            tag_no: i.tagNo,
+            promised_delivery: i.promisedDelivery,
+            expected_delivery: i.currentExpectedDelivery,
+            qty_available: i.qtyProduced,
+            status: i.status,
+            remarks: i.remarks,
+          })),
+          order_status: progress.orderStatus,
+          order_status_remarks: "Partially completed per milestone schedule.",
+          engineering_pct: progress.engineeringDesign,
+          engineering_remarks: "Engineering design 95% complete; 2 spool isometrics under client approval.",
+          procurement_pct: progress.materialProcurement,
+          procurement_remarks: "All forged flanges and raw pipes received in shop.",
+          manufacturing_pct: progress.manufacturingFabrication,
+          manufacturing_remarks: "Welding and fit-up in progress on 4 skids.",
+          inspection_pct: progress.inspectionTesting,
+          inspection_remarks: "Visual and hydro test scheduled next week.",
+          documentation_pct: progress.documentation,
+          documentation_remarks: "MTC compilation underway.",
+          overall_completion_pct: progress.overallCompletion,
+          overall_remarks: "Overall project on track per revised milestone schedule.",
+          summary: summaryText,
+          personnel: personnel.map((p, idx) => ({
+            sl: idx + 1,
+            name: p.name,
+            designation: p.designation,
+            company: p.company,
+            role: p.role,
+          })),
+          doc_details: documents.map((d, idx) => ({
+            sl: idx + 1,
+            doc_name: d.docTitle,
+            doc_no: d.docNo,
+            rev: d.rev,
+            status: d.status,
+            approval_status: d.approvalStatus,
+            remarks: d.remarks,
+          })),
+          sub_orders: subOrders.map((s, idx) => ({
+            sl: idx + 1,
+            component: s.component,
+            sub_supplier: s.supplier,
+            order_ref: s.orderRef,
+            qty_ordered: s.qtyOrdered,
+            qty_received: s.qtyReceived,
+            expected_balance: s.expectedBalance,
+            status_remarks: s.status,
+          })),
+          mfg_status: mfgActivities.map((m, idx) => ({
+            sl: idx + 1,
+            activity: m.activity,
+            planned_finish: m.plannedFinish,
+            actual_finish: m.actualExpectedFinish,
+            pct: m.percentComplete,
+            status: m.status,
+            remarks: m.remarks,
+          })),
+          insp_testing: inspections.map((ins, idx) => ({
+            sl: idx + 1,
+            activity: ins.activity,
+            planned_date: ins.plannedDate,
+            actual_date: ins.actualDate,
+            status: ins.status,
+            ref: ins.rfiRef,
+            remarks: ins.remarks,
+          })),
+          delivery_status: scheduleAssessment.deliveryAgainstPO,
+          delivery_remarks: "Critical path monitored closely.",
+          critical_path: scheduleAssessment.criticalPathItems,
+          critical_path_remarks: "Sanitary flanges expedited.",
+          recovery_plan: scheduleAssessment.recoveryPlanRequired,
+          recovery_plan_remarks: "Catch-up schedule implemented.",
+          supplier_commitment: scheduleAssessment.supplierCommitment,
+          iqe_assessment: scheduleAssessment.iqeAssessment,
+          iqe_assessment_remarks: "Concerns flagged to client.",
+          actions: actions.map((a, idx) => ({
+            sl: idx + 1,
+            action: a.action,
+            responsibility: a.responsibility,
+            target_date: a.targetDate,
+            status: a.status,
+            remarks: a.remarks,
+          })),
+          conclusion: conclusionText,
+        }}
+        pdfUrl="http://localhost:8000/api/tpi/preview/TP05.pdf"
+        title="IQE-TP-05 Expediting Visit Report"
+        reportNo={meta.reportNo}
+      />
+      {/* ADD NEW EXPEDITING ITEM MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#003366] flex items-center justify-center text-white">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-sm">Add New Expediting Line Item</h3>
+                  <p className="text-[10px] text-slate-500 font-mono">Create order tracking entry (Clause 1.0)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddItem} className="space-y-4 text-xs">
+              <div className="space-y-3">
+                <div>
+                  <label className="font-bold text-slate-700 uppercase text-[10px]">Item Description & Scope *</label>
+                  <textarea
+                    rows={2}
+                    required
+                    placeholder="e.g. Sanitary Shell & Tube Condenser 316L (500 LPH)..."
+                    value={newItem.description}
+                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                    className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">PO Qty *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newItem.poQty}
+                      onChange={(e) => setNewItem({ ...newItem, poQty: parseInt(e.target.value) || 1 })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Tag / Serial No. *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. V-101A / HE-201"
+                      value={newItem.tagNo}
+                      onChange={(e) => setNewItem({ ...newItem, tagNo: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Promised Delivery Date</label>
+                    <input
+                      type="date"
+                      value={newItem.promisedDelivery}
+                      onChange={(e) => setNewItem({ ...newItem, promisedDelivery: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Expected Delivery Date</label>
+                    <input
+                      type="date"
+                      value={newItem.currentExpectedDelivery}
+                      onChange={(e) => setNewItem({ ...newItem, currentExpectedDelivery: e.target.value })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-emerald-800 uppercase text-[10px]">Qty Available / Produced</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={newItem.qtyProduced}
+                      onChange={(e) => setNewItem({ ...newItem, qtyProduced: parseInt(e.target.value) || 0 })}
+                      className="w-full mt-1 p-2 bg-emerald-50 border border-emerald-300 rounded-xl font-mono font-bold text-emerald-900 focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 uppercase text-[10px]">Schedule Status</label>
+                    <select
+                      value={newItem.status}
+                      onChange={(e) => setNewItem({ ...newItem, status: e.target.value as any })}
+                      className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="On Schedule">On Schedule</option>
+                      <option value="At Risk">At Risk</option>
+                      <option value="Delayed">Delayed</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 uppercase text-[10px]">Expediting Remarks & Progress Notes</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Fabrication 80% complete, hydro test scheduled..."
+                    value={newItem.remarks}
+                    onChange={(e) => setNewItem({ ...newItem, remarks: e.target.value })}
+                    className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#003366] hover:bg-[#002244] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-sky-300" />
+                  <span>Add Line Item</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

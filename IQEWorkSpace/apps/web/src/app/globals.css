@@ -5,11 +5,62 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --iqe-blue: #0084bf;
+    --iqe-blue-dark: #00618e;
+    --iqe-orange: #e35f14;
+    --iqe-navy: #001a2c;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #f8fafc;
+    background-color: #f4f8fb;
     color: #1e293b;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background: rgba(0, 132, 191, 0.18);
+    color: #003752;
+  }
+
+  /* Accessible keyboard focus ring in IQE blue (mouse clicks stay clean) */
+  :focus-visible {
+    outline: 2px solid #0084bf;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Micro-interactions: every button gets a subtle press feedback */
+  button:not(:disabled),
+  [role="button"] {
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Form fields: smooth focus transitions app-wide */
+  input,
+  select,
+  textarea {
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+
+  /* Tables: soft row hover highlight for data-dense screens */
+  tbody tr {
+    transition: background-color 150ms ease;
   }
 }
 
@@ -17,7 +68,7 @@
   font-family: 'Outfit', 'Inter', sans-serif;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar matching logo blue */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -30,52 +81,93 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #0084bf;
 }
 
-/* Indigo & Blue Gradients */
+/* IQE Logo Theme Signature Gradients (#0084bf IQE Blue & #e35f14 IQE Orange) */
+.gradient-iqe-blue {
+  background: linear-gradient(135deg, #0084bf 0%, #00618e 60%, #003a57 100%);
+}
+
+.gradient-iqe-logo {
+  background: linear-gradient(135deg, #0084bf 0%, #0075ab 60%, #e35f14 100%);
+}
+
+.gradient-iqe-orange {
+  background: linear-gradient(135deg, #e35f14 0%, #cc500c 100%);
+}
+
+.gradient-iqe-dark {
+  background: linear-gradient(135deg, #001a2c 0%, #003752 50%, #0b1325 100%);
+}
+
+.gradient-card-iqe {
+  background: linear-gradient(135deg, rgba(0, 132, 191, 0.08) 0%, rgba(227, 95, 20, 0.04) 100%);
+}
+
+/* Legacy support gradient overrides mapped to IQE Brand */
 .gradient-indigo-blue {
-  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #0084bf 0%, #00618e 50%, #003752 100%);
 }
 
 .gradient-indigo-dark {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e293b 100%);
+  background: linear-gradient(135deg, #001a2c 0%, #002b48 60%, #0b1325 100%);
 }
 
 .gradient-card-indigo {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%);
+  background: linear-gradient(135deg, rgba(0, 132, 191, 0.08) 0%, rgba(227, 95, 20, 0.04) 100%);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(224, 242, 254, 0.9);
 }
 
 .glass-card-dark {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(0, 26, 44, 0.88);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 132, 191, 0.2);
+}
+
+.glow-iqe-blue {
+  box-shadow: 0 0 22px -4px rgba(0, 132, 191, 0.45);
+}
+
+.glow-iqe-orange {
+  box-shadow: 0 0 22px -4px rgba(227, 95, 20, 0.45);
 }
 
 .glow-indigo {
-  box-shadow: 0 0 20px -5px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 0 22px -4px rgba(0, 132, 191, 0.45);
 }
 
 .glow-blue {
-  box-shadow: 0 0 20px -5px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 22px -4px rgba(0, 132, 191, 0.45);
 }
 
 /* Status Pill Styling */
+.badge-iqe {
+  background-color: #f0f9ff;
+  color: #00618e;
+  border: 1px solid #bae6fd;
+}
+
+.badge-orange {
+  background-color: #fff7ed;
+  color: #a83c07;
+  border: 1px solid #fed7aa;
+}
+
 .badge-indigo {
-  background-color: #eef2ff;
-  color: #4338ca;
-  border: 1px solid #c7d2fe;
+  background-color: #f0f9ff;
+  color: #00618e;
+  border: 1px solid #bae6fd;
 }
 
 .badge-blue {
   background-color: #f0f9ff;
-  color: #0369a1;
+  color: #00618e;
   border: 1px solid #bae6fd;
 }
 
@@ -102,3 +194,185 @@
   color: #be123c;
   border: 1px solid #fecdd3;
 }
+
+/* ========================================================================= */
+/* MOTION & UX UTILITIES                                                     */
+/* ========================================================================= */
+
+/* Staggered entrance: children fade up one after another */
+.stagger > * {
+  animation: fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(7) { animation-delay: 300ms; }
+.stagger > *:nth-child(8) { animation-delay: 350ms; }
+.stagger > *:nth-child(n + 9) { animation-delay: 400ms; }
+
+/* Card that lifts on hover */
+.card-hover {
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 280ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 18px 40px -16px rgba(0, 75, 110, 0.35);
+}
+
+/* Moving sheen across a surface on hover (used on metric cards & CTAs) */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sheen:hover::after {
+  transform: translateX(120%);
+}
+
+/* Skeleton loading placeholder */
+.skeleton {
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, #e9eef4 25%, #f5f8fb 37%, #e9eef4 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #0f2537 25%, #173349 37%, #0f2537 63%);
+  background-size: 200% 100%;
+}
+
+/* Animated brand gradient text */
+.text-gradient-iqe {
+  background: linear-gradient(90deg, #7dd3fc, #ffffff, #fdba74, #7dd3fc);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-x 8s ease infinite;
+}
+
+/* Subtle dotted grid backdrop for hero surfaces */
+.bg-grid {
+  background-image: radial-gradient(rgba(125, 211, 252, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Nav link underline that grows from centre */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #0084bf, #e35f14);
+  transition: left 250ms cubic-bezier(0.16, 1, 0.3, 1), right 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-underline:hover::after {
+  left: 12px;
+  right: 12px;
+}
+
+/* Header condensed state once the page is scrolled */
+.header-scrolled {
+  box-shadow: 0 10px 30px -18px rgba(0, 55, 82, 0.45);
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================================================= */
+/* CONTROLLED INSPECTION REPORT PRINT STYLES                                 */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide Web Chrome, Navigation, Buttons & Steppers */
+  nav,
+  aside,
+  header,
+  footer,
+  .no-print,
+  button,
+  .InspectionFlowStepper,
+  [data-print="hidden"] {
+    display: none !important;
+  }
+
+  /* Make main container full width without shadow/borders */
+  .min-h-screen,
+  main,
+  .page-container {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Ensure controlled tables print with clean borders */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  .page-break {
+    page-break-before: always !important;
+  }
+}
+
+

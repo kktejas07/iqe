@@ -1,61 +1,79 @@
 import Link from "next/link";
-import { Shield, Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck } from "lucide-react";
+import { IQELogo } from "@/components/IQELogo";
+
+const features = [
+  {
+    icon: Cpu,
+    iconClass: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+    title: "AI Inspector Match",
+    body: "Smart competency scoring and assignment optimization.",
+  },
+  {
+    icon: FileCheck,
+    iconClass: "text-orange-400 bg-orange-500/10 border-orange-500/30",
+    title: "Automated QC & Finance",
+    body: "End-to-end report approval, expense check, and invoicing.",
+  },
+  {
+    icon: CheckCircle2,
+    iconClass: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+    title: "Real-Time Anomaly Flag",
+    body: "Instant detection of inspection anomalies & compliance gaps.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Glow Effects */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/30 rounded-full blur-3xl"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/30 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-[#001a2c] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Ambient animated brand backdrop */}
+      <div aria-hidden className="absolute inset-0 bg-grid opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_70%)]" />
+      <div aria-hidden className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-[#0084bf]/30 rounded-full blur-3xl animate-blob" />
+      <div aria-hidden className="absolute -bottom-40 -right-40 w-[30rem] h-[30rem] bg-[#e35f14]/20 rounded-full blur-3xl animate-blob [animation-delay:-7s]" />
 
-      <div className="max-w-3xl w-full text-center relative z-10 space-y-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-xs font-semibold glow-indigo mb-2">
-          <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
-          <span>Next-Gen Quality & Inspection Engine</span>
+      <div className="max-w-3xl w-full text-center relative z-10 space-y-8 stagger">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#003752]/80 border border-[#0084bf]/40 text-sky-200 text-xs font-semibold glow-iqe-blue backdrop-blur-md">
+          <Sparkles className="w-4 h-4 text-[#e35f14] animate-pulse" />
+          <span>Next-Gen Quality &amp; Inspection Engine</span>
         </div>
 
-        <div className="flex items-center justify-center gap-3">
-          <div className="w-14 h-14 rounded-2xl gradient-indigo-blue flex items-center justify-center text-white shadow-2xl glow-indigo">
-            <Shield className="w-8 h-8" />
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold font-heading tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
+        <div className="flex items-center justify-center gap-4">
+          <IQELogo className="w-16 h-16 md:w-20 md:h-20 drop-shadow-2xl animate-float" />
+          <h1 className="text-4xl md:text-6xl font-extrabold font-heading tracking-tight text-gradient-iqe">
             IQEApp
           </h1>
         </div>
 
-        <p className="text-lg md:text-xl text-slate-400 font-light max-w-xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-slate-300/90 font-light max-w-xl mx-auto leading-relaxed">
           Ideal Quality Engineers enterprise platform for smart inspection scheduling, automated QC checks, finance approvals, and AI inspector matching.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-left">
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
-            <Cpu className="w-5 h-5 text-indigo-400 mb-2" />
-            <h3 className="text-sm font-semibold text-white">AI Inspector Match</h3>
-            <p className="text-xs text-slate-400 mt-1">Smart competency scoring and assignment optimization.</p>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
-            <FileCheck className="w-5 h-5 text-blue-400 mb-2" />
-            <h3 className="text-sm font-semibold text-white">Automated QC & Finance</h3>
-            <p className="text-xs text-slate-400 mt-1">End-to-end report approval, expense check, and invoicing.</p>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 mb-2" />
-            <h3 className="text-sm font-semibold text-white">Real-Time Anomaly Flag</h3>
-            <p className="text-xs text-slate-400 mt-1">Instant detection of inspection anomalies & compliance gaps.</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-left stagger">
+          {features.map(({ icon: Icon, iconClass, title, body }) => (
+            <div
+              key={title}
+              className="group p-5 rounded-2xl bg-[#002235]/60 border border-slate-700/60 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[#0084bf]/50 hover:bg-[#002a42]/80 hover:shadow-glow-blue"
+            >
+              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center mb-3 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6 ${iconClass}`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-semibold text-white">{title}</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">{body}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
           <Link
             href="/login"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white font-semibold shadow-lg glow-indigo hover:scale-[1.02] transition-transform duration-200 flex items-center justify-center gap-2"
+            className="sheen group w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#0084bf] via-[#0075ab] to-[#e35f14] text-white font-semibold shadow-lg glow-iqe-blue hover:shadow-glow-orange transition-all duration-500 flex items-center justify-center gap-2"
           >
             <span>Sign In to Portal</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold border border-slate-800 transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-semibold border border-slate-700 hover:border-slate-500 backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
           >
             <span>Direct Dashboard</span>
           </Link>

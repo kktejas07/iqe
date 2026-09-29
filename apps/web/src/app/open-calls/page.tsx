@@ -6,6 +6,7 @@ import {
   MoreVertical, Edit3, Power, LayoutGrid, LayoutList, RefreshCw, User, UserCheck, Factory, Tag, Globe, Compass, ShieldAlert, ArrowRight, Clock, AlertTriangle
 } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -204,7 +205,7 @@ export default function OpenCallsPage() {
       loadOpenCalls();
     } catch (err) {
       console.error("Failed to log Open Call:", err);
-      alert("Failed to log Open Inspection Call.");
+      toast.error("Couldn't log the open inspection call. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -235,7 +236,7 @@ export default function OpenCallsPage() {
       loadOpenCalls();
     } catch (e) {
       console.error("Failed to assign inspector", e);
-      alert("Failed to assign inspector to Open Call.");
+      toast.error("Couldn't assign the inspector to this call. Please try again.");
     }
   };
 
@@ -256,7 +257,7 @@ export default function OpenCallsPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh Queue"
             onClick={loadOpenCalls}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -305,6 +306,7 @@ export default function OpenCallsPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Call ID (OPC-2026-001), Control No, Customer, Vendor, Location, Scope..."
@@ -313,7 +315,7 @@ export default function OpenCallsPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("unassigned")}
@@ -326,7 +328,7 @@ export default function OpenCallsPage() {
             <button
               onClick={() => setStatusFilter("assigned")}
               className={`px-3 py-1 rounded-lg transition-all ${
-                statusFilter === "assigned" ? "bg-white text-indigo-600 font-bold shadow-sm" : "text-slate-600 hover:text-slate-900"
+                statusFilter === "assigned" ? "bg-white text-brand-600 font-bold shadow-sm" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Inspector Assigned
@@ -342,14 +344,14 @@ export default function OpenCallsPage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-amber-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-amber-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
@@ -398,14 +400,14 @@ export default function OpenCallsPage() {
                       </td>
                       <td className="p-3">
                         <p className="font-medium text-slate-800">{c.manufacturer_name || "Unassigned Vendor"}</p>
-                        {c.manufacturer_unit_name && <p className="text-[10px] text-slate-400">Works: {c.manufacturer_unit_name}</p>}
+                        {c.manufacturer_unit_name && <p className="text-[11px] text-slate-400">Works: {c.manufacturer_unit_name}</p>}
                       </td>
                       <td className="p-3 font-mono">
-                        <p className="font-bold text-indigo-600">{c.control_number_id || "N/A"}</p>
-                        {c.po_number && <p className="text-[10px] text-slate-400">{c.po_number}</p>}
+                        <p className="font-bold text-brand-600">{c.control_number_id || "N/A"}</p>
+                        {c.po_number && <p className="text-[11px] text-slate-400">{c.po_number}</p>}
                       </td>
                       <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           c.visit_type === "Emergency Callout" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
                         }`}>
                           {c.visit_type || "High Priority"}
@@ -413,7 +415,7 @@ export default function OpenCallsPage() {
                       </td>
                       <td className="p-3 max-w-xs">
                         <p className="text-slate-800 font-medium truncate" title={c.inspection_scope}>{c.inspection_scope}</p>
-                        {c.comments && <p className="text-[10px] text-slate-400 truncate">{c.comments}</p>}
+                        {c.comments && <p className="text-[11px] text-slate-400 truncate">{c.comments}</p>}
                       </td>
                       <td className="p-3">
                         {c.inspector_name ? (
@@ -429,14 +431,14 @@ export default function OpenCallsPage() {
                         )}
                       </td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          c.inspector_id ? "bg-indigo-100 text-indigo-800" : "bg-rose-100 text-rose-800"
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                          c.inspector_id ? "bg-brand-100 text-brand-800" : "bg-rose-100 text-rose-800"
                         }`}>
                           {c.inspector_id ? "Assigned" : "Open Call"}
                         </span>
                       </td>
                       <td className="p-3 text-right relative">
-                        <button
+                        <button aria-label="More actions" title="More actions"
                           onClick={() => setActiveDropdown(activeDropdown === c.visit_id ? null : c.visit_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
@@ -476,8 +478,8 @@ export default function OpenCallsPage() {
                   <span className="font-mono text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
                     {c.visit_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    c.inspector_id ? "bg-indigo-100 text-indigo-800" : "bg-rose-100 text-rose-800"
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                    c.inspector_id ? "bg-brand-100 text-brand-800" : "bg-rose-100 text-rose-800"
                   }`}>
                     {c.inspector_id ? "Assigned" : "Open Call"}
                   </span>
@@ -520,7 +522,7 @@ export default function OpenCallsPage() {
                   Log Open Inspection Call (Client RFI Request)
                 </h2>
               </div>
-              <button onClick={() => setShowCallModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowCallModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -528,8 +530,8 @@ export default function OpenCallsPage() {
             <form onSubmit={handleSaveCall} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Call Request ID *</label>
-                  <input
+                  <label htmlFor="opecal-call-request-id" className="block text-xs font-semibold text-slate-700 mb-1">Call Request ID *</label>
+                  <input id="opecal-call-request-id"
                     type="text"
                     required
                     value={callId}
@@ -539,11 +541,11 @@ export default function OpenCallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Control Number Assignment</label>
-                  <select
+                  <label htmlFor="opecal-control-number-assignment" className="block text-xs font-semibold text-slate-700 mb-1">Control Number Assignment</label>
+                  <select id="opecal-control-number-assignment"
                     value={selectedCNId}
                     onChange={(e) => setSelectedCNId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono font-bold text-indigo-700"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono font-bold text-brand-700"
                   >
                     <option value="">Select Control Number</option>
                     {cns.map((c) => (
@@ -557,8 +559,8 @@ export default function OpenCallsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
-                  <select
+                  <label htmlFor="opecal-customer-client" className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
+                  <select id="opecal-customer-client"
                     required
                     value={selectedClientId}
                     onChange={(e) => setSelectedClientId(e.target.value)}
@@ -574,8 +576,8 @@ export default function OpenCallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
-                  <select
+                  <label htmlFor="opecal-client-plant-unit-site" className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
+                  <select id="opecal-client-plant-unit-site"
                     value={selectedClientUnitId}
                     onChange={(e) => setSelectedClientUnitId(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -592,8 +594,8 @@ export default function OpenCallsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
-                  <select
+                  <label htmlFor="opecal-supplier-manufacturer" className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
+                  <select id="opecal-supplier-manufacturer"
                     required
                     value={selectedMfrId}
                     onChange={(e) => setSelectedMfrId(e.target.value)}
@@ -609,8 +611,8 @@ export default function OpenCallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
-                  <select
+                  <label htmlFor="opecal-supplier-plant-unit" className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
+                  <select id="opecal-supplier-plant-unit"
                     value={selectedMfrUnitId}
                     onChange={(e) => setSelectedMfrUnitId(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -627,8 +629,8 @@ export default function OpenCallsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Target Inspection Date *</label>
-                  <input
+                  <label htmlFor="opecal-target-inspection-date" className="block text-xs font-semibold text-slate-700 mb-1">Target Inspection Date *</label>
+                  <input id="opecal-target-inspection-date"
                     type="date"
                     required
                     value={targetDate}
@@ -638,8 +640,8 @@ export default function OpenCallsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Call Urgency Level</label>
-                  <select
+                  <label htmlFor="opecal-call-urgency-level" className="block text-xs font-semibold text-slate-700 mb-1">Call Urgency Level</label>
+                  <select id="opecal-call-urgency-level"
                     value={urgency}
                     onChange={(e) => setUrgency(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold"
@@ -654,8 +656,8 @@ export default function OpenCallsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Plant Location (3-Letter Coded) *</label>
-                <input
+                <label htmlFor="opecal-plant-location-3-letter-coded" className="block text-xs font-semibold text-slate-700 mb-1">Plant Location (3-Letter Coded) *</label>
+                <input id="opecal-plant-location-3-letter-coded"
                   type="text"
                   required
                   value={plantLocation}
@@ -666,8 +668,8 @@ export default function OpenCallsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Requested Inspection Scope *</label>
-                <textarea
+                <label htmlFor="opecal-requested-inspection-scope" className="block text-xs font-semibold text-slate-700 mb-1">Requested Inspection Scope *</label>
+                <textarea id="opecal-requested-inspection-scope"
                   rows={2}
                   required
                   value={inspectionScope}
@@ -704,24 +706,24 @@ export default function OpenCallsPage() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-indigo-600" />
+                <UserCheck className="w-5 h-5 text-brand-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   Assign Lead TPI Inspector — {selectedCallForAssign.visit_id}
                 </h2>
               </div>
-              <button onClick={() => setShowAssignModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowAssignModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveAssignment} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Lead TPI Inspector *</label>
-                <select
+                <label htmlFor="opecal-select-lead-tpi-inspector" className="block text-xs font-semibold text-slate-700 mb-1">Select Lead TPI Inspector *</label>
+                <select id="opecal-select-lead-tpi-inspector"
                   required
                   value={assignedInspectorId}
                   onChange={(e) => setAssignedInspectorId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold"
                 >
                   {sampleInspectors.map((i) => (
                     <option key={i.id} value={i.id}>
@@ -732,13 +734,13 @@ export default function OpenCallsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Confirmed Schedule Date *</label>
-                <input
+                <label htmlFor="opecal-confirmed-schedule-date" className="block text-xs font-semibold text-slate-700 mb-1">Confirmed Schedule Date *</label>
+                <input id="opecal-confirmed-schedule-date"
                   type="date"
                   required
                   value={scheduledStartDate}
                   onChange={(e) => setScheduledStartDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono font-bold"
                 />
               </div>
 
@@ -752,7 +754,7 @@ export default function OpenCallsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-600 text-white rounded-xl hover:bg-brand-700 shadow-sm"
                 >
                   Confirm & Schedule Visit
                 </button>

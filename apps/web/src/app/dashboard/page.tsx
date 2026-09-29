@@ -32,16 +32,19 @@ export default function Dashboard() {
   });
   const [recentJobs, setRecentJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Live record counts keyed by backend id (Client, Manufacturer, ...); null until loaded
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const s = await api.getStats();
-      setStats(s);
-      const j = await api.listJobs({ per_page: 6 });
-      setRecentJobs(j.data || []);
-    } catch (e) {
-      console.error(e);
+      // Independent requests: one failing shouldn't blank the others
+      const [s, j, c] = await Promise.allSettled([api.getStats(), api.listJobs({ per_page: 6 }), api.getAdminCounts()]);
+      if (s.status === "fulfilled") setStats(s.value);
+      if (j.status === "fulfilled") setRecentJobs(j.value.data || []);
+      if (c.status === "fulfilled") {
+        setCounts(Object.fromEntries((c.value.counts || []).map((x: { id: string; count: number }) => [x.id, x.count])));
+      }
     } finally {
       setLoading(false);
     }
@@ -52,25 +55,26 @@ export default function Dashboard() {
   }, []);
 
   const cards = [
-    { label: "Total Jobs", value: stats.total, icon: Briefcase, color: "from-indigo-600 to-blue-600", light: "bg-indigo-50 text-indigo-700" },
+    { label: "Total Jobs", value: stats.total, icon: Briefcase, color: "from-brand-600 to-blue-600", light: "bg-brand-50 text-brand-700" },
     { label: "Open Jobs", value: stats.open, icon: Clock, color: "from-blue-500 to-cyan-500", light: "bg-blue-50 text-blue-700" },
     { label: "In Progress", value: stats.in_progress, icon: TrendingUp, color: "from-amber-500 to-orange-500", light: "bg-amber-50 text-amber-700" },
-    { label: "QC Pending", value: stats.qc_pending, icon: AlertCircle, color: "from-purple-600 to-indigo-600", light: "bg-purple-50 text-purple-700" },
+    { label: "QC Pending", value: stats.qc_pending, icon: AlertCircle, color: "from-purple-600 to-brand-600", light: "bg-purple-50 text-purple-700" },
     { label: "Approved", value: stats.approved, icon: CheckCircle2, color: "from-emerald-500 to-teal-500", light: "bg-emerald-50 text-emerald-700" },
-    { label: "Invoiced", value: stats.invoiced, icon: DollarSign, color: "from-indigo-700 to-purple-700", light: "bg-indigo-50 text-indigo-700" },
+    { label: "Invoiced", value: stats.invoiced, icon: DollarSign, color: "from-brand-700 to-purple-700", light: "bg-brand-50 text-brand-700" },
     { label: "Closed", value: stats.closed, icon: FileCheck, color: "from-slate-600 to-slate-800", light: "bg-slate-100 text-slate-700" },
   ];
 
   const metricCards = [
-    { label: "Clients", value: 118, icon: Building, href: "/clients" },
-    { label: "Manufacturers", value: 489, icon: Sparkles, href: "/manufacturers" },
-    { label: "Purchase Orders", value: 1338, icon: TrendingUp, href: "/service-orders" },
-    { label: "Service Orders", value: 148, icon: Briefcase, href: "/service-orders" },
-    { label: "Employees", value: 479, icon: Clock, href: null },
-    { label: "Visits", value: 2331, icon: Calendar, href: "/visits" },
-    { label: "Invoice Details", value: 11, icon: FileCheck, href: "/invoices" },
-    { label: "Payment Details", value: 0, icon: DollarSign, href: "/tpi-billing" },
-  ];
+    { label: "Clients", key: "Client", icon: Building, href: "/clients" },
+    { label: "Manufacturers", key: "Manufacturer", icon: Sparkles, href: "/manufacturers" },
+    { label: "Purchase Orders", key: "PurchaseOrder", icon: TrendingUp, href: "/purchase-orders" },
+    { label: "Service Orders", key: "ServiceOrder", icon: Briefcase, href: "/service-orders" },
+    { label: "Employees", key: "Employee", icon: Clock, href: "/admin" },
+    { label: "Visits", key: "Visits", icon: Calendar, href: "/visits" },
+    { label: "Invoice Details", key: "InvoiceDetails", icon: FileCheck, href: "/invoices" },
+    { label: "Payment Details", key: "Financials", icon: DollarSign, href: "/accounts-receivable" },
+  ].map((c) => ({ ...c, value: counts?.[c.key] ?? null }));
+
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -146,7 +150,13 @@ export default function Dashboard() {
               <div className="relative z-[2]">
                 <p className="text-xs font-medium text-sky-100 uppercase tracking-wider">{label}</p>
                 <p className="text-2xl sm:text-3xl font-extrabold font-heading mt-1">
-                  {loading && label === "Clients" ? <span className="inline-block w-12 h-7 rounded-md bg-white/25 animate-pulse align-middle" /> : <AnimatedNumber value={value} />}
+                  {value !== null ? (
+                    <AnimatedNumber value={value} />
+                  ) : loading ? (
+                    <span className="inline-block w-12 h-7 rounded-md bg-white/25 animate-pulse align-middle" />
+                  ) : (
+                    <span title="Couldn't load this count" className="text-white/70">—</span>
+                  )}
                 </p>
               </div>
               <div className="relative z-[2] w-11 h-11 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 ring-1 ring-white/25 transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:rotate-6">
@@ -238,7 +248,7 @@ export default function Dashboard() {
 
                   <div className="flex items-center gap-3 shrink-0 pl-2">
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide uppercase ${
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase ${
                         job.status === "open"
                           ? "badge-emerald"
                           : job.status === "in_progress"
@@ -302,7 +312,7 @@ export default function Dashboard() {
                 href="/visits"
                 className="group p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#00618e] border border-transparent hover:border-sky-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft flex items-center gap-2 text-xs font-semibold"
               >
-                <Calendar className="w-4 h-4 text-indigo-500 transition-transform duration-300 group-hover:scale-125" />
+                <Calendar className="w-4 h-4 text-brand-500 transition-transform duration-300 group-hover:scale-125" />
                 <span>Field Visits</span>
               </Link>
               <Link

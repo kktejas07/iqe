@@ -6,6 +6,7 @@ import {
   MoreVertical, Edit3, Power, LayoutGrid, LayoutList, RefreshCw, User, UserCheck, Factory, Tag, Globe, Compass, ShieldCheck, ArrowRight, Clock, AlertCircle
 } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -255,7 +256,7 @@ export default function VisitSchedulePage() {
       loadVisits();
     } catch (err) {
       console.error("Failed to schedule Visit:", err);
-      alert("Failed to schedule inspection visit.");
+      toast.error("Couldn't save the inspection visit. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -277,7 +278,7 @@ export default function VisitSchedulePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Inspection Visit Schedule & Inspector Allocation</h1>
             <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-bold font-mono">
               {visits.length} Scheduled Visits
@@ -294,13 +295,14 @@ export default function VisitSchedulePage() {
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
             title="Refresh Schedule"
+            aria-label="Refresh schedule"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
 
           <button
             onClick={handleOpenAddModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-brand-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Schedule Inspection Visit</span>
@@ -310,7 +312,7 @@ export default function VisitSchedulePage() {
 
       {/* Alphabetical A-Z Jump Bar */}
       <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alphabetical Customer & Inspector Index</span>
           <span className="text-[11px] font-mono text-purple-600 font-semibold">Filter by Customer, Vendor, or Inspector initial</span>
         </div>
@@ -338,6 +340,7 @@ export default function VisitSchedulePage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search visits"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Visit ID (VST-2026-001), Control No, Customer, Inspector, Vendor, Location..."
@@ -346,8 +349,8 @@ export default function VisitSchedulePage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("scheduled")}
               className={`px-3 py-1 rounded-lg transition-all ${
@@ -387,6 +390,8 @@ export default function VisitSchedulePage() {
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-purple-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
+              aria-label="Table view"
+              aria-pressed={viewMode === "table"}
             >
               <LayoutList className="w-4 h-4" />
             </button>
@@ -394,6 +399,8 @@ export default function VisitSchedulePage() {
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-purple-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
+              aria-label="Card grid view"
+              aria-pressed={viewMode === "grid"}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -434,7 +441,7 @@ export default function VisitSchedulePage() {
                       <td className="p-3 font-mono font-bold text-purple-600">{v.visit_id}</td>
                       <td className="p-3">
                         <p className="font-mono font-bold text-slate-900">{v.scheduled_start_date ? v.scheduled_start_date.split("T")[0] : "N/A"}</p>
-                        {v.scheduled_end_date && <p className="text-[10px] text-slate-400">to {v.scheduled_end_date.split("T")[0]}</p>}
+                        {v.scheduled_end_date && <p className="text-[11px] text-slate-400">to {v.scheduled_end_date.split("T")[0]}</p>}
                       </td>
                       <td className="p-3">
                         <p className="font-bold text-slate-900">{v.customer_name || "Unassigned Customer"}</p>
@@ -442,11 +449,11 @@ export default function VisitSchedulePage() {
                       </td>
                       <td className="p-3">
                         <p className="font-medium text-slate-800">{v.manufacturer_name || "Unassigned Vendor"}</p>
-                        {v.manufacturer_unit_name && <p className="text-[10px] text-slate-400">Works: {v.manufacturer_unit_name}</p>}
+                        {v.manufacturer_unit_name && <p className="text-[11px] text-slate-400">Works: {v.manufacturer_unit_name}</p>}
                       </td>
                       <td className="p-3 font-mono">
-                        <p className="font-bold text-indigo-600">{v.control_number_id || "N/A"}</p>
-                        {v.po_number && <p className="text-[10px] text-slate-400">{v.po_number}</p>}
+                        <p className="font-bold text-brand-600">{v.control_number_id || "N/A"}</p>
+                        {v.po_number && <p className="text-[11px] text-slate-400">{v.po_number}</p>}
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-1.5">
@@ -460,7 +467,7 @@ export default function VisitSchedulePage() {
                       </td>
                       <td className="p-3 text-slate-700 font-medium">{v.plant_location || "On-Site"}</td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           v.status === "completed" ? "bg-emerald-100 text-emerald-800" :
                           v.status === "initiated" ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"
                         }`}>
@@ -469,7 +476,12 @@ export default function VisitSchedulePage() {
                       </td>
                       <td className="p-3 text-right relative">
                         <button
+                          type="button"
                           onClick={() => setActiveDropdown(activeDropdown === v.visit_id ? null : v.visit_id)}
+                          aria-label={`Actions for ${v.visit_id}`}
+                          title="More actions"
+                          aria-haspopup="menu"
+                          aria-expanded={activeDropdown === v.visit_id}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
                           <MoreVertical className="w-4 h-4" />
@@ -515,7 +527,7 @@ export default function VisitSchedulePage() {
                   <span className="font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-lg">
                     {v.visit_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     v.status === "completed" ? "bg-emerald-100 text-emerald-800" :
                     v.status === "initiated" ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"
                   }`}>
@@ -530,7 +542,7 @@ export default function VisitSchedulePage() {
 
                 <div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
                   <p><span className="text-slate-400">Inspector:</span> <span className="font-bold text-slate-900">{v.inspector_name}</span></p>
-                  <p><span className="text-slate-400">Schedule Date:</span> <span className="font-mono font-bold text-indigo-700">{v.scheduled_start_date}</span></p>
+                  <p><span className="text-slate-400">Schedule Date:</span> <span className="font-mono font-bold text-brand-700">{v.scheduled_start_date}</span></p>
                   <p><span className="text-slate-400">Location:</span> <span className="text-slate-800 font-medium">{v.plant_location}</span></p>
                 </div>
               </div>
@@ -554,20 +566,20 @@ export default function VisitSchedulePage() {
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 <Calendar className="w-5 h-5 text-purple-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   {editingVisit ? `Edit Visit Schedule (${editingVisit.visit_id})` : "Schedule New Inspection Visit & Allocate Inspector"}
                 </h2>
               </div>
-              <button onClick={() => setShowScheduleModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowScheduleModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Wizard Steps Indicator */}
-            <div className="flex items-center justify-between bg-purple-50 p-2.5 rounded-xl border border-purple-100 text-xs font-bold font-mono">
+            <div className="flex flex-wrap items-center justify-between gap-1 bg-purple-50 p-2.5 rounded-xl border border-purple-100 text-xs font-bold font-mono">
               <button
                 type="button"
                 onClick={() => setWizardStep(1)}
@@ -597,10 +609,10 @@ export default function VisitSchedulePage() {
               {wizardStep === 1 && (
                 /* Step 1: Customer & Control Number Selection */
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Visit ID *</label>
-                      <input
+                      <label htmlFor="vs-id" className="block text-xs font-semibold text-slate-700 mb-1">Visit ID *</label>
+                      <input id="vs-id"
                         type="text"
                         required
                         value={visitId}
@@ -610,11 +622,11 @@ export default function VisitSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Control Number Assignment</label>
-                      <select
+                      <label htmlFor="vs-cn" className="block text-xs font-semibold text-slate-700 mb-1">Control Number Assignment</label>
+                      <select id="vs-cn"
                         value={selectedCNId}
                         onChange={(e) => setSelectedCNId(e.target.value)}
-                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono font-bold text-indigo-700"
+                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono font-bold text-brand-700"
                       >
                         <option value="">Select Control Number</option>
                         {cns.map((c) => (
@@ -626,10 +638,10 @@ export default function VisitSchedulePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
-                      <select
+                      <label htmlFor="vs-client" className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
+                      <select id="vs-client"
                         required
                         value={selectedClientId}
                         onChange={(e) => setSelectedClientId(e.target.value)}
@@ -645,8 +657,8 @@ export default function VisitSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
-                      <select
+                      <label htmlFor="vs-client-unit" className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
+                      <select id="vs-client-unit"
                         value={selectedClientUnitId}
                         onChange={(e) => setSelectedClientUnitId(e.target.value)}
                         className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -677,10 +689,10 @@ export default function VisitSchedulePage() {
               {wizardStep === 2 && (
                 /* Step 2: Vendor & Location Selection (_LocationSelection.cshtml & _ManufacturerMappingSection.cshtml) */
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
-                      <select
+                      <label htmlFor="vs-mfr" className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
+                      <select id="vs-mfr"
                         required
                         value={selectedMfrId}
                         onChange={(e) => setSelectedMfrId(e.target.value)}
@@ -696,8 +708,8 @@ export default function VisitSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
-                      <select
+                      <label htmlFor="vs-mfr-unit" className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
+                      <select id="vs-mfr-unit"
                         value={selectedMfrUnitId}
                         onChange={(e) => setSelectedMfrUnitId(e.target.value)}
                         className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -713,8 +725,8 @@ export default function VisitSchedulePage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Plant Location (3-Letter Coded) *</label>
-                    <input
+                    <label htmlFor="vs-location" className="block text-xs font-semibold text-slate-700 mb-1">Plant Location (3-Letter Coded) *</label>
+                    <input id="vs-location"
                       type="text"
                       required
                       value={plantLocation}
@@ -747,10 +759,10 @@ export default function VisitSchedulePage() {
               {wizardStep === 3 && (
                 /* Step 3: Inspector Allocation & Dates (_VisitDatesConfirmation.cshtml) */
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Lead TPI Inspector *</label>
-                      <select
+                      <label htmlFor="vs-inspector" className="block text-xs font-semibold text-slate-700 mb-1">Lead TPI Inspector *</label>
+                      <select id="vs-inspector"
                         required
                         value={selectedInspectorId}
                         onChange={(e) => setSelectedInspectorId(e.target.value)}
@@ -765,8 +777,8 @@ export default function VisitSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Visit Call Type</label>
-                      <select
+                      <label htmlFor="vs-type" className="block text-xs font-semibold text-slate-700 mb-1">Visit Call Type</label>
+                      <select id="vs-type"
                         value={visitType}
                         onChange={(e) => setVisitType(e.target.value)}
                         className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -780,10 +792,10 @@ export default function VisitSchedulePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Scheduled Start Date *</label>
-                      <input
+                      <label htmlFor="vs-start" className="block text-xs font-semibold text-slate-700 mb-1">Scheduled Start Date *</label>
+                      <input id="vs-start"
                         type="date"
                         required
                         value={scheduledStartDate}
@@ -793,8 +805,8 @@ export default function VisitSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Scheduled End Date</label>
-                      <input
+                      <label htmlFor="vs-end" className="block text-xs font-semibold text-slate-700 mb-1">Scheduled End Date</label>
+                      <input id="vs-end"
                         type="date"
                         value={scheduledEndDate}
                         onChange={(e) => setScheduledEndDate(e.target.value)}
@@ -804,8 +816,8 @@ export default function VisitSchedulePage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Inspection Scope & Testing Plan *</label>
-                    <textarea
+                    <label htmlFor="vs-scope" className="block text-xs font-semibold text-slate-700 mb-1">Inspection Scope & Testing Plan *</label>
+                    <textarea id="vs-scope"
                       rows={2}
                       required
                       value={inspectionScope}
@@ -816,8 +828,8 @@ export default function VisitSchedulePage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Pre-Visit Instructions & Comments</label>
-                    <input
+                    <label htmlFor="vs-comments" className="block text-xs font-semibold text-slate-700 mb-1">Pre-Visit Instructions & Comments</label>
+                    <input id="vs-comments"
                       type="text"
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}

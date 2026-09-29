@@ -6,6 +6,7 @@ import {
   MoreVertical, Edit3, Power, LayoutGrid, LayoutList, RefreshCw, User, UserCheck, Factory, Tag, Globe, Compass, ShieldAlert, ArrowRight, Clock, AlertTriangle, DollarSign, Calendar, FileText, Check
 } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -226,7 +227,7 @@ export default function AccountsPayablePage() {
       loadAP();
     } catch (e) {
       console.error("Failed to add AP entry", e);
-      alert("Failed to add Accounts Payable entry.");
+      toast.error("Couldn't add the payable entry. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -255,7 +256,7 @@ export default function AccountsPayablePage() {
       loadAP();
     } catch (e) {
       console.error("Failed to record disbursement", e);
-      alert("Failed to record disbursement.");
+      toast.error("Couldn't record the disbursement. Please try again.");
     }
   };
 
@@ -276,7 +277,7 @@ export default function AccountsPayablePage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh AP Ledger"
             onClick={loadAP}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -287,7 +288,7 @@ export default function AccountsPayablePage() {
 
           <button
             onClick={handleOpenAddModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-brand-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add Payable Entry</span>
@@ -382,6 +383,7 @@ export default function AccountsPayablePage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by AP Ref (AP-2026-001), Vendor Name, PO Ref..."
@@ -390,7 +392,7 @@ export default function AccountsPayablePage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("all")}
@@ -427,14 +429,14 @@ export default function AccountsPayablePage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-purple-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-purple-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
@@ -478,20 +480,20 @@ export default function AccountsPayablePage() {
                       <td className="p-3 font-mono font-bold text-purple-600">{ap.ap_id}</td>
                       <td className="p-3 font-mono text-slate-900">
                         <p className="font-bold">{ap.entry_date ? ap.entry_date.split("T")[0] : "N/A"}</p>
-                        <p className="text-[10px] text-slate-500">Due: <span className="font-bold text-indigo-700">{ap.due_date ? ap.due_date.split("T")[0] : `+${ap.payment_terms_days || 30} Days`}</span></p>
+                        <p className="text-[11px] text-slate-500">Due: <span className="font-bold text-brand-700">{ap.due_date ? ap.due_date.split("T")[0] : `+${ap.payment_terms_days || 30} Days`}</span></p>
                       </td>
                       <td className="p-3 font-bold text-slate-900">{ap.vendor_name}</td>
                       <td className="p-3 font-medium capitalize">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">
                           {ap.vendor_type || "manufacturer"}
                         </span>
                       </td>
-                      <td className="p-3 font-mono font-bold text-indigo-600">{ap.po_number || "N/A"}</td>
+                      <td className="p-3 font-mono font-bold text-brand-600">{ap.po_number || "N/A"}</td>
                       <td className="p-3 font-mono font-bold text-slate-900">₹{(ap.amount || 0).toLocaleString()}</td>
                       <td className="p-3 font-mono text-emerald-600 font-bold">₹{(ap.paid_amount || 0).toLocaleString()}</td>
                       <td className="p-3 font-mono font-extrabold text-rose-600 text-sm">₹{(ap.balance_amount || 0).toLocaleString()}</td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           ap.status === "settled" ? "bg-emerald-100 text-emerald-800" :
                           ap.status === "overdue" || ap.overdue_alert ? "bg-rose-100 text-rose-800 animate-pulse" : "bg-amber-100 text-amber-800"
                         }`}>
@@ -499,7 +501,7 @@ export default function AccountsPayablePage() {
                         </span>
                       </td>
                       <td className="p-3 text-right relative">
-                        <button
+                        <button aria-label="More actions" title="More actions"
                           onClick={() => setActiveDropdown(activeDropdown === ap.ap_id ? null : ap.ap_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
@@ -543,7 +545,7 @@ export default function AccountsPayablePage() {
                   <span className="font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-lg">
                     {ap.ap_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     ap.status === "settled" ? "bg-emerald-100 text-emerald-800" :
                     ap.status === "overdue" || ap.overdue_alert ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
                   }`}>
@@ -553,13 +555,13 @@ export default function AccountsPayablePage() {
 
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 font-heading">{ap.vendor_name}</h3>
-                  <p className="text-[11px] font-mono text-indigo-600 font-bold">PO: {ap.po_number || "Manual Entry"}</p>
+                  <p className="text-[11px] font-mono text-brand-600 font-bold">PO: {ap.po_number || "Manual Entry"}</p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
                   <p><span className="text-slate-400">Total Payable:</span> <span className="font-mono font-bold text-slate-900">₹{(ap.amount || 0).toLocaleString()}</span></p>
                   <p><span className="text-slate-400">Balance Due:</span> <span className="font-mono font-extrabold text-rose-600 text-sm">₹{(ap.balance_amount || 0).toLocaleString()}</span></p>
-                  <p><span className="text-slate-400">Payment Terms:</span> <span className="font-bold text-indigo-700">{ap.payment_terms_days || 30}-Day Default</span></p>
+                  <p><span className="text-slate-400">Payment Terms:</span> <span className="font-bold text-brand-700">{ap.payment_terms_days || 30}-Day Default</span></p>
                 </div>
               </div>
 
@@ -590,7 +592,7 @@ export default function AccountsPayablePage() {
                   Add Accounts Payable Entry
                 </h2>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -598,8 +600,8 @@ export default function AccountsPayablePage() {
             <form onSubmit={handleSaveAP} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">AP Ref ID *</label>
-                  <input
+                  <label htmlFor="accpay-ap-ref-id" className="block text-xs font-semibold text-slate-700 mb-1">AP Ref ID *</label>
+                  <input id="accpay-ap-ref-id"
                     type="text"
                     required
                     value={apId}
@@ -609,8 +611,8 @@ export default function AccountsPayablePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Vendor Type *</label>
-                  <select
+                  <label htmlFor="accpay-vendor-type" className="block text-xs font-semibold text-slate-700 mb-1">Vendor Type *</label>
+                  <select id="accpay-vendor-type"
                     value={vendorType}
                     onChange={(e) => setVendorType(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold"
@@ -624,8 +626,8 @@ export default function AccountsPayablePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Vendor / Inspector *</label>
-                  <select
+                  <label htmlFor="accpay-vendor-inspector" className="block text-xs font-semibold text-slate-700 mb-1">Vendor / Inspector *</label>
+                  <select id="accpay-vendor-inspector"
                     required
                     value={selectedMfrId}
                     onChange={(e) => setSelectedMfrId(e.target.value)}
@@ -641,8 +643,8 @@ export default function AccountsPayablePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">PO Reference Number *</label>
-                  <input
+                  <label htmlFor="accpay-po-reference-number" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">PO Reference Number *</label>
+                  <input id="accpay-po-reference-number"
                     type="text"
                     required
                     value={poNo || "PO-IQE-2026-9901"}
@@ -655,8 +657,8 @@ export default function AccountsPayablePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payable Amount (₹) *</label>
-                  <input
+                  <label htmlFor="accpay-payable-amount" className="block text-xs font-semibold text-slate-700 mb-1">Payable Amount (₹) *</label>
+                  <input id="accpay-payable-amount"
                     type="number"
                     required
                     value={amount}
@@ -666,16 +668,16 @@ export default function AccountsPayablePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Terms (Days) *</label>
-                  <input
+                  <label htmlFor="accpay-payment-terms-days" className="block text-xs font-semibold text-slate-700 mb-1">Payment Terms (Days) *</label>
+                  <input id="accpay-payment-terms-days"
                     type="number"
                     required
                     value={termsDays}
                     onChange={(e) => setTermsDays(Number(e.target.value))}
                     placeholder="30"
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono font-bold text-indigo-700"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono font-bold text-brand-700"
                   />
-                  <p className="text-[10px] text-slate-400 mt-0.5">Default is 30 days; override if vendor contract differs</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Default is 30 days; override if vendor contract differs</p>
                 </div>
               </div>
 
@@ -711,15 +713,15 @@ export default function AccountsPayablePage() {
                   Record AP Disbursement Payment — {selectedAp.ap_id}
                 </h2>
               </div>
-              <button onClick={() => setShowDisburseModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowDisburseModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveDisbursement} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Disbursed Amount (₹) *</label>
-                <input
+                <label htmlFor="accpay-disbursed-amount" className="block text-xs font-semibold text-slate-700 mb-1">Disbursed Amount (₹) *</label>
+                <input id="accpay-disbursed-amount"
                   type="number"
                   required
                   value={disburseAmount}
@@ -729,8 +731,8 @@ export default function AccountsPayablePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode *</label>
-                <select
+                <label htmlFor="accpay-payment-mode" className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode *</label>
+                <select id="accpay-payment-mode"
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold"
@@ -743,8 +745,8 @@ export default function AccountsPayablePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Bank Transaction Ref Number *</label>
-                <input
+                <label htmlFor="accpay-bank-transaction-ref-number" className="block text-xs font-semibold text-slate-700 mb-1">Bank Transaction Ref Number *</label>
+                <input id="accpay-bank-transaction-ref-number"
                   type="text"
                   required
                   value={txnRef}

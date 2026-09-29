@@ -23,42 +23,49 @@ jinja_env = Environment(
 
 FORM_CONFIGS = {
     "TP02": {
+        "display_title": "Flash Inspection Report",
         "template": "tp02.html",
         "stylesheet": "tp02.css",
         "title": "FLASH INSPECTION REPORT",
         "form_code": "IQE-TP-02",
     },
     "TP03": {
+        "display_title": "Inspection Visit Report",
         "template": "tp03.html",
         "stylesheet": "tp03.css",
         "title": "INSPECTION VISIT REPORT",
         "form_code": "IQE-TP-03",
     },
     "TP04": {
+        "display_title": "Inspection Release Note",
         "template": "tp04.html",
         "stylesheet": "tp04.css",
         "title": "INSPECTION RELEASE NOTE",
         "form_code": "IQE-TP-04",
     },
     "TP05": {
+        "display_title": "Expediting Visit Report",
         "template": "tp05.html",
         "stylesheet": "tp05.css",
         "title": "EXPEDITING VISIT REPORT",
         "form_code": "IQE-TP-05",
     },
     "FBILL01": {
+        "display_title": "TPI Bill Verification Report",
         "template": "fbill01.html",
         "stylesheet": "fbill01.css",
         "title": "TPI BILL VERIFICATION REPORT",
         "form_code": "F-BILL-01",
     },
     "FQUAL01": {
+        "display_title": "Quantity Verification & Survey Report",
         "template": "fqual01.html",
         "stylesheet": "fqual01.css",
         "title": "QUANTITY VERIFICATION & SURVEY REPORT",
         "form_code": "F-QUAL-01",
     },
     "FBOQ01": {
+        "display_title": "BOQ Reconciliation & Material Audit Report",
         "template": "fboq01.html",
         "stylesheet": "fboq01.css",
         "title": "BOQ RECONCILIATION & MATERIAL AUDIT REPORT",
@@ -72,7 +79,35 @@ def normalize_form_code(form_code: str) -> str:
         cleaned = cleaned[3:]
     return cleaned
 
-def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False, is_draft: bool = False) -> str:
+# Where the verify page can re-fetch each form's PDF when no stored report id exists
+FORM_PDF_PATHS = {
+    "FBILL01": "/api/v1/reports/pdf/tpi-billing",
+    "FQUAL01": "/api/v1/reports/pdf/quality-bill-verification",
+    "FBOQ01": "/api/v1/reports/pdf/boq-reconciliation",
+}
+
+
+def default_qr_url(code: str, payload: Dict[str, Any], is_blank: bool) -> Optional[str]:
+    """Scan-to-verify link for a form; blank templates get no QR (nothing to verify)."""
+    if is_blank:
+        return None
+    from core.qr import verify_url
+
+    cfg = FORM_CONFIGS[code]
+    report_id = payload.get("id") or payload.get("_id")
+    pdf_path = f"/api/tpi/report/{report_id}/pdf" if report_id else FORM_PDF_PATHS.get(code)
+    return verify_url(
+        title=cfg.get("display_title") or cfg["title"],
+        ref=str(payload.get("report_no") or ""),
+        form=cfg["form_code"],
+        client=str(payload.get("client") or payload.get("client_name") or ""),
+        date=str(payload.get("date") or payload.get("report_date") or ""),
+        pdf_path=pdf_path,
+    )
+
+
+def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False, is_draft: bool = False,
+                qr_url: Optional[str] = None) -> str:
     code = normalize_form_code(form_code)
     cfg = FORM_CONFIGS.get(code)
     if not cfg:
@@ -99,9 +134,16 @@ def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False,
     context["is_blank"] = is_blank
     context["is_draft"] = is_draft
 
+    url = qr_url if qr_url is not None else default_qr_url(code, payload, is_blank)
+    if url:
+        from core.qr import qr_data_uri
+        context["qr_url"] = url
+        context["qr_data_uri"] = qr_data_uri(url)
+
     return template.render(**context)
 
-def render_pdf(form_code: str, payload: Optional[Dict[str, Any]] = None, is_blank: bool = False, is_draft: bool = False) -> bytes:
+def render_pdf(form_code: str, payload: Optional[Dict[str, Any]] = None, is_blank: bool = False, is_draft: bool = False,
+               qr_url: Optional[str] = None) -> bytes:
     try:
         import weasyprint
     except Exception as e:
@@ -113,7 +155,7 @@ def render_pdf(form_code: str, payload: Optional[Dict[str, Any]] = None, is_blan
         raise ValueError(f"Unknown form code: {form_code}")
 
     data = payload or {}
-    html_content = render_html(code, data, is_blank=is_blank, is_draft=is_draft)
+    html_content = render_html(code, data, is_blank=is_blank, is_draft=is_draft, qr_url=qr_url)
 
     base_url = str(TEMPLATES_DIR)
     html = weasyprint.HTML(string=html_content, base_url=base_url)

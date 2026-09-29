@@ -37,7 +37,7 @@ export function IQELoader({ message = "Loading Ideal Quality Engine..." }: { mes
             <span className="w-1 h-1 rounded-full bg-[#e35f14] animate-bounce" />
           </span>
         </p>
-        <span className="inline-block px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-[10px] font-mono font-extrabold mt-1">
+        <span className="inline-block px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-[11px] font-mono font-extrabold mt-1">
           ISO 9001:2015 Certified Inspection Agency
         </span>
       </div>

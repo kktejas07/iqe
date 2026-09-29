@@ -6,6 +6,7 @@ import {
   MoreVertical, Edit3, Power, Layers, LayoutGrid, LayoutList, RefreshCw, Tag, Globe, Compass 
 } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 interface MfrUnitItem {
   manufacturer_unit_id: string;
@@ -168,7 +169,7 @@ export default function ManufacturersPage() {
       loadManufacturers();
     } catch (err) {
       console.error("Failed to save manufacturer:", err);
-      alert("Failed to save manufacturer details.");
+      toast.error("Couldn't save the manufacturer details. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -242,7 +243,7 @@ export default function ManufacturersPage() {
       loadManufacturers();
     } catch (e) {
       console.error("Failed to add vendor unit", e);
-      alert("Failed to add vendor unit.");
+      toast.error("Couldn't add the vendor unit. Please try again.");
     }
   };
 
@@ -269,7 +270,7 @@ export default function ManufacturersPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh Directory"
             onClick={loadManufacturers}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -319,6 +320,7 @@ export default function ManufacturersPage() {
         {/* Search Input */}
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search manufacturer by ID (e.g. M-001), vendor name, equipment category, city..."
@@ -328,7 +330,7 @@ export default function ManufacturersPage() {
         </div>
 
         {/* Status Filter Toggle Group & View Toggle */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("active")}
@@ -357,14 +359,14 @@ export default function ManufacturersPage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-amber-700 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-amber-700 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
@@ -411,7 +413,7 @@ export default function ManufacturersPage() {
                       </td>
                       <td className="p-3 text-slate-500">
                         <div>{m.city || "Head Office"}{m.state ? `, ${m.state}` : ""}</div>
-                        {m.contact_number && <div className="text-[10px] text-slate-400">{m.contact_number}</div>}
+                        {m.contact_number && <div className="text-[11px] text-slate-400">{m.contact_number}</div>}
                       </td>
                       <td className="p-3 text-center">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 font-bold font-mono text-[11px]">
@@ -420,14 +422,14 @@ export default function ManufacturersPage() {
                         </span>
                       </td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           m.is_active !== false ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                         }`}>
                           {m.is_active !== false ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="p-3 text-right relative">
-                        <button
+                        <button aria-label="More actions" title="More actions"
                           onClick={() => setActiveDropdown(activeDropdown === m.manufacturer_id ? null : m.manufacturer_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
@@ -482,7 +484,7 @@ export default function ManufacturersPage() {
                   <span className="font-mono text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
                     {m.manufacturer_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     m.is_active !== false ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                   }`}>
                     {m.is_active !== false ? "Active" : "Inactive"}
@@ -541,15 +543,15 @@ export default function ManufacturersPage() {
                   {editingMfr ? `Edit Manufacturer (${editingMfr.manufacturer_id})` : "Add New Manufacturer"}
                 </h2>
               </div>
-              <button onClick={() => setShowMfrModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowMfrModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveMfr} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Manufacturer Name *</label>
-                <input
+                <label htmlFor="man-manufacturer-name" className="block text-xs font-semibold text-slate-700 mb-1">Manufacturer Name *</label>
+                <input id="man-manufacturer-name"
                   type="text"
                   required
                   value={name}
@@ -561,8 +563,8 @@ export default function ManufacturersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Equipment Category</label>
-                  <input
+                  <label htmlFor="man-equipment-category" className="block text-xs font-semibold text-slate-700 mb-1">Equipment Category</label>
+                  <input id="man-equipment-category"
                     type="text"
                     value={equipmentCategory}
                     onChange={(e) => setEquipmentCategory(e.target.value)}
@@ -571,8 +573,8 @@ export default function ManufacturersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">City / Location</label>
-                  <input
+                  <label htmlFor="man-city-location" className="block text-xs font-semibold text-slate-700 mb-1">City / Location</label>
+                  <input id="man-city-location"
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -584,8 +586,8 @@ export default function ManufacturersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Phone</label>
-                  <input
+                  <label htmlFor="man-contact-phone" className="block text-xs font-semibold text-slate-700 mb-1">Contact Phone</label>
+                  <input id="man-contact-phone"
                     type="text"
                     value={contactNumber}
                     onChange={(e) => setContactNumber(e.target.value)}
@@ -594,8 +596,8 @@ export default function ManufacturersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">GST Number</label>
-                  <input
+                  <label htmlFor="man-gst-number" className="block text-xs font-semibold text-slate-700 mb-1">GST Number</label>
+                  <input id="man-gst-number"
                     type="text"
                     value={gst}
                     onChange={(e) => setGst(e.target.value)}
@@ -640,7 +642,7 @@ export default function ManufacturersPage() {
                   <p className="text-xs text-slate-500">Manufacturer ID: {selectedMfrForUnits.manufacturer_id}</p>
                 </div>
               </div>
-              <button onClick={() => setShowUnitsModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowUnitsModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -651,6 +653,7 @@ export default function ManufacturersPage() {
                 <Globe className="w-4 h-4 text-slate-500" />
                 <span className="font-semibold text-slate-700">Filter Region:</span>
                 <select
+                  aria-label="Filter by region"
                   value={unitRegionFilter}
                   onChange={(e) => setUnitRegionFilter(e.target.value)}
                   className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
@@ -666,6 +669,7 @@ export default function ManufacturersPage() {
                 <Compass className="w-4 h-4 text-slate-500" />
                 <span className="font-semibold text-slate-700">Plant Sub-Category:</span>
                 <select
+                  aria-label="Filter by plant sub-category"
                   value={unitTypeFilter}
                   onChange={(e) => setUnitTypeFilter(e.target.value)}
                   className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
@@ -695,10 +699,10 @@ export default function ManufacturersPage() {
                   {filteredUnits.map((u) => (
                     <div key={u.manufacturer_unit_id} className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-sm space-y-2 relative hover:border-amber-300 transition-colors">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                        <span className="font-mono text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
                           {u.manufacturer_unit_id}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                           {u.region || "Western Region"}
                         </span>
                       </div>
@@ -707,13 +711,13 @@ export default function ManufacturersPage() {
 
                       {/* Sub-Category Badges & Custom Tags */}
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium border border-slate-200 flex items-center gap-1">
                           <Factory className="w-3 h-3 text-slate-500" />
                           {u.unit_type || "Forging & Casting Shop"}
                         </span>
 
                         {u.custom_category && (
-                          <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[11px] font-bold border border-purple-200 flex items-center gap-1">
                             <Tag className="w-3 h-3 text-purple-500" />
                             {u.custom_category}
                           </span>
@@ -744,8 +748,8 @@ export default function ManufacturersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Unit / Plant Site Name *</label>
-                <input
+                <label htmlFor="man-unit-plant-site-name" className="block text-xs font-semibold text-slate-700 mb-1">Unit / Plant Site Name *</label>
+                <input id="man-unit-plant-site-name"
                   type="text"
                   required
                   value={unitName}
@@ -758,8 +762,8 @@ export default function ManufacturersPage() {
               {/* Plant Sub-Category & Region Selector */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Plant Sub-Category / Type *</label>
-                  <select
+                  <label htmlFor="man-plant-sub-category-type" className="block text-xs font-semibold text-slate-700 mb-1">Plant Sub-Category / Type *</label>
+                  <select id="man-plant-sub-category-type"
                     value={unitType}
                     onChange={(e) => setUnitType(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -771,8 +775,8 @@ export default function ManufacturersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Geographical Region *</label>
-                  <select
+                  <label htmlFor="man-geographical-region" className="block text-xs font-semibold text-slate-700 mb-1">Geographical Region *</label>
+                  <select id="man-geographical-region"
                     value={unitRegion}
                     onChange={(e) => setUnitRegion(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -787,13 +791,13 @@ export default function ManufacturersPage() {
               {/* Optional Custom Category / Tag Entry */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <label htmlFor="man-optional-custom-category-tag" className="text-xs font-semibold text-slate-700 flex items-center gap-1">
                     <Tag className="w-3 h-3 text-purple-600" />
                     <span>Optional Custom Category / Tag</span>
                   </label>
-                  <span className="text-[10px] text-slate-400">User Defined Tag</span>
+                  <span className="text-[11px] text-slate-400">User Defined Tag</span>
                 </div>
-                <input
+                <input id="man-optional-custom-category-tag"
                   type="text"
                   value={customCategory}
                   onChange={(e) => setCustomCategory(e.target.value)}
@@ -805,8 +809,8 @@ export default function ManufacturersPage() {
               {/* Location & Address Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">City / Town</label>
-                  <input
+                  <label htmlFor="man-city-town" className="block text-xs font-semibold text-slate-700 mb-1">City / Town</label>
+                  <input id="man-city-town"
                     type="text"
                     value={unitCity}
                     onChange={(e) => setUnitCity(e.target.value)}
@@ -816,8 +820,8 @@ export default function ManufacturersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Specific Site Address / Location</label>
-                  <input
+                  <label htmlFor="man-specific-site-address-location" className="block text-xs font-semibold text-slate-700 mb-1">Specific Site Address / Location</label>
+                  <input id="man-specific-site-address-location"
                     type="text"
                     value={unitLocation}
                     onChange={(e) => setUnitLocation(e.target.value)}
@@ -830,8 +834,8 @@ export default function ManufacturersPage() {
               {/* Contact Person & Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Person</label>
-                  <input
+                  <label htmlFor="man-contact-person" className="block text-xs font-semibold text-slate-700 mb-1">Contact Person</label>
+                  <input id="man-contact-person"
                     type="text"
                     value={unitContact}
                     onChange={(e) => setUnitContact(e.target.value)}
@@ -840,8 +844,8 @@ export default function ManufacturersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Phone</label>
-                  <input
+                  <label htmlFor="man-phone" className="block text-xs font-semibold text-slate-700 mb-1">Phone</label>
+                  <input id="man-phone"
                     type="text"
                     value={unitPhone}
                     onChange={(e) => setUnitPhone(e.target.value)}

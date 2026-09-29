@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useMemo, useEffect } from "react";
 import { trackButtonClick } from "@/lib/analytics";
 import { IQELoader } from "@/components/IQELoader";
@@ -631,7 +632,7 @@ export default function QualityBillVerificationPage() {
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
-  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>(`${API_BASE}/api/v1/reports/pdf/quality-bill-verification`);
   const [previewPdfTitle, setPreviewPdfTitle] = useState<string>("Quality Bill Verification Certificate & Audit");
   const [previewReportNo, setPreviewReportNo] = useState<string>("IQE/QVR/2026/084");
 
@@ -919,7 +920,7 @@ export default function QualityBillVerificationPage() {
       closure_status: item.verificationStatus,
       is_locked: item.isLocked.toString(),
     });
-    window.open(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`, "_blank");
+    window.open(`${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`, "_blank");
   };
 
   const handlePreviewSinglePDF = (item: HybridQVRItem) => {
@@ -940,7 +941,7 @@ export default function QualityBillVerificationPage() {
       closure_status: item.verificationStatus,
       is_locked: item.isLocked.toString(),
     });
-    setPreviewPdfUrl(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`);
+    setPreviewPdfUrl(`${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`);
     setPreviewPdfTitle(`Quality Verification - Item ${item.boqItem}`);
     setPreviewReportNo(item.boqItem);
     setShowPdfPreview(true);
@@ -960,16 +961,16 @@ export default function QualityBillVerificationPage() {
       {/* Light UI Top Banner - IQE Hybrid QVR Format Header */}
       <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#003366] text-[10px] font-extrabold font-mono border border-blue-200">
+          <div className="space-y-0.5 min-w-0 lg:min-w-[340px] lg:flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#003366] dark:text-sky-300 text-[11px] font-extrabold font-mono border border-blue-200">
                 Form No: IQE-QVR-2026 | ISO/IEC 17020 Compliant
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold font-mono border border-emerald-200">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold font-mono border border-emerald-200">
                 Type A Independent Verification
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
               <span>QUANTITY VERIFICATION &amp; SURVEY REPORT</span>
             </h1>
@@ -979,14 +980,14 @@ export default function QualityBillVerificationPage() {
           </div>
 
           {/* Action Toolbar with Word, Excel and PDF Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-bold">
-              <Users className="w-3.5 h-3.5 text-[#0084bf]" />
-              <span className="text-[11px]">Project:</span>
-              <select
+          <div className="flex flex-wrap items-center lg:justify-end gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-bold max-w-full min-w-0">
+              <Users className="w-3.5 h-3.5 text-[#0084bf] shrink-0" />
+              <span className="text-[11px] shrink-0">Project:</span>
+              <select aria-label="Select project"
                 value={selectedClient}
                 onChange={(e) => handleClientChange(e.target.value)}
-                className="bg-white text-slate-900 border border-slate-300 rounded-lg p-0.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs"
+                className="min-w-0 max-w-full bg-white text-slate-900 border border-slate-300 rounded-lg p-0.5 text-xs font-bold focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs"
               >
                 {CLIENT_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -997,7 +998,7 @@ export default function QualityBillVerificationPage() {
             </div>
 
             {/* Layout Toggle */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
               <button
                 onClick={() => handleSwitchLayout("vertical")}
                 className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer text-[11px] ${
@@ -1026,7 +1027,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_qvr_word", "docx_download", "QVR Master Word", "reports");
-                window.open("http://localhost:8000/api/v1/reports/docx/quality-bill-verification", "_blank");
+                window.open(`${API_BASE}/api/v1/reports/docx/quality-bill-verification`, "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in Word (.docx) Format with IQE Logo, Header & Footer"
@@ -1039,7 +1040,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_export_hybrid_qvr_excel", "excel_export", "Export IQE Hybrid QVR Excel", "reports");
-                window.open("http://localhost:8000/api/v1/reports/excel/quality-bill-verification", "_blank");
+                window.open(`${API_BASE}/api/v1/reports/excel/quality-bill-verification`, "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in Excel (.xlsx) Format with IQE Logo, Header & Footer"
@@ -1052,7 +1053,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_live_preview_qvr_pdf", "pdf_preview", "QVR Live Preview", "reports");
-                setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+                setPreviewPdfUrl(`${API_BASE}/api/v1/reports/pdf/quality-bill-verification`);
                 setPreviewPdfTitle("Quality Bill Verification Certificate & Audit");
                 setPreviewReportNo(metadata?.reportNo || "IQE/QVR/2026/084");
                 setShowPdfPreview(true);
@@ -1068,7 +1069,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_qvr_pdf", "pdf_download", "QVR Master PDF", "reports");
-                window.open("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification", "_blank");
+                window.open(`${API_BASE}/api/v1/reports/pdf/quality-bill-verification`, "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in PDF Format with IQE Logo, Header & Footer"
@@ -1090,7 +1091,7 @@ export default function QualityBillVerificationPage() {
       {/* Filter and Search Bar - Compact Spacing */}
       <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
         <div className="relative flex-1 w-full max-w-lg">
-          <input
+          <input aria-label="Search line items"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -1099,9 +1100,9 @@ export default function QualityBillVerificationPage() {
           />
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter Dropdown */}
-          <select
+          <select aria-label="Filter by verification status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 cursor-pointer focus:ring-2 focus:ring-blue-500 shadow-2xs"
@@ -1123,7 +1124,7 @@ export default function QualityBillVerificationPage() {
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-xs cursor-pointer ${
               isInlineEditMode
                 ? "bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-amber-500/20"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                : "bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 border-slate-300"
             }`}
             title="Toggle Inline Editing Mode"
           >
@@ -1143,7 +1144,7 @@ export default function QualityBillVerificationPage() {
           <button
             onClick={() => {
               trackButtonClick("btn_live_preview_qvr_pdf_bar", "pdf_preview", "QVR Live Preview Bar", "reports");
-              setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+              setPreviewPdfUrl(`${API_BASE}/api/v1/reports/pdf/quality-bill-verification`);
               setPreviewPdfTitle("Quality Bill Verification Certificate & Audit");
               setPreviewReportNo(metadata?.reportNo || "IQE/QVR/2026/084");
               setShowPdfPreview(true);
@@ -1190,17 +1191,17 @@ export default function QualityBillVerificationPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-extrabold text-sm text-[#0084bf]">{item.boqItem}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono ${
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold font-mono ${
                           isDiscrepancy ? "bg-rose-100 text-rose-800 border border-rose-300" : "bg-emerald-100 text-emerald-800 border border-emerald-300"
                         }`}>
                           {item.verificationStatus}
                         </span>
                         {item.isLocked ? (
-                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-300 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-300 flex items-center gap-1">
                             <Lock className="w-3 h-3 text-slate-600" /> Locked
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 flex items-center gap-1">
                             <Unlock className="w-3 h-3 text-emerald-600" /> Editable
                           </span>
                         )}
@@ -1213,9 +1214,9 @@ export default function QualityBillVerificationPage() {
                 {/* Item Details Display - Reduced Space */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
                   <div className="space-y-0.5">
-                    <label className="text-[9px] font-extrabold uppercase text-slate-400">Item Description / Material</label>
+                    <label className="text-[11px] font-extrabold uppercase text-slate-400">Item Description / Material</label>
                     {isInlineEditMode && !item.isLocked ? (
-                      <textarea
+                      <textarea aria-label={`Description for ${item.boqItem}`}
                         rows={2}
                         value={item.description}
                         onChange={(e) => handleInlineChange(item.id, "description", e.target.value)}
@@ -1229,9 +1230,9 @@ export default function QualityBillVerificationPage() {
                   </div>
 
                   <div className="space-y-0.5">
-                    <label className="text-[9px] font-extrabold uppercase text-slate-400">Technical Requirement / Spec</label>
+                    <label className="text-[11px] font-extrabold uppercase text-slate-400">Technical Requirement / Spec</label>
                     {isInlineEditMode && !item.isLocked ? (
-                      <textarea
+                      <textarea aria-label={`Technical specification for ${item.boqItem}`}
                         rows={2}
                         value={item.techSpec}
                         onChange={(e) => handleInlineChange(item.id, "techSpec", e.target.value)}
@@ -1248,9 +1249,9 @@ export default function QualityBillVerificationPage() {
                 {/* Vertical Quantities Grid - Compact */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
                   <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400">Contract Qty</p>
+                    <p className="text-[11px] font-extrabold uppercase text-slate-400">Contract Qty</p>
                     {isInlineEditMode && !item.isLocked ? (
-                      <input
+                      <input aria-label={`Contract quantity for ${item.boqItem}`}
                         type="number"
                         value={item.contractQty}
                         onChange={(e) => handleInlineChange(item.id, "contractQty", parseFloat(e.target.value) || 0)}
@@ -1262,14 +1263,14 @@ export default function QualityBillVerificationPage() {
                   </div>
 
                   <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                    <p className="text-[9px] font-extrabold uppercase text-slate-400">Prev Certified</p>
+                    <p className="text-[11px] font-extrabold uppercase text-slate-400">Prev Certified</p>
                     <p className="font-mono font-bold text-slate-900 text-xs">{item.prevCertifiedQty} {item.unit}</p>
                   </div>
 
                   <div className="p-2 rounded-xl bg-amber-50/70 border border-amber-200 space-y-0.5">
-                    <p className="text-[9px] font-extrabold uppercase text-amber-900">Current Claimed</p>
+                    <p className="text-[11px] font-extrabold uppercase text-amber-900">Current Claimed</p>
                     {isInlineEditMode && !item.isLocked ? (
-                      <input
+                      <input aria-label={`Claimed quantity for ${item.boqItem}`}
                         type="number"
                         value={item.currentClaimedQty}
                         onChange={(e) => handleInlineChange(item.id, "currentClaimedQty", parseFloat(e.target.value) || 0)}
@@ -1281,9 +1282,9 @@ export default function QualityBillVerificationPage() {
                   </div>
 
                   <div className="p-2 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-0.5">
-                    <p className="text-[9px] font-extrabold uppercase text-emerald-900">Current Verified</p>
+                    <p className="text-[11px] font-extrabold uppercase text-emerald-900">Current Verified</p>
                     {isInlineEditMode && !item.isLocked ? (
-                      <input
+                      <input aria-label={`Verified quantity for ${item.boqItem}`}
                         type="number"
                         value={item.currentVerifiedQty}
                         onChange={(e) => handleInlineChange(item.id, "currentVerifiedQty", parseFloat(e.target.value) || 0)}
@@ -1295,18 +1296,18 @@ export default function QualityBillVerificationPage() {
                   </div>
 
                   <div className="p-2 rounded-xl bg-rose-50/70 border border-rose-200 space-y-0.5">
-                    <p className="text-[9px] font-extrabold uppercase text-rose-900">Diff Qty</p>
+                    <p className="text-[11px] font-extrabold uppercase text-rose-900">Diff Qty</p>
                     <p className="font-mono font-bold text-rose-700 text-xs">{item.diffQty} {item.unit}</p>
                   </div>
                 </div>
 
                 {/* ACTION ITEMS BROUGHT TO LAST (BOTTOM TOOLBAR) */}
                 <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2 bg-slate-50/50 p-2 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400 mr-auto">Item Action Tools:</span>
+                  <span className="text-[11px] font-extrabold uppercase text-slate-400 mr-auto">Item Action Tools:</span>
 
                   <button
                     onClick={() => setViewingItem(item)}
-                    className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#00618e] border border-blue-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#00618e] dark:text-sky-300 border border-blue-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="View Full Item Details"
                   >
                     <Eye className="w-3.5 h-3.5 text-[#0084bf]" />
@@ -1328,7 +1329,7 @@ export default function QualityBillVerificationPage() {
                   </button>
 
                   <button
-                    onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                    onClick={() => window.open(`${API_BASE}/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Download Word Doc for this item with IQE Logo & Header"
                   >
@@ -1346,7 +1347,7 @@ export default function QualityBillVerificationPage() {
                   </button>
 
                   <button
-                    onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                    onClick={() => window.open(`${API_BASE}/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                     className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Download Excel for this item with IQE Logo & Header"
                   >
@@ -1372,11 +1373,11 @@ export default function QualityBillVerificationPage() {
                     <span>PDF</span>
                   </button>
 
-                  <button
+                  <button aria-label={item.isLocked ? "Unlock for Editing" : "Lock Item"}
                     onClick={() => toggleItemLock(item.id)}
                     className={`px-2 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1 ${
                       item.isLocked
-                        ? "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
+                        ? "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                         : "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
                     }`}
                     title={item.isLocked ? "Unlock for Editing" : "Lock Item"}
@@ -1425,7 +1426,7 @@ export default function QualityBillVerificationPage() {
                       <td className="py-2 px-2 text-center font-mono font-bold text-slate-700 bg-slate-50 border-r border-slate-100 w-12 min-w-[48px]">#{idx + 1}</td>
                       <td className="py-2 px-2 font-mono font-bold text-[#0084bf] border-r border-slate-100 w-28 min-w-[110px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`BOQ item code for ${item.boqItem}`}
                             type="text"
                             value={item.boqItem}
                             onChange={(e) => handleInlineChange(item.id, "boqItem", e.target.value)}
@@ -1437,7 +1438,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 border-r border-slate-100 font-medium min-w-[260px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Description for ${item.boqItem}`}
                             type="text"
                             value={item.description}
                             onChange={(e) => handleInlineChange(item.id, "description", e.target.value)}
@@ -1449,7 +1450,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 font-semibold text-slate-900 border-r border-slate-100 min-w-[170px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Vendor for ${item.boqItem}`}
                             type="text"
                             value={item.vendor}
                             onChange={(e) => handleInlineChange(item.id, "vendor", e.target.value)}
@@ -1461,7 +1462,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 border-r border-slate-100 text-slate-600 min-w-[190px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Technical specification for ${item.boqItem}`}
                             type="text"
                             value={item.techSpec}
                             onChange={(e) => handleInlineChange(item.id, "techSpec", e.target.value)}
@@ -1473,7 +1474,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-center font-mono border-r border-slate-100 w-16 min-w-[60px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Unit for ${item.boqItem}`}
                             type="text"
                             value={item.unit}
                             onChange={(e) => handleInlineChange(item.id, "unit", e.target.value)}
@@ -1485,7 +1486,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-right font-mono border-r border-slate-100 w-24 min-w-[90px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Contract quantity for ${item.boqItem}`}
                             type="number"
                             value={item.contractQty}
                             onChange={(e) => handleInlineChange(item.id, "contractQty", parseFloat(e.target.value) || 0)}
@@ -1497,7 +1498,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-right font-mono font-bold text-amber-800 bg-amber-50/60 border-r border-slate-100 w-28 min-w-[110px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Claimed quantity for ${item.boqItem}`}
                             type="number"
                             value={item.currentClaimedQty}
                             onChange={(e) => handleInlineChange(item.id, "currentClaimedQty", parseFloat(e.target.value) || 0)}
@@ -1509,7 +1510,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-right font-mono font-bold text-emerald-800 bg-emerald-50/60 border-r border-slate-100 w-28 min-w-[110px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Verified quantity for ${item.boqItem}`}
                             type="number"
                             value={item.currentVerifiedQty}
                             onChange={(e) => handleInlineChange(item.id, "currentVerifiedQty", parseFloat(e.target.value) || 0)}
@@ -1521,7 +1522,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 font-mono text-slate-700 border-r border-slate-100 min-w-[140px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Material tag number for ${item.boqItem}`}
                             type="text"
                             value={item.materialTagNo}
                             onChange={(e) => handleInlineChange(item.id, "materialTagNo", e.target.value)}
@@ -1533,7 +1534,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 font-mono text-slate-700 border-r border-slate-100 min-w-[130px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Drawing reference for ${item.boqItem}`}
                             type="text"
                             value={item.drawingRef}
                             onChange={(e) => handleInlineChange(item.id, "drawingRef", e.target.value)}
@@ -1548,10 +1549,10 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 border-r border-slate-100 min-w-[160px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <select
+                          <select aria-label={`Verification status for ${item.boqItem}`}
                             value={item.verificationStatus}
                             onChange={(e) => handleInlineChange(item.id, "verificationStatus", e.target.value as any)}
-                            className="w-full p-1 rounded text-[10px] font-bold bg-white border border-slate-300 text-slate-800"
+                            className="w-full p-1 rounded text-[11px] font-bold bg-white border border-slate-300 text-slate-800"
                           >
                             <option value="Verified & Approved">Verified &amp; Approved</option>
                             <option value="Partially Verified / Pending Evidence">Partially Verified / Pending Evidence</option>
@@ -1559,7 +1560,7 @@ export default function QualityBillVerificationPage() {
                             <option value="Rejected / Non-Conforming">Rejected / Non-Conforming</option>
                           </select>
                         ) : (
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
                             isDiscrepancy ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"
                           }`}>
                             {item.verificationStatus}
@@ -1568,7 +1569,7 @@ export default function QualityBillVerificationPage() {
                       </td>
                       <td className="py-2 px-2 text-[11px] leading-tight text-slate-700 min-w-[200px]">
                         {isInlineEditMode && !item.isLocked ? (
-                          <input
+                          <input aria-label={`Remarks for ${item.boqItem}`}
                             type="text"
                             value={item.remarks}
                             onChange={(e) => handleInlineChange(item.id, "remarks", e.target.value)}
@@ -1582,15 +1583,15 @@ export default function QualityBillVerificationPage() {
                       {/* STICKY ACTIONS COLUMN AT THE LAST POSITION */}
                       <td className="py-2 px-2 text-center border-l border-slate-200 sticky right-0 bg-white shadow-md z-10 w-[260px] min-w-[260px] max-w-[260px]">
                         <div className="flex items-center justify-center gap-1">
-                          <button
+                          <button aria-label="View Full Item Details"
                             onClick={() => setViewingItem(item)}
-                            className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#00618e] border border-blue-200 transition-all cursor-pointer"
+                            className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#00618e] dark:text-sky-300 border border-blue-200 transition-all cursor-pointer"
                             title="View Full Item Details"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label="Edit Item"
                             onClick={() => setEditingItem({ ...item })}
                             disabled={item.isLocked}
                             className={`p-1 rounded-lg border transition-all cursor-pointer ${
@@ -1603,15 +1604,15 @@ export default function QualityBillVerificationPage() {
                             <Edit3 className="w-3.5 h-3.5 text-amber-600" />
                           </button>
 
-                          <button
-                            onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                          <button aria-label="Download Word Doc with IQE Header"
+                            onClick={() => window.open(`${API_BASE}/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                             className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 transition-all cursor-pointer"
                             title="Download Word Doc with IQE Header"
                           >
                             <FileCode className="w-3.5 h-3.5 text-blue-600" />
                           </button>
 
-                          <button
+                          <button aria-label="Download Single Row CSV"
                             onClick={() => handleExportSingleItemCSV(item)}
                             className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
                             title="Download Single Row CSV"
@@ -1619,15 +1620,15 @@ export default function QualityBillVerificationPage() {
                             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
                           </button>
 
-                          <button
-                            onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                          <button aria-label="Download Excel with IQE Header"
+                            onClick={() => window.open(`${API_BASE}/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                             className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
                             title="Download Excel with IQE Header"
                           >
                             <Download className="w-3.5 h-3.5 text-emerald-600" />
                           </button>
 
-                          <button
+                          <button aria-label="Download PDF with IQE Header"
                             onClick={() => handleDownloadSinglePDF(item)}
                             className="p-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 transition-all cursor-pointer"
                             title="Download PDF with IQE Header"
@@ -1635,7 +1636,7 @@ export default function QualityBillVerificationPage() {
                             <FileText className="w-3.5 h-3.5 text-rose-600" />
                           </button>
 
-                          <button
+                          <button aria-label="Live Preview PDF for this item with IQE Header"
                             onClick={() => handlePreviewSinglePDF(item)}
                             className="p-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] border border-sky-200 transition-all cursor-pointer"
                             title="Live Preview PDF for this item with IQE Header"
@@ -1643,9 +1644,9 @@ export default function QualityBillVerificationPage() {
                             <Eye className="w-3.5 h-3.5" />
                           </button>
 
-                          <button
+                          <button aria-label={item.isLocked ? "Unlock" : "Lock"}
                             onClick={() => toggleItemLock(item.id)}
-                            className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-all cursor-pointer"
+                            className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 border border-slate-200 transition-all cursor-pointer"
                             title={item.isLocked ? "Unlock" : "Lock"}
                           >
                             {item.isLocked ? <Lock className="w-3.5 h-3.5 text-slate-700" /> : <Unlock className="w-3.5 h-3.5 text-emerald-600" />}
@@ -1670,12 +1671,12 @@ export default function QualityBillVerificationPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-amber-600" />
-                <h3 className="font-extrabold text-base text-[#003366]">Edit Quality Verification Item</h3>
+                <h3 className="font-extrabold text-base text-[#003366] dark:text-sky-300">Edit Quality Verification Item</h3>
                 <span className="font-mono text-xs font-bold text-[#0084bf] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   {editingItem.boqItem}
                 </span>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setEditingItem(null)}
                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
@@ -1685,8 +1686,8 @@ export default function QualityBillVerificationPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">BOQ Item Code</label>
-                <input
+                <label htmlFor="qbv-boq-item-code" className="font-bold text-slate-700 uppercase text-[11px]">BOQ Item Code</label>
+                <input id="qbv-boq-item-code"
                   type="text"
                   value={editingItem.boqItem}
                   onChange={(e) => setEditingItem({ ...editingItem, boqItem: e.target.value })}
@@ -1695,8 +1696,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Supplier / Contractor</label>
-                <input
+                <label htmlFor="qbv-supplier-contractor" className="font-bold text-slate-700 uppercase text-[11px]">Supplier / Contractor</label>
+                <input id="qbv-supplier-contractor"
                   type="text"
                   value={editingItem.vendor}
                   onChange={(e) => setEditingItem({ ...editingItem, vendor: e.target.value })}
@@ -1705,8 +1706,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Item Description / Material</label>
-                <textarea
+                <label htmlFor="qbv-item-description-material" className="font-bold text-slate-700 uppercase text-[11px]">Item Description / Material</label>
+                <textarea id="qbv-item-description-material"
                   rows={2}
                   value={editingItem.description}
                   onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
@@ -1715,8 +1716,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Technical Spec Requirement</label>
-                <textarea
+                <label htmlFor="qbv-technical-spec-requirement" className="font-bold text-slate-700 uppercase text-[11px]">Technical Spec Requirement</label>
+                <textarea id="qbv-technical-spec-requirement"
                   rows={2}
                   value={editingItem.techSpec}
                   onChange={(e) => setEditingItem({ ...editingItem, techSpec: e.target.value })}
@@ -1725,8 +1726,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Unit</label>
-                <input
+                <label htmlFor="qbv-unit" className="font-bold text-slate-700 uppercase text-[11px]">Unit</label>
+                <input id="qbv-unit"
                   type="text"
                   value={editingItem.unit}
                   onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
@@ -1735,8 +1736,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Contract / PO Qty</label>
-                <input
+                <label htmlFor="qbv-contract-po-qty" className="font-bold text-slate-700 uppercase text-[11px]">Contract / PO Qty</label>
+                <input id="qbv-contract-po-qty"
                   type="number"
                   value={editingItem.contractQty}
                   onChange={(e) => setEditingItem({ ...editingItem, contractQty: Number(e.target.value) })}
@@ -1745,8 +1746,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Current Claimed Qty</label>
-                <input
+                <label htmlFor="qbv-current-claimed-qty" className="font-bold text-slate-700 uppercase text-[11px]">Current Claimed Qty</label>
+                <input id="qbv-current-claimed-qty"
                   type="number"
                   value={editingItem.currentClaimedQty}
                   onChange={(e) => setEditingItem({ ...editingItem, currentClaimedQty: Number(e.target.value) })}
@@ -1755,8 +1756,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Current Verified Qty</label>
-                <input
+                <label htmlFor="qbv-current-verified-qty" className="font-bold text-slate-700 uppercase text-[11px]">Current Verified Qty</label>
+                <input id="qbv-current-verified-qty"
                   type="number"
                   value={editingItem.currentVerifiedQty}
                   onChange={(e) => setEditingItem({ ...editingItem, currentVerifiedQty: Number(e.target.value) })}
@@ -1765,8 +1766,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Material Tag / Heat / Batch No</label>
-                <input
+                <label htmlFor="qbv-material-tag-heat-batch-no" className="font-bold text-slate-700 uppercase text-[11px]">Material Tag / Heat / Batch No</label>
+                <input id="qbv-material-tag-heat-batch-no"
                   type="text"
                   value={editingItem.materialTagNo}
                   onChange={(e) => setEditingItem({ ...editingItem, materialTagNo: e.target.value })}
@@ -1775,8 +1776,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Drawing / Document Ref</label>
-                <input
+                <label htmlFor="qbv-drawing-document-ref" className="font-bold text-slate-700 uppercase text-[11px]">Drawing / Document Ref</label>
+                <input id="qbv-drawing-document-ref"
                   type="text"
                   value={editingItem.drawingRef}
                   onChange={(e) => setEditingItem({ ...editingItem, drawingRef: e.target.value })}
@@ -1785,8 +1786,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Verification Status</label>
-                <select
+                <label htmlFor="qbv-verification-status" className="font-bold text-slate-700 uppercase text-[11px]">Verification Status</label>
+                <select id="qbv-verification-status"
                   value={editingItem.verificationStatus}
                   onChange={(e) => setEditingItem({ ...editingItem, verificationStatus: e.target.value as any })}
                   className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-blue-500"
@@ -1799,8 +1800,8 @@ export default function QualityBillVerificationPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-bold text-slate-700 uppercase text-[10px]">Remarks &amp; TPI Recommendations</label>
-                <textarea
+                <label htmlFor="qbv-remarks-and-tpi-recommendations" className="font-bold text-slate-700 uppercase text-[11px]">Remarks &amp; TPI Recommendations</label>
+                <textarea id="qbv-remarks-and-tpi-recommendations"
                   rows={2}
                   value={editingItem.remarks}
                   onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}
@@ -1812,7 +1813,7 @@ export default function QualityBillVerificationPage() {
             <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
               <button
                 onClick={() => setEditingItem(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -1839,10 +1840,10 @@ export default function QualityBillVerificationPage() {
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-sm">Add New QVR Line Item</h3>
-                  <p className="text-[10px] text-slate-500 font-mono">Create audited measurement entry</p>
+                  <p className="text-[11px] text-slate-500 font-mono">Create audited measurement entry</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setShowAddModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
@@ -1853,8 +1854,8 @@ export default function QualityBillVerificationPage() {
             <form onSubmit={handleAddItem} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">PO / BOQ Item Code *</label>
-                  <input
+                  <label htmlFor="qbv-po-boq-item-code" className="font-bold text-slate-700 uppercase text-[11px]">PO / BOQ Item Code *</label>
+                  <input id="qbv-po-boq-item-code"
                     type="text"
                     required
                     placeholder="e.g. BOQ-CIV-09 or PO-ITEM-04"
@@ -1865,8 +1866,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Supplier / Contractor</label>
-                  <input
+                  <label htmlFor="qbv-supplier-contractor-2" className="font-bold text-slate-700 uppercase text-[11px]">Supplier / Contractor</label>
+                  <input id="qbv-supplier-contractor-2"
                     type="text"
                     value={newItem.vendor}
                     onChange={(e) => setNewItem({ ...newItem, vendor: e.target.value })}
@@ -1875,8 +1876,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Item Description & Scope *</label>
-                  <textarea
+                  <label htmlFor="qbv-item-description-scope" className="font-bold text-slate-700 uppercase text-[11px]">Item Description & Scope *</label>
+                  <textarea id="qbv-item-description-scope"
                     rows={2}
                     required
                     placeholder="Detailed engineering scope & material description..."
@@ -1887,8 +1888,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Technical Specification / Standard</label>
-                  <input
+                  <label htmlFor="qbv-technical-specification-standard" className="font-bold text-slate-700 uppercase text-[11px]">Technical Specification / Standard</label>
+                  <input id="qbv-technical-specification-standard"
                     type="text"
                     placeholder="e.g. IS 456 / IS 2062 Grade E250"
                     value={newItem.techSpec}
@@ -1898,8 +1899,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Unit of Measurement</label>
-                  <input
+                  <label htmlFor="qbv-unit-of-measurement" className="font-bold text-slate-700 uppercase text-[11px]">Unit of Measurement</label>
+                  <input id="qbv-unit-of-measurement"
                     type="text"
                     placeholder="Cum, MT, Sqm, Nos, Mtrs"
                     value={newItem.unit}
@@ -1909,8 +1910,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Contract / Tender Qty</label>
-                  <input
+                  <label htmlFor="qbv-contract-tender-qty" className="font-bold text-slate-700 uppercase text-[11px]">Contract / Tender Qty</label>
+                  <input id="qbv-contract-tender-qty"
                     type="number"
                     step="any"
                     value={newItem.contractQty}
@@ -1920,8 +1921,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Prev. Certified Qty</label>
-                  <input
+                  <label htmlFor="qbv-prev-certified-qty" className="font-bold text-slate-700 uppercase text-[11px]">Prev. Certified Qty</label>
+                  <input id="qbv-prev-certified-qty"
                     type="number"
                     step="any"
                     value={newItem.prevCertifiedQty}
@@ -1931,8 +1932,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-amber-900 uppercase text-[10px]">Current Claimed Qty *</label>
-                  <input
+                  <label htmlFor="qbv-current-claimed-qty-2" className="font-bold text-amber-900 uppercase text-[11px]">Current Claimed Qty *</label>
+                  <input id="qbv-current-claimed-qty-2"
                     type="number"
                     step="any"
                     required
@@ -1943,8 +1944,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-emerald-900 uppercase text-[10px]">TPI Verified Qty *</label>
-                  <input
+                  <label htmlFor="qbv-tpi-verified-qty" className="font-bold text-emerald-900 uppercase text-[11px]">TPI Verified Qty *</label>
+                  <input id="qbv-tpi-verified-qty"
                     type="number"
                     step="any"
                     required
@@ -1955,8 +1956,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Tag / Heat / Batch No.</label>
-                  <input
+                  <label htmlFor="qbv-tag-heat-batch-no" className="font-bold text-slate-700 uppercase text-[11px]">Tag / Heat / Batch No.</label>
+                  <input id="qbv-tag-heat-batch-no"
                     type="text"
                     value={newItem.materialTagNo}
                     onChange={(e) => setNewItem({ ...newItem, materialTagNo: e.target.value })}
@@ -1965,8 +1966,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Drawing / GFC Ref</label>
-                  <input
+                  <label htmlFor="qbv-drawing-gfc-ref" className="font-bold text-slate-700 uppercase text-[11px]">Drawing / GFC Ref</label>
+                  <input id="qbv-drawing-gfc-ref"
                     type="text"
                     value={newItem.drawingRef}
                     onChange={(e) => setNewItem({ ...newItem, drawingRef: e.target.value })}
@@ -1975,8 +1976,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Verification Status</label>
-                  <select
+                  <label htmlFor="qbv-verification-status-2" className="font-bold text-slate-700 uppercase text-[11px]">Verification Status</label>
+                  <select id="qbv-verification-status-2"
                     value={newItem.verificationStatus}
                     onChange={(e) => setNewItem({ ...newItem, verificationStatus: e.target.value as any })}
                     className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-blue-500"
@@ -1989,8 +1990,8 @@ export default function QualityBillVerificationPage() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">TPI Remarks / Observations</label>
-                  <input
+                  <label htmlFor="qbv-tpi-remarks-observations" className="font-bold text-slate-700 uppercase text-[11px]">TPI Remarks / Observations</label>
+                  <input id="qbv-tpi-remarks-observations"
                     type="text"
                     value={newItem.remarks}
                     onChange={(e) => setNewItem({ ...newItem, remarks: e.target.value })}
@@ -2003,7 +2004,7 @@ export default function QualityBillVerificationPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2028,11 +2029,11 @@ export default function QualityBillVerificationPage() {
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5 text-[#0084bf]" />
                 <span className="font-mono text-base font-extrabold text-[#0084bf]">{viewingItem.boqItem}</span>
-                <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-blue-50 text-[#003366] border border-blue-200">
+                <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-blue-50 text-[#003366] dark:text-sky-300 border border-blue-200">
                   {metadata.raBillNo}
                 </span>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setViewingItem(null)}
                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
@@ -2042,7 +2043,7 @@ export default function QualityBillVerificationPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <p className="font-extrabold text-slate-400 uppercase text-[10px]">Item Description / Material:</p>
+                <p className="font-extrabold text-slate-400 uppercase text-[11px]">Item Description / Material:</p>
                 <p className="text-slate-800 font-medium leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1">
                   {viewingItem.description}
                 </p>
@@ -2050,36 +2051,36 @@ export default function QualityBillVerificationPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <p className="font-extrabold text-slate-400 uppercase text-[10px]">Tag / Batch / Heat No:</p>
+                  <p className="font-extrabold text-slate-400 uppercase text-[11px]">Tag / Batch / Heat No:</p>
                   <p className="font-mono font-bold text-slate-900 mt-0.5">{viewingItem.materialTagNo}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <p className="font-extrabold text-slate-400 uppercase text-[10px]">Drawing / Document Ref:</p>
+                  <p className="font-extrabold text-slate-400 uppercase text-[11px]">Drawing / Document Ref:</p>
                   <p className="font-mono font-bold text-purple-700 mt-0.5">{viewingItem.drawingRef}</p>
                 </div>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <p className="font-extrabold text-slate-400 uppercase text-[10px]">Measurement Details &amp; Survey Method:</p>
+                <p className="font-extrabold text-slate-400 uppercase text-[11px]">Measurement Details &amp; Survey Method:</p>
                 <p className="text-slate-800 mt-1">{viewingItem.measurementDetails}</p>
               </div>
 
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                <p className="font-extrabold text-amber-900 uppercase text-[10px]">TPI Verification Remarks &amp; Recommendations:</p>
+                <p className="font-extrabold text-amber-900 uppercase text-[11px]">TPI Verification Remarks &amp; Recommendations:</p>
                 <p className="text-slate-800 mt-1">{viewingItem.remarks}</p>
               </div>
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-end gap-2">
               <button
-                onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
+                onClick={() => window.open(`${API_BASE}/api/v1/reports/docx/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
                 className="px-3.5 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <FileCode className="w-4 h-4 text-sky-300" />
                 <span>Export Word</span>
               </button>
               <button
-                onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
+                onClick={() => window.open(`${API_BASE}/api/v1/reports/excel/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Download className="w-4 h-4" />
@@ -2102,7 +2103,7 @@ export default function QualityBillVerificationPage() {
               </button>
               <button
                 onClick={() => setViewingItem(null)}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 text-xs font-bold transition-all cursor-pointer"
               >
                 Close
               </button>

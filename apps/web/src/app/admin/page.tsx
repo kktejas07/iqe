@@ -88,7 +88,7 @@ export default function AdminPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Home Page / Admin Index</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-xs font-bold font-mono">
               IQE System Core Hub
             </span>
           </div>
@@ -124,12 +124,12 @@ export default function AdminPage() {
             const IconComp = iconMap[m.icon] || Users;
             // Gradient backgrounds matching legacy theme accents
             const cardThemes = [
-              "from-blue-600 to-indigo-700 text-white shadow-blue-500/10",
+              "from-blue-600 to-brand-700 text-white shadow-blue-500/10",
               "from-slate-800 to-slate-900 text-white shadow-slate-500/10",
-              "from-indigo-600 to-purple-700 text-white shadow-indigo-500/10",
+              "from-brand-600 to-purple-700 text-white shadow-brand-500/10",
               "from-emerald-600 to-teal-700 text-white shadow-emerald-500/10",
               "from-cyan-600 to-blue-700 text-white shadow-cyan-500/10",
-              "from-violet-600 to-purple-800 text-white shadow-violet-500/10",
+              "from-brand-600 to-purple-800 text-white shadow-brand-500/10",
               "from-amber-600 to-orange-700 text-white shadow-amber-500/10",
               "from-rose-600 to-pink-700 text-white shadow-rose-500/10",
             ];
@@ -138,7 +138,10 @@ export default function AdminPage() {
             return (
               <div
                 key={m.id || idx}
+                role="button"
+                tabIndex={0}
                 onClick={() => handleOpenDirectory(m.link)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenDirectory(m.link); } }}
                 className={`group relative p-4 rounded-2xl bg-gradient-to-br ${themeClass} shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex items-center justify-between border border-white/10 overflow-hidden`}
               >
                 {/* Background decorative glow */}
@@ -188,20 +191,20 @@ export default function AdminPage() {
             <tbody className="divide-y divide-slate-100">
               {users.map((u) => (
                 <tr key={u.user_id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="p-3 font-mono font-bold text-indigo-600">{u.user_id}</td>
+                  <td className="p-3 font-mono font-bold text-brand-600">{u.user_id}</td>
                   <td className="p-3 font-semibold text-slate-800">{u.name}</td>
                   <td className="p-3 text-slate-600">{u.role}</td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-1">
                       {(u.competencies || []).map((c: string) => (
-                        <span key={c} className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium text-[10px] border border-indigo-100">
+                        <span key={c} className="px-2 py-0.5 rounded bg-brand-50 text-brand-700 font-medium text-[11px] border border-brand-100">
                           {c}
                         </span>
                       ))}
                     </div>
                   </td>
                   <td className="p-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-emerald-100 text-emerald-800">
                       {u.status || "active"}
                     </span>
                   </td>

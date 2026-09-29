@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -557,11 +558,11 @@ export default function ExpeditingVisitReportPage() {
       <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <Compass className="w-6 h-6 text-[#0084bf]" />
               <span>Expediting Visit Report</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] border border-blue-200 text-[11px] font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
               IQE-TP-05 &bull; REV 00
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
@@ -569,13 +570,14 @@ export default function ExpeditingVisitReportPage() {
             </span>
 
             {/* Select Client Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
-              <Users className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-slate-600 font-extrabold">Select Client:</span>
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
+              <Users className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <label htmlFor="report-client-select" className="text-slate-600 font-extrabold shrink-0">Select Client:</label>
               <select
+                id="report-client-select"
                 value={selectedClient}
                 onChange={(e) => handleClientChange(e.target.value)}
-                className="bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="min-w-0 flex-1 sm:flex-none truncate bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 {CLIENT_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -606,7 +608,7 @@ export default function ExpeditingVisitReportPage() {
               <span>Preview Live PDF</span>
             </button>
 
-            <button
+            <button aria-label="Save Report"
               onClick={handleSave}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
               title="Save Report"
@@ -614,7 +616,7 @@ export default function ExpeditingVisitReportPage() {
               <Save className="w-4 h-4 text-sky-400" />
             </button>
 
-            <button
+            <button aria-label="Export CSV"
               onClick={handleExportCSV}
               className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
               title="Export CSV"
@@ -622,7 +624,7 @@ export default function ExpeditingVisitReportPage() {
               <Download className="w-4 h-4" />
             </button>
 
-            <button
+            <button aria-label="Print Formal Dossier"
               onClick={() => window.print()}
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-sm cursor-pointer"
               title="Print Formal Dossier"
@@ -711,7 +713,7 @@ export default function ExpeditingVisitReportPage() {
             <span>Navigating to section...</span>
           </div>
         )}
-        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
+        <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
         {[
           { id: "sec-1", label: "1.0 Items" },
           { id: "sec-2", label: "2.0 Progress" },
@@ -743,7 +745,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* Controlled Document Running Header */}
-      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+      <div className="keep-light border border-slate-200 rounded-xl p-4 bg-slate-50 text-slate-900 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-slate-200 pb-3 gap-2">
           <div>
             <h2 className="font-extrabold text-sm sm:text-base text-slate-900 uppercase tracking-tight">
@@ -824,7 +826,7 @@ export default function ExpeditingVisitReportPage() {
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">1.0 ITEMS / ORDER DETAILS</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 1.0</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {items.length} line items
             </span>
           </div>
@@ -842,7 +844,7 @@ export default function ExpeditingVisitReportPage() {
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
               title="Add New Line Item"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -878,9 +880,9 @@ export default function ExpeditingVisitReportPage() {
             <tbody className="divide-y divide-slate-100">
               {items.map((it) => (
                 <tr key={it.id} className="hover:bg-slate-50">
-                  <td className="p-2.5 text-center font-mono font-bold text-[#003366] border-r border-slate-100">
+                  <td className="p-2.5 text-center font-mono font-bold text-[#003366] dark:text-sky-300 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Item No."
                         type="number"
                         value={it.itemNo}
                         onChange={(e) => handleInlineItemChange(it.id, "itemNo", parseInt(e.target.value) || 0)}
@@ -892,7 +894,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 font-semibold text-slate-800 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Description"
                         type="text"
                         value={it.description}
                         onChange={(e) => handleInlineItemChange(it.id, "description", e.target.value)}
@@ -904,7 +906,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 text-center font-mono font-bold border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="PO Qty"
                         type="number"
                         value={it.poQty}
                         onChange={(e) => handleInlineItemChange(it.id, "poQty", parseInt(e.target.value) || 0)}
@@ -916,7 +918,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 font-mono text-purple-700 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Tag No."
                         type="text"
                         value={it.tagNo}
                         onChange={(e) => handleInlineItemChange(it.id, "tagNo", e.target.value)}
@@ -928,7 +930,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 font-mono text-slate-600 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Promised delivery"
                         type="date"
                         value={it.promisedDelivery}
                         onChange={(e) => handleInlineItemChange(it.id, "promisedDelivery", e.target.value)}
@@ -940,7 +942,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Current expected delivery"
                         type="date"
                         value={it.currentExpectedDelivery}
                         onChange={(e) => handleInlineItemChange(it.id, "currentExpectedDelivery", e.target.value)}
@@ -952,7 +954,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 text-center font-mono font-bold text-emerald-700 border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Qty produced"
                         type="number"
                         value={it.qtyProduced}
                         onChange={(e) => handleInlineItemChange(it.id, "qtyProduced", parseInt(e.target.value) || 0)}
@@ -964,10 +966,10 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 text-center whitespace-nowrap border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <select
+                      <select aria-label="Status"
                         value={it.status}
                         onChange={(e) => handleInlineItemChange(it.id, "status", e.target.value as any)}
-                        className="p-1 font-bold text-[10px] bg-white border border-slate-300 rounded"
+                        className="p-1 font-bold text-[11px] bg-white border border-slate-300 rounded"
                       >
                         <option value="On Schedule">On Schedule</option>
                         <option value="At Risk">At Risk</option>
@@ -975,7 +977,7 @@ export default function ExpeditingVisitReportPage() {
                         <option value="Completed">Completed</option>
                       </select>
                     ) : (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         it.status === "On Schedule" || it.status === "Completed"
                           ? "bg-emerald-100 text-emerald-800"
                           : "bg-amber-100 text-amber-800"
@@ -986,7 +988,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 text-slate-600 text-[11px] border-r border-slate-100">
                     {isInlineEditMode ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={it.remarks}
                         onChange={(e) => handleInlineItemChange(it.id, "remarks", e.target.value)}
@@ -999,7 +1001,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1">
                       {/* 1. Lock/Unlock */}
-                      <button
+                      <button aria-label={it.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                         onClick={() => handleToggleLock(it.id)}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                           it.isLocked
@@ -1012,16 +1014,16 @@ export default function ExpeditingVisitReportPage() {
                       </button>
 
                       {/* 2. View Details Modal */}
-                      <button
+                      <button aria-label="View Row Details"
                         onClick={() => setViewingItem(it)}
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-700 transition-colors cursor-pointer"
                         title="View Row Details"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
 
                       {/* 3. Edit Row Values */}
-                      <button
+                      <button aria-label={it.isLocked ? "Item Locked" : "Edit Row Values"}
                         onClick={() => !it.isLocked && setEditingItem(it)}
                         disabled={it.isLocked}
                         className={`p-1.5 rounded-lg transition-colors ${
@@ -1035,7 +1037,7 @@ export default function ExpeditingVisitReportPage() {
                       </button>
 
                       {/* 4. Single CSV */}
-                      <button
+                      <button aria-label="Download Single Row CSV"
                         onClick={() => handleExportSingleRowCSV(it)}
                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
                         title="Download Single Row CSV"
@@ -1044,7 +1046,7 @@ export default function ExpeditingVisitReportPage() {
                       </button>
 
                       {/* 5. Live Preview Single Item PDF */}
-                      <button
+                      <button aria-label="Live Preview Single Item PDF"
                         onClick={() => setShowPdfPreview(true)}
                         className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
                         title="Live Preview Single Item PDF"
@@ -1053,8 +1055,8 @@ export default function ExpeditingVisitReportPage() {
                       </button>
 
                       {/* 6. Download Single Item PDF */}
-                      <button
-                        onClick={() => window.open(`http://localhost:8000/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
+                      <button aria-label="Download Single PDF Report"
+                        onClick={() => window.open(`${API_BASE}/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
                         className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                         title="Download Single PDF Report"
                       >
@@ -1125,7 +1127,7 @@ export default function ExpeditingVisitReportPage() {
                 <td className="p-2.5 text-slate-600">WPS/PQR, MTR dossier 80% compiled</td>
               </tr>
               <tr className="bg-slate-50 font-bold">
-                <td className="p-2.5 border-r border-slate-200 text-[#003366]">Overall Completion</td>
+                <td className="p-2.5 border-r border-slate-200 text-[#003366] dark:text-sky-300">Overall Completion</td>
                 <td className="p-2.5 border-r border-slate-200 font-mono font-bold text-emerald-800">{progress.overallCompletion}%</td>
                 <td className="p-2.5 text-slate-700">On schedule for target delivery post recovery plan</td>
               </tr>
@@ -1144,7 +1146,7 @@ export default function ExpeditingVisitReportPage() {
           <p className="text-xs text-slate-500 font-semibold">
             Overall status, progress since previous visit, key developments and significant concerns:
           </p>
-          <textarea
+          <textarea aria-label="Summary"
             rows={3}
             value={summaryText}
             onChange={(e) => setSummaryText(e.target.value)}
@@ -1158,7 +1160,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">4.0 PERSONNEL PRESENT</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {personnel.length} attendees
             </span>
           </div>
@@ -1174,7 +1176,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddPersonnel}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Person</span>
@@ -1200,7 +1202,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditPersonnel ? (
-                      <input
+                      <input aria-label="Name"
                         type="text"
                         value={p.name}
                         onChange={(e) => {
@@ -1215,7 +1217,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditPersonnel ? (
-                      <input
+                      <input aria-label="Designation"
                         type="text"
                         value={p.designation}
                         onChange={(e) => {
@@ -1230,22 +1232,22 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditPersonnel ? (
-                      <input
+                      <input aria-label="Company"
                         type="text"
                         value={p.company}
                         onChange={(e) => {
                           const val = e.target.value;
                           setPersonnel((prev) => prev.map((item) => (item.id === p.id ? { ...item, company: val } : item)));
                         }}
-                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-[#003366]"
+                        className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-semibold text-[#003366] dark:text-sky-300"
                       />
                     ) : (
-                      <span className="font-semibold text-[#003366]">{p.company}</span>
+                      <span className="font-semibold text-[#003366] dark:text-sky-300">{p.company}</span>
                     )}
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditPersonnel ? (
-                      <input
+                      <input aria-label="Role"
                         type="text"
                         value={p.role}
                         onChange={(e) => {
@@ -1259,7 +1261,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Attendee"
                       onClick={() => setPersonnel((prev) => prev.filter((item) => item.id !== p.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Attendee"
@@ -1279,7 +1281,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">5.0 DOCUMENTATION DETAILS</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {documents.length} documents
             </span>
           </div>
@@ -1295,7 +1297,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddDocument}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Document</span>
@@ -1323,7 +1325,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDocs ? (
-                      <input
+                      <input aria-label="Doc title"
                         type="text"
                         value={d.docTitle}
                         onChange={(e) => {
@@ -1338,7 +1340,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDocs ? (
-                      <input
+                      <input aria-label="Doc No."
                         type="text"
                         value={d.docNo}
                         onChange={(e) => {
@@ -1353,7 +1355,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditDocs ? (
-                      <input
+                      <input aria-label="Rev."
                         type="text"
                         value={d.rev}
                         onChange={(e) => {
@@ -1368,7 +1370,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditDocs ? (
-                      <input
+                      <input aria-label="Status"
                         type="text"
                         value={d.status}
                         onChange={(e) => {
@@ -1383,7 +1385,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditDocs ? (
-                      <select
+                      <select aria-label="Approval status"
                         value={d.approvalStatus}
                         onChange={(e) => {
                           const val = e.target.value as any;
@@ -1397,14 +1399,14 @@ export default function ExpeditingVisitReportPage() {
                         <option value="Rejected">Rejected</option>
                       </select>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
                         {d.approvalStatus}
                       </span>
                     )}
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditDocs ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={d.remarks}
                         onChange={(e) => {
@@ -1418,7 +1420,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Document"
                       onClick={() => setDocuments((prev) => prev.filter((item) => item.id !== d.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Document"
@@ -1438,7 +1440,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">6.0 SUB-ORDERS / MATERIALS IN STOCK</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {subOrders.length} sub-orders
             </span>
           </div>
@@ -1454,7 +1456,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddSubOrder}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Sub-Order</span>
@@ -1483,7 +1485,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Component"
                         type="text"
                         value={m.component}
                         onChange={(e) => {
@@ -1498,7 +1500,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Supplier"
                         type="text"
                         value={m.supplier}
                         onChange={(e) => {
@@ -1513,7 +1515,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Order Ref."
                         type="text"
                         value={m.orderRef}
                         onChange={(e) => {
@@ -1528,7 +1530,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-right">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Qty ordered"
                         type="text"
                         value={m.qtyOrdered}
                         onChange={(e) => {
@@ -1543,7 +1545,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-right">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Qty received"
                         type="text"
                         value={m.qtyReceived}
                         onChange={(e) => {
@@ -1558,7 +1560,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-right">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Expected balance"
                         type="text"
                         value={m.expectedBalance}
                         onChange={(e) => {
@@ -1573,7 +1575,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditSubOrders ? (
-                      <input
+                      <input aria-label="Status"
                         type="text"
                         value={m.status}
                         onChange={(e) => {
@@ -1587,7 +1589,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Sub-Order"
                       onClick={() => setSubOrders((prev) => prev.filter((item) => item.id !== m.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Sub-Order"
@@ -1607,7 +1609,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">7.0 MANUFACTURING STATUS</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {mfgActivities.length} activities
             </span>
           </div>
@@ -1623,7 +1625,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddMfgActivity}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Activity</span>
@@ -1651,7 +1653,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditMfg ? (
-                      <input
+                      <input aria-label="Activity"
                         type="text"
                         value={a.activity}
                         onChange={(e) => {
@@ -1666,7 +1668,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditMfg ? (
-                      <input
+                      <input aria-label="Planned finish"
                         type="date"
                         value={a.plannedFinish}
                         onChange={(e) => {
@@ -1681,7 +1683,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditMfg ? (
-                      <input
+                      <input aria-label="Actual expected finish"
                         type="date"
                         value={a.actualExpectedFinish}
                         onChange={(e) => {
@@ -1696,7 +1698,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-right">
                     {isInlineEditMfg ? (
-                      <input
+                      <input aria-label="Percent complete"
                         type="number"
                         min="0"
                         max="100"
@@ -1705,15 +1707,15 @@ export default function ExpeditingVisitReportPage() {
                           const val = parseInt(e.target.value) || 0;
                           setMfgActivities((prev) => prev.map((item) => (item.id === a.id ? { ...item, percentComplete: val } : item)));
                         }}
-                        className="w-16 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-right text-[#003366]"
+                        className="w-16 p-1 bg-amber-50 border border-amber-300 rounded text-xs font-mono font-bold text-right text-[#003366] dark:text-sky-300"
                       />
                     ) : (
-                      <span className="font-mono font-bold text-[#003366]">{a.percentComplete}%</span>
+                      <span className="font-mono font-bold text-[#003366] dark:text-sky-300">{a.percentComplete}%</span>
                     )}
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditMfg ? (
-                      <select
+                      <select aria-label="Status"
                         value={a.status}
                         onChange={(e) => {
                           const val = e.target.value as any;
@@ -1726,7 +1728,7 @@ export default function ExpeditingVisitReportPage() {
                         <option value="Pending">Pending</option>
                       </select>
                     ) : (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         a.status === "Completed" ? "bg-emerald-100 text-emerald-800" :
                         a.status === "In Progress" ? "bg-sky-100 text-sky-800" : "bg-amber-100 text-amber-800"
                       }`}>
@@ -1736,7 +1738,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditMfg ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={a.remarks}
                         onChange={(e) => {
@@ -1750,7 +1752,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Activity"
                       onClick={() => setMfgActivities((prev) => prev.filter((item) => item.id !== a.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Activity"
@@ -1770,7 +1772,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">8.0 INSPECTION / TESTING STATUS</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {inspections.length} tests
             </span>
           </div>
@@ -1786,7 +1788,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddInspection}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Inspection</span>
@@ -1814,7 +1816,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditInspections ? (
-                      <input
+                      <input aria-label="Activity"
                         type="text"
                         value={i.activity}
                         onChange={(e) => {
@@ -1829,7 +1831,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditInspections ? (
-                      <input
+                      <input aria-label="Planned date"
                         type="date"
                         value={i.plannedDate}
                         onChange={(e) => {
@@ -1844,7 +1846,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditInspections ? (
-                      <input
+                      <input aria-label="Actual date"
                         type="date"
                         value={i.actualDate}
                         onChange={(e) => {
@@ -1859,7 +1861,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditInspections ? (
-                      <select
+                      <select aria-label="Status"
                         value={i.status}
                         onChange={(e) => {
                           const val = e.target.value as any;
@@ -1874,14 +1876,14 @@ export default function ExpeditingVisitReportPage() {
                         <option value="Rejected">Rejected</option>
                       </select>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800">
                         {i.status}
                       </span>
                     )}
                   </td>
                   <td className="p-2.5 border-r border-slate-100 font-mono text-sky-700">
                     {isInlineEditInspections ? (
-                      <input
+                      <input aria-label="RFI Ref."
                         type="text"
                         value={i.rfiRef}
                         onChange={(e) => {
@@ -1896,7 +1898,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditInspections ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={i.remarks}
                         onChange={(e) => {
@@ -1910,7 +1912,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Inspection Activity"
                       onClick={() => setInspections((prev) => prev.filter((item) => item.id !== i.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Inspection Activity"
@@ -1990,7 +1992,7 @@ export default function ExpeditingVisitReportPage() {
                 </td>
               </tr>
               <tr className="bg-slate-50 font-bold">
-                <td className="p-2.5 border-r border-slate-200 text-[#003366]">IQE Assessment</td>
+                <td className="p-2.5 border-r border-slate-200 text-[#003366] dark:text-sky-300">IQE Assessment</td>
                 <td colSpan={2} className="p-2.5">
                   <div className="flex items-center gap-4">
                     {["Satisfactory", "Concern", "Critical"].map((st) => (
@@ -2016,7 +2018,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">10.0 ACTIONS / FOLLOW-UP</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-mono text-[11px]">
               {actions.length} action items
             </span>
           </div>
@@ -2032,7 +2034,7 @@ export default function ExpeditingVisitReportPage() {
             </button>
             <button
               onClick={handleAddAction}
-              className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>+ Add Action Item</span>
@@ -2059,7 +2061,7 @@ export default function ExpeditingVisitReportPage() {
                   <td className="p-2.5 text-center font-mono font-bold text-slate-600 border-r border-slate-100">{idx + 1}</td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditActions ? (
-                      <input
+                      <input aria-label="Action"
                         type="text"
                         value={act.action}
                         onChange={(e) => {
@@ -2074,7 +2076,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditActions ? (
-                      <input
+                      <input aria-label="Responsibility"
                         type="text"
                         value={act.responsibility}
                         onChange={(e) => {
@@ -2089,7 +2091,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditActions ? (
-                      <input
+                      <input aria-label="Target date"
                         type="date"
                         value={act.targetDate}
                         onChange={(e) => {
@@ -2104,7 +2106,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100 text-center">
                     {isInlineEditActions ? (
-                      <select
+                      <select aria-label="Status"
                         value={act.status}
                         onChange={(e) => {
                           const val = e.target.value as any;
@@ -2117,7 +2119,7 @@ export default function ExpeditingVisitReportPage() {
                         <option value="Closed">Closed</option>
                       </select>
                     ) : (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                         act.status === "Closed" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                       }`}>
                         {act.status}
@@ -2126,7 +2128,7 @@ export default function ExpeditingVisitReportPage() {
                   </td>
                   <td className="p-2.5 border-r border-slate-100">
                     {isInlineEditActions ? (
-                      <input
+                      <input aria-label="Remarks"
                         type="text"
                         value={act.remarks}
                         onChange={(e) => {
@@ -2140,7 +2142,7 @@ export default function ExpeditingVisitReportPage() {
                     )}
                   </td>
                   <td className="p-2.5 text-center">
-                    <button
+                    <button aria-label="Delete Action Item"
                       onClick={() => setActions((prev) => prev.filter((item) => item.id !== act.id))}
                       className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
                       title="Delete Action Item"
@@ -2165,7 +2167,7 @@ export default function ExpeditingVisitReportPage() {
           <p className="text-xs text-slate-500 font-semibold">
             Expeditor&apos;s overall assessment and recommendation:
           </p>
-          <textarea
+          <textarea aria-label="Conclusion"
             rows={3}
             value={conclusionText}
             onChange={(e) => setConclusionText(e.target.value)}
@@ -2184,7 +2186,7 @@ export default function ExpeditingVisitReportPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
             <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
               <span className="font-bold text-slate-700 block">Photo 1</span>
-              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[11px]">
                 [Insert Photograph 1]
               </div>
               <div className="font-semibold text-slate-700 text-[11px]">
@@ -2194,7 +2196,7 @@ export default function ExpeditingVisitReportPage() {
 
             <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
               <span className="font-bold text-slate-700 block">Photo 2</span>
-              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[11px]">
                 [Insert Photograph 2]
               </div>
               <div className="font-semibold text-slate-700 text-[11px]">
@@ -2204,7 +2206,7 @@ export default function ExpeditingVisitReportPage() {
 
             <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
               <span className="font-bold text-slate-700 block">Photo 3</span>
-              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[11px]">
                 [Insert Photograph 3]
               </div>
               <div className="font-semibold text-slate-700 text-[11px]">
@@ -2214,7 +2216,7 @@ export default function ExpeditingVisitReportPage() {
 
             <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-center">
               <span className="font-bold text-slate-700 block">Photo 4</span>
-              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[10px]">
+              <div className="h-32 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-mono text-[11px]">
                 [Insert Photograph 4]
               </div>
               <div className="font-semibold text-slate-700 text-[11px]">
@@ -2238,7 +2240,7 @@ export default function ExpeditingVisitReportPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             {/* Supplier / Manufacturer */}
             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
-              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+              <span className="font-extrabold text-sm text-[#003366] dark:text-sky-300 block border-b border-slate-200 pb-2">
                 Supplier / Manufacturer
               </span>
               <div className="space-y-2">
@@ -2271,7 +2273,7 @@ export default function ExpeditingVisitReportPage() {
 
             {/* Ideal Quality Engineers (I) Pvt. Ltd. */}
             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
-              <span className="font-extrabold text-sm text-[#003366] block border-b border-slate-200 pb-2">
+              <span className="font-extrabold text-sm text-[#003366] dark:text-sky-300 block border-b border-slate-200 pb-2">
                 Ideal Quality Engineers (I) Pvt. Ltd.
               </span>
               <div className="space-y-2">
@@ -2304,8 +2306,9 @@ export default function ExpeditingVisitReportPage() {
           </div>
 
           <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
-            <span className="text-xs font-bold text-slate-700 block mb-1">Supplier&apos;s Comments (if any):</span>
+            <label htmlFor="supplier-comments" className="text-xs font-bold text-slate-700 block mb-1">Supplier&apos;s Comments (if any):</label>
             <input
+              id="supplier-comments"
               type="text"
               defaultValue="Manufacturer confirms commitment to expedited schedule and 12-hour dual shift working."
               className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg text-slate-700"
@@ -2316,7 +2319,7 @@ export default function ExpeditingVisitReportPage() {
 
       {/* DISCLAIMER & FOOTER */}
       <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/80 space-y-3 text-xs text-slate-600 leading-relaxed">
-        <h4 className="font-extrabold text-[#003366] uppercase text-xs tracking-wider">
+        <h4 className="font-extrabold text-[#003366] dark:text-sky-300 uppercase text-xs tracking-wider">
           DISCLAIMER
         </h4>
         <p>
@@ -2325,7 +2328,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="pt-3 border-t border-slate-200 text-center font-extrabold text-slate-700 tracking-wider">
           &mdash; END OF REPORT &mdash;
         </div>
-        <div className="flex items-center justify-between text-[10px] text-slate-600 border-t border-slate-200 pt-2 font-mono">
+        <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-slate-200 pt-2 font-mono">
           <span>IQE-TP-05 | Rev. 00 | Controlled Document</span>
           <span>Page 3 of 3</span>
         </div>
@@ -2336,7 +2339,7 @@ export default function ExpeditingVisitReportPage() {
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Document:</span>
-          <span className="text-xs font-extrabold text-[#003366] font-mono">IQE-TP-05 &bull; {meta.reportNo}</span>
+          <span className="text-xs font-extrabold text-[#003366] dark:text-sky-300 font-mono">IQE-TP-05 &bull; {meta.reportNo}</span>
           <span className="text-xs text-slate-300">|</span>
           <span className="text-xs font-semibold text-slate-600">{items.length} Expedited Items</span>
         </div>
@@ -2474,7 +2477,7 @@ export default function ExpeditingVisitReportPage() {
           })),
           conclusion: conclusionText,
         }}
-        pdfUrl="http://localhost:8000/api/tpi/preview/TP05.pdf"
+        pdfUrl={`${API_BASE}/api/tpi/preview/TP05.pdf`}
         title="IQE-TP-05 Expediting Visit Report"
         reportNo={meta.reportNo}
       />
@@ -2489,10 +2492,10 @@ export default function ExpeditingVisitReportPage() {
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-sm">Add New Expediting Line Item</h3>
-                  <p className="text-[10px] text-slate-500 font-mono">Create order tracking entry (Clause 1.0)</p>
+                  <p className="text-[11px] text-slate-500 font-mono">Create order tracking entry (Clause 1.0)</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setShowAddModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
               >
@@ -2503,8 +2506,8 @@ export default function ExpeditingVisitReportPage() {
             <form onSubmit={handleAddItem} className="space-y-4 text-xs">
               <div className="space-y-3">
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Item Description & Scope *</label>
-                  <textarea
+                  <label className="font-bold text-slate-700 uppercase text-[11px]">Item Description & Scope *</label>
+                  <textarea aria-label="Item Description & Scope"
                     rows={2}
                     required
                     placeholder="e.g. Sanitary Shell & Tube Condenser 316L (500 LPH)..."
@@ -2516,8 +2519,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">PO Qty *</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">PO Qty *</label>
+                    <input aria-label="PO Qty"
                       type="number"
                       required
                       min={1}
@@ -2528,8 +2531,8 @@ export default function ExpeditingVisitReportPage() {
                   </div>
 
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Tag / Serial No. *</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Tag / Serial No. *</label>
+                    <input aria-label="Tag / Serial No."
                       type="text"
                       required
                       placeholder="e.g. V-101A / HE-201"
@@ -2542,8 +2545,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Promised Delivery Date</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Promised Delivery Date</label>
+                    <input aria-label="Promised Delivery Date"
                       type="date"
                       value={newItem.promisedDelivery}
                       onChange={(e) => setNewItem({ ...newItem, promisedDelivery: e.target.value })}
@@ -2552,8 +2555,8 @@ export default function ExpeditingVisitReportPage() {
                   </div>
 
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Expected Delivery Date</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Expected Delivery Date</label>
+                    <input aria-label="Expected Delivery Date"
                       type="date"
                       value={newItem.currentExpectedDelivery}
                       onChange={(e) => setNewItem({ ...newItem, currentExpectedDelivery: e.target.value })}
@@ -2564,8 +2567,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-emerald-800 uppercase text-[10px]">Qty Available / Produced</label>
-                    <input
+                    <label className="font-bold text-emerald-800 uppercase text-[11px]">Qty Available / Produced</label>
+                    <input aria-label="Qty Available / Produced"
                       type="number"
                       min={0}
                       value={newItem.qtyProduced}
@@ -2575,8 +2578,8 @@ export default function ExpeditingVisitReportPage() {
                   </div>
 
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Schedule Status</label>
-                    <select
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Schedule Status</label>
+                    <select aria-label="Schedule Status"
                       value={newItem.status}
                       onChange={(e) => setNewItem({ ...newItem, status: e.target.value as any })}
                       className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-blue-500"
@@ -2590,8 +2593,8 @@ export default function ExpeditingVisitReportPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Expediting Remarks & Progress Notes</label>
-                  <input
+                  <label className="font-bold text-slate-700 uppercase text-[11px]">Expediting Remarks & Progress Notes</label>
+                  <input aria-label="Expediting Remarks & Progress Notes"
                     type="text"
                     placeholder="e.g. Fabrication 80% complete, hydro test scheduled..."
                     value={newItem.remarks}
@@ -2628,7 +2631,7 @@ export default function ExpeditingVisitReportPage() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700">
                   <Eye className="w-4 h-4" />
                 </div>
                 <div>
@@ -2638,7 +2641,7 @@ export default function ExpeditingVisitReportPage() {
                   <p className="text-[11px] text-slate-500 font-mono">{viewingItem.tagNo}</p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close" title="Close"
                 onClick={() => setViewingItem(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
@@ -2648,28 +2651,28 @@ export default function ExpeditingVisitReportPage() {
 
             <div className="grid grid-cols-2 gap-3 py-2">
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Description</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Description</span>
                 <span className="font-semibold text-slate-800 text-xs">{viewingItem.description}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">PO Qty</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">PO Qty</span>
                 <span className="font-mono font-bold text-slate-800">{viewingItem.poQty}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Qty Available / Produced</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Qty Available / Produced</span>
                 <span className="font-mono font-bold text-emerald-700">{viewingItem.qtyProduced}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Promised Delivery</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Promised Delivery</span>
                 <span className="font-mono text-slate-700">{viewingItem.promisedDelivery}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Current Expected Delivery</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Current Expected Delivery</span>
                 <span className="font-mono font-bold text-slate-900">{viewingItem.currentExpectedDelivery}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Schedule Status</span>
-                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold mt-0.5 ${
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Schedule Status</span>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold mt-0.5 ${
                   viewingItem.status === "On Schedule" || viewingItem.status === "Completed"
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-amber-100 text-amber-800"
@@ -2678,11 +2681,11 @@ export default function ExpeditingVisitReportPage() {
                 </span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Lock Status</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Lock Status</span>
                 <span className="font-mono font-bold text-slate-700">{viewingItem.isLocked ? "Locked" : "Unlocked"}</span>
               </div>
               <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 col-span-2">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Expediting Remarks & Progress</span>
+                <span className="text-[11px] text-slate-400 uppercase font-bold tracking-wider block">Expediting Remarks & Progress</span>
                 <span className="text-slate-700 italic">{viewingItem.remarks || "—"}</span>
               </div>
             </div>
@@ -2708,7 +2711,7 @@ export default function ExpeditingVisitReportPage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Edit Item &bull; #{editingItem.itemNo} ({editingItem.tagNo})
               </h3>
-              <button onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button aria-label="Close" title="Close" onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2725,8 +2728,8 @@ export default function ExpeditingVisitReportPage() {
             >
               <div className="space-y-3">
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Description</label>
-                  <input
+                  <label className="font-bold text-slate-700 uppercase text-[11px]">Description</label>
+                  <input aria-label="Description"
                     type="text"
                     required
                     value={editingItem.description}
@@ -2737,8 +2740,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">PO Qty</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">PO Qty</label>
+                    <input aria-label="PO Qty"
                       type="number"
                       min={1}
                       value={editingItem.poQty}
@@ -2747,8 +2750,8 @@ export default function ExpeditingVisitReportPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Tag / Serial No.</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Tag / Serial No.</label>
+                    <input aria-label="Tag / Serial No."
                       type="text"
                       value={editingItem.tagNo}
                       onChange={(e) => setEditingItem({ ...editingItem, tagNo: e.target.value })}
@@ -2759,8 +2762,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Promised Delivery</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Promised Delivery</label>
+                    <input aria-label="Promised Delivery"
                       type="date"
                       value={editingItem.promisedDelivery}
                       onChange={(e) => setEditingItem({ ...editingItem, promisedDelivery: e.target.value })}
@@ -2768,8 +2771,8 @@ export default function ExpeditingVisitReportPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Current Expected Delivery</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Current Expected Delivery</label>
+                    <input aria-label="Current Expected Delivery"
                       type="date"
                       value={editingItem.currentExpectedDelivery}
                       onChange={(e) => setEditingItem({ ...editingItem, currentExpectedDelivery: e.target.value })}
@@ -2780,8 +2783,8 @@ export default function ExpeditingVisitReportPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Qty Available / Produced</label>
-                    <input
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Qty Available / Produced</label>
+                    <input aria-label="Qty Available / Produced"
                       type="number"
                       min={0}
                       value={editingItem.qtyProduced}
@@ -2790,8 +2793,8 @@ export default function ExpeditingVisitReportPage() {
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 uppercase text-[10px]">Status</label>
-                    <select
+                    <label className="font-bold text-slate-700 uppercase text-[11px]">Status</label>
+                    <select aria-label="Status"
                       value={editingItem.status}
                       onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value as any })}
                       className="w-full mt-1 p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
@@ -2805,8 +2808,8 @@ export default function ExpeditingVisitReportPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 uppercase text-[10px]">Remarks</label>
-                  <input
+                  <label className="font-bold text-slate-700 uppercase text-[11px]">Remarks</label>
+                  <input aria-label="Remarks"
                     type="text"
                     value={editingItem.remarks}
                     onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}

@@ -178,7 +178,7 @@ export default function SOPSPage() {
             <BookOpen className="w-5 h-5 text-sky-400" />
             <div>
               <div className="text-xs font-bold text-white">Formats</div>
-              <div className="text-[10px] text-slate-400">Audit &amp; Formats</div>
+              <div className="text-[11px] text-slate-400">Audit &amp; Formats</div>
             </div>
           </Link>
           <Link
@@ -188,7 +188,7 @@ export default function SOPSPage() {
             <FileText className="w-5 h-5 text-emerald-300" />
             <div>
               <div className="text-xs font-bold text-white">SOP&apos;s</div>
-              <div className="text-[10px] text-emerald-200">Active SOP Library</div>
+              <div className="text-[11px] text-emerald-200">Active SOP Library</div>
             </div>
           </Link>
           <Link
@@ -198,7 +198,7 @@ export default function SOPSPage() {
             <CheckCircle2 className="w-5 h-5 text-amber-400" />
             <div>
               <div className="text-xs font-bold text-white">Work Instructions</div>
-              <div className="text-[10px] text-slate-400">Technical Protocols</div>
+              <div className="text-[11px] text-slate-400">Technical Protocols</div>
             </div>
           </Link>
           <Link
@@ -208,7 +208,7 @@ export default function SOPSPage() {
             <Sliders className="w-5 h-5 text-purple-400" />
             <div>
               <div className="text-xs font-bold text-white">ITP&apos;s</div>
-              <div className="text-[10px] text-slate-400">Quality Plans</div>
+              <div className="text-[11px] text-slate-400">Quality Plans</div>
             </div>
           </Link>
         </div>
@@ -220,6 +220,7 @@ export default function SOPSPage() {
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
           <input
             type="text"
+            aria-label="Search"
             placeholder="Search SOP title, code, or SLA..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -240,10 +241,10 @@ export default function SOPSPage() {
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-extrabold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-extrabold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                   {sop.code}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                   {sop.rev}
                 </span>
               </div>
@@ -256,7 +257,7 @@ export default function SOPSPage() {
               </p>
 
               <div className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-1">
+                <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-[#e35f14]" />
                   <span>Mandatory SLA:</span>
                   <span className="text-slate-700 dark:text-slate-200 font-extrabold normal-case ml-1">{sop.sla}</span>
@@ -269,7 +270,7 @@ export default function SOPSPage() {
                     </div>
                   ))}
                   {sop.steps.length > 2 && (
-                    <div className="text-[10px] text-sky-600 dark:text-sky-400 font-bold pl-4">
+                    <div className="text-[11px] text-sky-600 dark:text-sky-400 font-bold pl-4">
                       + {sop.steps.length - 2} more procedural steps
                     </div>
                   )}
@@ -285,7 +286,7 @@ export default function SOPSPage() {
                 <Eye className="w-3.5 h-3.5" />
                 <span>View Full Procedure</span>
               </button>
-              <span className="text-[10px] font-mono text-slate-400">{sop.effectiveDate}</span>
+              <span className="text-[11px] font-mono text-slate-400">{sop.effectiveDate}</span>
             </div>
           </div>
         ))}
@@ -300,7 +301,7 @@ export default function SOPSPage() {
                 <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">{selectedSOP.code} &bull; {selectedSOP.rev}</span>
                 <h2 className="text-xl font-extrabold text-slate-900 dark:text-white font-heading mt-1">{selectedSOP.title}</h2>
               </div>
-              <button
+              <button aria-label="Close"
                 onClick={() => setSelectedSOP(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-sm"
                 title="Close"
@@ -314,13 +315,13 @@ export default function SOPSPage() {
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase text-slate-400 font-mono tracking-wider">
+              <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">
                 Procedural Execution Flow (Step-by-Step)
               </h4>
               <div className="space-y-2">
                 {selectedSOP.steps.map((step, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-xs">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[10px] shrink-0">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center font-mono font-bold text-[11px] shrink-0">
                       {idx + 1}
                     </span>
                     <span className="text-slate-700 dark:text-slate-200 leading-relaxed">{step}</span>

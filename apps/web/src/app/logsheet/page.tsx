@@ -180,7 +180,7 @@ export default function LogSheetPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Visit Processing LogSheet & Audit Register</h1>
             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono">
               {statusCounts.total_count || visits.length} Total Visits Logged
@@ -197,6 +197,7 @@ export default function LogSheetPage() {
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
             title="Refresh LogSheet"
+            aria-label="Refresh log sheet"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -248,7 +249,7 @@ export default function LogSheetPage() {
 
       {/* Alphabetical A-Z Jump Bar */}
       <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-1 px-1">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alphabetical Customer & Inspector Index</span>
           <span className="text-[11px] font-mono text-blue-600 font-semibold">Filter by Customer, Vendor, or Inspector initial</span>
         </div>
@@ -274,9 +275,10 @@ export default function LogSheetPage() {
 
       {/* Search, Filter Bar & View Toggle */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
           <input
             value={search}
+            aria-label="Search log sheets"
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by LogSheet ID (VST-2026-001), Control No, Customer, Inspector, Vendor, IRN No..."
             className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
@@ -284,8 +286,8 @@ export default function LogSheetPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-3 md:shrink-0">
+          <div className="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("all")}
               className={`px-3 py-1 rounded-lg transition-all ${
@@ -325,6 +327,7 @@ export default function LogSheetPage() {
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-blue-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
+              aria-label="Table view"
             >
               <LayoutList className="w-4 h-4" />
             </button>
@@ -332,6 +335,7 @@ export default function LogSheetPage() {
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-blue-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
+              aria-label="Card grid view"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -377,17 +381,17 @@ export default function LogSheetPage() {
                       </td>
                       <td className="p-3">
                         <p className="font-medium text-slate-800">{v.manufacturer_name || "Unassigned Vendor"}</p>
-                        {v.manufacturer_unit_name && <p className="text-[10px] text-slate-400">Works: {v.manufacturer_unit_name}</p>}
+                        {v.manufacturer_unit_name && <p className="text-[11px] text-slate-400">Works: {v.manufacturer_unit_name}</p>}
                       </td>
                       <td className="p-3 font-mono">
-                        <p className="font-bold text-indigo-600">{v.control_number_id || "N/A"}</p>
-                        {v.po_number && <p className="text-[10px] text-slate-400">{v.po_number}</p>}
+                        <p className="font-bold text-brand-600">{v.control_number_id || "N/A"}</p>
+                        {v.po_number && <p className="text-[11px] text-slate-400">{v.po_number}</p>}
                       </td>
                       <td className="p-3 font-bold text-slate-900">{v.inspector_name || "Unassigned"}</td>
                       <td className="p-3 font-mono font-bold text-purple-700">{v.inspection_report_no || "Pending"}</td>
                       <td className="p-3 max-w-xs truncate text-slate-700" title={v.inspection_scope}>{v.inspection_scope}</td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           v.status === "completed" || v.status === "quality_check_completed" ? "bg-emerald-100 text-emerald-800" :
                           v.status === "initiated" ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"
                         }`}>
@@ -398,6 +402,8 @@ export default function LogSheetPage() {
                         <button
                           onClick={() => setActiveDropdown(activeDropdown === v.visit_id ? null : v.visit_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+                          aria-label={`Actions for ${v.visit_id}`}
+                          title="More actions"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -435,7 +441,7 @@ export default function LogSheetPage() {
                   <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-lg">
                     {v.visit_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     v.status === "completed" || v.status === "quality_check_completed" ? "bg-emerald-100 text-emerald-800" :
                     v.status === "initiated" ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"
                   }`}>
@@ -483,16 +489,16 @@ export default function LogSheetPage() {
                   <p className="text-xs text-slate-500">Customer: {selectedLogSheet.customer_name} • Supplier: {selectedLogSheet.manufacturer_name}</p>
                 </div>
               </div>
-              <button onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowDetailsModal(false)} className="text-slate-400 hover:text-slate-600" aria-label="Close details" title="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <p className="text-slate-400">Control Number ID:</p>
-                  <p className="font-mono font-bold text-indigo-700 text-sm">{selectedLogSheet.control_number_id || "N/A"}</p>
+                  <p className="font-mono font-bold text-brand-700 text-sm">{selectedLogSheet.control_number_id || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Purchase Order No:</p>

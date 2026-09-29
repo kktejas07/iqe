@@ -195,7 +195,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
                 <span className="font-heading text-lg font-bold tracking-tight text-white block">
                   IQEApp
                 </span>
-                <span className="text-[10px] uppercase tracking-widest text-[#e35f14] font-semibold flex items-center gap-1">
+                <span className="text-[11px] uppercase tracking-widest text-[#e35f14] font-semibold flex items-center gap-1">
                   <Sparkles className="w-2.5 h-2.5 text-[#0084bf]" /> Inspection AI
                 </span>
               </div>
@@ -210,10 +210,10 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
               <CheckSquare className="w-4 h-4 text-[#e35f14] shrink-0" />
               <div className="truncate">
                 <p className="text-xs font-semibold text-white truncate">TPI Verification Engine</p>
-                <p className="text-[10px] text-sky-200/70 truncate">ISO & BOQ Compliance</p>
+                <p className="text-[11px] text-sky-200/70 truncate">ISO & BOQ Compliance</p>
               </div>
             </div>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase shrink-0 ${badge.color}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border uppercase shrink-0 ${badge.color}`}>
               {role}
             </span>
           </div>
@@ -222,7 +222,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
         {/* Navigation Items */}
         <nav className="p-3 space-y-1.5 mt-3">
           {!isCollapsed && (
-            <p className="px-3 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+            <p className="px-3 text-[11px] uppercase font-bold tracking-wider text-slate-400 mb-2">
               Main Navigation
             </p>
           )}
@@ -299,7 +299,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
                         <div className="truncate font-semibold text-xs leading-tight">
                           {item.name}
                         </div>
-                        <div className={`text-[9px] truncate leading-tight ${isActive ? "text-sky-200" : "text-slate-400"}`}>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-sky-200" : "text-slate-400"}`}>
                           {item.subtitle}
                         </div>
                       </div>
@@ -359,7 +359,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
                         <div className="truncate font-semibold text-xs leading-tight">
                           {item.name}
                         </div>
-                        <div className={`text-[9px] truncate leading-tight ${isActive ? "text-emerald-200" : "text-slate-400"}`}>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-emerald-200" : "text-slate-400"}`}>
                           {item.subtitle}
                         </div>
                       </div>
@@ -400,7 +400,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
                 isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
               } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                 isQualityPlansActive
-                  ? "bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-xs border border-purple-400/30"
+                  ? "bg-gradient-to-r from-purple-600 to-brand-700 text-white shadow-xs border border-purple-400/30"
                   : "text-slate-300 hover:text-white hover:bg-slate-800/60"
               }`}
             >
@@ -455,7 +455,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
               </div>
               <div className="truncate">
                 <p className="text-xs font-semibold text-slate-200 truncate capitalize">{userName}</p>
-                <p className="text-[10px] text-slate-400 truncate">{badge.label}</p>
+                <p className="text-[11px] text-slate-400 truncate">{badge.label}</p>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ import {
   FileCheck,
   CheckCircle2,
   AlertCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import { trackPageView, trackButtonClick } from "@/lib/analytics";
 
 export default function AdminAnalyticsPage() {

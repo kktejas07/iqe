@@ -26,7 +26,7 @@ import {
   Compass,
   Zap,
   PackageCheck,
-} from "lucide-react";
+} from "@/components/icons";
 
 interface SidebarProps {
   isCollapsed?: boolean;

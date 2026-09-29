@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { 
   Factory, Search, Plus, MapPin, Mail, Phone, X, CheckCircle2, 
   MoreVertical, Edit3, Power, Layers, LayoutGrid, LayoutList, RefreshCw, Tag, Globe, Compass 
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 interface MfrUnitItem {

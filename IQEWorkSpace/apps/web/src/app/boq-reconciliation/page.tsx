@@ -47,7 +47,7 @@ import {
   Users,
   Handshake,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 
 export interface BOQItem {
   id: string;

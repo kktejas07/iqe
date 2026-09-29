@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 
 export type InspectionFlowStepId =
   | "expediting"

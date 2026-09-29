@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck } from "@/components/icons";
 import { IQELogo } from "@/components/IQELogo";
 
 const features = [

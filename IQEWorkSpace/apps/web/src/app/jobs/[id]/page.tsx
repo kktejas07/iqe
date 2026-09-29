@@ -18,7 +18,7 @@ import {
   CheckCircle2,
   Zap,
   ArrowRight,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function JobDetailPage() {

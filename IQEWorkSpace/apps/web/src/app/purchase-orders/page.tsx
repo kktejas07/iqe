@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { 
   ShoppingBag, Search, Plus, MapPin, Mail, Phone, X, CheckCircle2, 
   MoreVertical, Edit3, Power, Layers, LayoutGrid, LayoutList, RefreshCw, Factory, Tag, Globe, Compass, DollarSign, Calendar, FileText, ArrowRight 
-} from "lucide-react";
+} from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 

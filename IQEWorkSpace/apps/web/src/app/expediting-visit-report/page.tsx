@@ -37,7 +37,7 @@ import {
   Loader2,
   Lock,
   Unlock,
-} from "lucide-react";
+} from "@/components/icons";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 
 interface ExpeditingItem {

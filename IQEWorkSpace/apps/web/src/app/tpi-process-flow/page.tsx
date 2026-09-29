@@ -25,7 +25,7 @@ import {
   Building2,
   Calendar,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import { IQELoader } from "@/components/IQELoader";
 
 interface TPICallItem {

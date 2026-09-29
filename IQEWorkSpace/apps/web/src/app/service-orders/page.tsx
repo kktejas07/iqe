@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, Search, Hash, DollarSign, Calendar } from "lucide-react";
+import { ClipboardList, Search, Hash, DollarSign, Calendar } from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function ServiceOrdersPage() {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { 
   Users, Building2, Factory, ShoppingBag, Layers, Calendar, 
   Receipt, CreditCard, ArrowUpRight, ShieldCheck, Award, RefreshCw 
-} from "lucide-react";
+} from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { AdminBannerCarousel } from "@/components/AdminBannerCarousel";

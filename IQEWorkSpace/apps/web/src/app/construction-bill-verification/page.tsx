@@ -34,7 +34,7 @@ import {
   CheckSquare,
   Loader2,
   Plus,
-} from "lucide-react";
+} from "@/components/icons";
 
 // Guaranteed Initial 100-Item Dataset for instant client rendering
 const RAW_MATERIALS = [

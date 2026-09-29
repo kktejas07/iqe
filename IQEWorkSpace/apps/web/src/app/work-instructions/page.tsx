@@ -19,7 +19,7 @@ import {
   Layers,
   ArrowRight,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 
 interface WorkInstruction {
   id: string;

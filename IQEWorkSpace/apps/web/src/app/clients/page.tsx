@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { 
   Building2, Search, Plus, MapPin, Mail, Phone, X, CheckCircle2, 
   MoreVertical, Edit3, Power, Layers, LayoutGrid, LayoutList, RefreshCw, Factory, Tag, Globe, Compass 
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 interface ClientUnitItem {

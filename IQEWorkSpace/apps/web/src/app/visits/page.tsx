@@ -10,7 +10,7 @@ import {
   Receipt,
   Printer,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function VisitsPage() {

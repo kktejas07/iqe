@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CalendarCheck, Plus, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CalendarCheck, Plus, CheckCircle2 } from "@/components/icons";
 import { api } from "@/lib/api";
 
 function NewVisitForm() {

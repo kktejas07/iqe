@@ -20,7 +20,7 @@ import {
   BookOpen,
   Compass,
   Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 
 interface FormatItem {

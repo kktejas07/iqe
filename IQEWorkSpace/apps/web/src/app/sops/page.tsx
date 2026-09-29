@@ -17,7 +17,7 @@ import {
   ArrowRight,
   AlertCircle,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 
 interface SOPItem {
   id: string;

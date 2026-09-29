@@ -18,7 +18,7 @@ import {
   Sparkles,
   Eye,
   FileSpreadsheet,
-} from "lucide-react";
+} from "@/components/icons";
 
 interface ITPActivity {
   slNo: number;

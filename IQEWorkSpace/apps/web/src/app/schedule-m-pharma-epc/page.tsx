@@ -36,7 +36,7 @@ import {
   Info,
   Settings,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function ScheduleMPharmaEPCPage() {

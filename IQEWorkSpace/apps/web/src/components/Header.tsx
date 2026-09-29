@@ -42,7 +42,7 @@ import {
   PackageCheck,
   Menu,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 import { ThemeType } from "./LayoutWrapper";
 import { IQELogo } from "./IQELogo";

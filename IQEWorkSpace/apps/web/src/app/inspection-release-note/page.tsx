@@ -46,7 +46,7 @@ import {
   Send,
   Boxes,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 
 export interface ReleaseItem {

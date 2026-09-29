@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck, Building2, HardHat } from "lucide-react";
+import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck, Building2, HardHat } from "@/components/icons";
 import { api } from "@/lib/api";
 import { IQELogo } from "@/components/IQELogo";
 

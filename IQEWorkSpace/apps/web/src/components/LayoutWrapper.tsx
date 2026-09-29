@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp } from "@/components/icons";
 import { Header } from "./Header";
 
 export type ThemeType = "iqe-brand" | "google-light" | "google-dark" | "material-blue";

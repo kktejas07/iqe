@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +11,9 @@
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    /* Inter: single-storey a, open digits & tabular numbers for data-dense tables */
+    font-feature-settings: "cv11", "ss01", "tnum";
     background-color: #f4f8fb;
     color: #1e293b;
     overflow-x: hidden;
@@ -65,7 +65,19 @@
 }
 
 .font-heading {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: var(--font-heading), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.015em;
+  font-feature-settings: normal;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* Mono is for IDs and codes: keep it slightly smaller-looking and tidy */
+.font-mono {
+  font-feature-settings: "zero", "tnum";
+  letter-spacing: -0.01em;
 }
 
 /* Custom scrollbar matching logo blue */

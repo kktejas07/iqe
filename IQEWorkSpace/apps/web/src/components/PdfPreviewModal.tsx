@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { X, ExternalLink, Download, FileText, RefreshCw, Sparkles } from "lucide-react";
+import { X, ExternalLink, Download, FileText, RefreshCw, Sparkles } from "@/components/icons";
 
 interface PdfPreviewModalProps {
   isOpen: boolean;

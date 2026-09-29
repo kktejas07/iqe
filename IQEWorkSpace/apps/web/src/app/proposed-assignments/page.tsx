@@ -25,7 +25,7 @@ import {
   Mail,
   Send,
   Download,
-} from "lucide-react";
+} from "@/components/icons";
 import { IQELoader } from "@/components/IQELoader";
 
 interface AuditComponent {

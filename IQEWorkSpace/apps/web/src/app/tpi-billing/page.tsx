@@ -52,7 +52,7 @@ import {
   Users,
   Handshake,
   Landmark,
-} from "lucide-react";
+} from "@/components/icons";
 
 export type TpiInspectionMode = "epc_sponsored" | "end_client_direct" | "tripartite";
 

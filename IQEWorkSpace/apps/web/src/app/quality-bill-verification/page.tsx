@@ -35,7 +35,7 @@ import {
   FileCode,
   CheckCircle,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 
 export interface HybridQVRItem {
   id: number;

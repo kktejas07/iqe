@@ -16,7 +16,7 @@ import {
   Building,
   Plus,
   RefreshCw,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 

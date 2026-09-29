@@ -15,7 +15,7 @@ import {
   Clock,
   AlertTriangle,
   Printer,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];

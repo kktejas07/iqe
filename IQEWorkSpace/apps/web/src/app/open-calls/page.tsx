@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { 
   PhoneCall, Search, Plus, MapPin, X, CheckCircle2, 
   MoreVertical, Edit3, Power, LayoutGrid, LayoutList, RefreshCw, User, UserCheck, Factory, Tag, Globe, Compass, ShieldAlert, ArrowRight, Clock, AlertTriangle
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];

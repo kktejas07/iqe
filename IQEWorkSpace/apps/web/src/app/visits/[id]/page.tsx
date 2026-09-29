@@ -29,7 +29,7 @@ import {
   Info,
   Receipt,
   Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function VisitDetailPage() {

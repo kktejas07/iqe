@@ -4878,8 +4878,8 @@ export default function TPIBillingPage() {
           </div>
         </div>
 
-        {/* 5-Card Project & Contract Metadata Strip */}
-        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* 5-Card Project & Contract Metadata Strip (Hidden as requested) */}
+        <div className="hidden border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
             <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
               <Building2 className="w-4 h-4" />

@@ -1,11 +1,17 @@
 # Dependencies
 node_modules/
-IQEWorkSpace/packages/
+packages/
 *.nupkg
 *.dll
 *.exe
 .venv/
 venv/
+
+# Visual Studio / TFS junk (was committed under IQEWorkSpace/ before flatten)
+.vs/
+$tf/
+*.vspscc
+*.vssscc
 
 # Build outputs & caches
 .next/
@@ -29,11 +35,10 @@ tsconfig.tsbuildinfo
 
 # Scratch & temporary artifacts
 scratch/
-IQEWorkSpace/scratch/
-IQEWorkSpace/update_tpi_page.py
-IQEWorkSpace/backend/*.pdf
-IQEWorkSpace/backend/test_*.pdf
-IQEWorkSpace/backend/media/
+update_tpi_page.py
+backend/*.pdf
+backend/test_*.pdf
+backend/media/
 
 # OS files
 .DS_Store

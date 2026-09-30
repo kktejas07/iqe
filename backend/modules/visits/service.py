@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 from fastapi import HTTPException
 from modules.visits.models import Visit, Expense, Photo, Finding, ScopeCheckItem

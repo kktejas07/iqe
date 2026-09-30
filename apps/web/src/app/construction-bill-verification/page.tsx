@@ -477,7 +477,7 @@ export default function ConstructionBillVerificationPage() {
         <div>
           <div className="flex items-center space-x-3 mb-2 flex-wrap gap-y-2">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-emerald-600" /> ISO 17020 27-Column Precision Inspection Format
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-emerald-600" /> 27-Column Precision Inspection Format
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
               <Award className="w-3.5 h-3.5 mr-1.5 text-blue-600" /> Site: Mudigonda CHC Site ({allItems.length} Supply Items)
@@ -574,7 +574,7 @@ export default function ConstructionBillVerificationPage() {
             {abstractData?.overall_status || "VERIFIED"}
           </div>
           <div className="mt-3 flex items-center text-xs text-purple-700 font-medium">
-            <span>ISO 17020 Digital Seal Authenticated</span>
+            <span>Digital Seal Authenticated</span>
           </div>
           <div className="absolute top-0 right-0 w-1.5 h-full bg-purple-500" />
         </div>
@@ -678,7 +678,7 @@ export default function ConstructionBillVerificationPage() {
                 <Columns className="w-5 h-5 mr-2 text-emerald-600" /> 27-Column Precision Inspection & Measurement Matrix
               </h2>
               <p className="text-xs text-slate-500">
-                Displaying {allItems.length} client supply items with full 27-field ISO 17020 verification parameters + Action Hub on right.
+                Displaying {allItems.length} client supply items with full 27-field verification parameters + Action Hub on right.
               </p>
             </div>
 
@@ -1179,7 +1179,7 @@ export default function ConstructionBillVerificationPage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Enterprise PDF Verification Certificate</h3>
               <p className="text-xs text-slate-600 leading-relaxed mb-6">
-                Official ISO 17020 Third-Party Inspection Certificate with embedded QR code, watermark, audit seals, and multi-diameter rebar reconciliation ledger.
+                Official Third-Party Inspection Certificate with embedded QR code, watermark, audit seals, and multi-diameter rebar reconciliation ledger.
               </p>
             </div>
             <div className="space-y-2">
@@ -1249,7 +1249,7 @@ export default function ConstructionBillVerificationPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">Item Verification Details: {selectedViewItem.boqItem || selectedViewItem.item_code}</h3>
-                  <p className="text-xs text-slate-400">ISO 17020 Type A Audit Certificate Record</p>
+                  <p className="text-xs text-slate-400">Third Party Inspection Certificate Record</p>
                 </div>
               </div>
               <button aria-label="Close" title="Close"

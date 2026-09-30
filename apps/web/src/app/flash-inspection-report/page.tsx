@@ -236,7 +236,7 @@ const INITIAL_FINDINGS: KeyFinding[] = [
     id: "find-2",
     slNo: 2,
     finding: "Calibration certificate for Caliper vernier (SN: MIT-4401) expiring within 5 calendar days.",
-    reference: "ISO 17020 Cl 6.2 & IQE Quality Manual",
+    reference: "IQE Quality Inspection Manual",
     actionRequired: "Supplier must recalibrate at NABL lab prior to final release inspection.",
     status: "RESOLVED",
   },
@@ -413,12 +413,6 @@ export default function FlashInspectionReportPage() {
               <Zap className="w-6 h-6 text-amber-500 fill-amber-500" />
               <span>Flash Inspection Report</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-              IQE-TP-02 &bull; REV 00
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#003366] text-white">
-              ISO 17020 TYPE-A INSPECTION
-            </span>
 
             {/* Select Client Dropdown right in the top bar */}
             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
@@ -494,8 +488,8 @@ export default function FlashInspectionReportPage() {
           </div>
         </div>
 
-        {/* Section Jump Links for Document Flow Navigation */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs relative">
+        {/* Section Jump Links for Document Flow Navigation (Sticky so inspector can use anytime while scrolling) */}
+        <div className="sticky top-16 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
           {isTabSwitching && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 text-xs font-bold text-[#0084bf]">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -556,7 +550,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 1.0 INSPECTION INFORMATION (As is from IQE-TP-02)                 */}
         {/* ========================================================================= */}
-        <div id="sec-1" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-1" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">1.0 INSPECTION INFORMATION</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 1.0</span>
@@ -630,7 +624,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 2.0 TYPE OF VISIT / INSPECTION ACTIVITY (Word Document Table 2)   */}
         {/* ========================================================================= */}
-        <div id="sec-2" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-2" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">2.0 TYPE OF VISIT / INSPECTION ACTIVITY</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 2.0</span>
@@ -723,7 +717,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 3.0 MATERIAL / EQUIPMENT INSPECTED (Word Document Table 3)        */}
         {/* ========================================================================= */}
-        <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-3" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold">
             <div className="flex items-center gap-2">
               <span className="uppercase tracking-wider">3.0 MATERIAL / EQUIPMENT INSPECTED</span>
@@ -996,7 +990,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 4.0 INSPECTION OUTCOME (Word Document Table 4)                    */}
         {/* ========================================================================= */}
-        <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-4" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">4.0 INSPECTION OUTCOME</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 4.0</span>
@@ -1068,7 +1062,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 5.0 KEY FINDINGS / AREAS OF CONCERN (Word Document Table 5)       */}
         {/* ========================================================================= */}
-        <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-5" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
             <div className="flex items-center gap-2">
               <span className="uppercase tracking-wider">5.0 KEY FINDINGS / AREAS OF CONCERN</span>
@@ -1192,7 +1186,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 6.0 IMMEDIATE ACTION / FOLLOW-UP (Word Document Table 6)          */}
         {/* ========================================================================= */}
-        <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-6" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
             <div className="flex items-center gap-2">
               <span className="uppercase tracking-wider">6.0 IMMEDIATE ACTION / FOLLOW-UP</span>
@@ -1305,7 +1299,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 7.0 REMARKS (Word Document Section 7.0)                           */}
         {/* ========================================================================= */}
-        <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-7" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">7.0 REMARKS</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 7.0</span>
@@ -1328,7 +1322,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 8.0 PHOTOGRAPHIC EVIDENCE (Word Document Section 8.0)             */}
         {/* ========================================================================= */}
-        <div id="sec-8" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-8" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">8.0 PHOTOGRAPHIC EVIDENCE</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 8.0</span>
@@ -1365,7 +1359,7 @@ export default function FlashInspectionReportPage() {
         {/* ========================================================================= */}
         {/* SECTION 9.0 ACKNOWLEDGEMENT & SIGNATURES (Word Document Section 9.0)      */}
         {/* ========================================================================= */}
-        <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div id="sec-9" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
             <span className="uppercase tracking-wider">9.0 ACKNOWLEDGEMENT &amp; SIGNATURES</span>
             <span className="font-mono text-[11px] text-sky-200">IQE-TP-02 Clause 9.0</span>
@@ -1402,7 +1396,7 @@ export default function FlashInspectionReportPage() {
               </div>
               <div className="space-y-1">
                 <span className="text-slate-500 font-medium block">IQE Stamp &amp; Certification:</span>
-                <p className="font-bold text-slate-800">ISO 17020 Type-A Inspection Body Stamp</p>
+                <p className="font-bold text-slate-800">TPI Inspection Body Stamp</p>
               </div>
               <div className="pt-2 flex items-center gap-1.5 text-blue-700 font-bold font-mono">
                 <CheckCircle2 className="w-4 h-4 text-blue-600" />

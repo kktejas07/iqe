@@ -58,7 +58,7 @@ export default function LoginPage() {
                   Ideal Quality Engineers
                 </span>
                 <span className="text-[11px] text-[#e35f14] font-bold block">
-                  (I) Pvt Ltd — ISO 9001:2015
+                  (I) Pvt Ltd — Third Party Inspection
                 </span>
               </div>
             </div>

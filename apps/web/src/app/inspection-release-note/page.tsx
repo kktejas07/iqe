@@ -436,9 +436,6 @@ export default function InspectionReleaseNotePage() {
               <PackageCheck className="w-6 h-6 text-emerald-600" />
               <span>Inspection Release Note (IRN)</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
-              IQE-TP-04 &bull; REV 00
-            </span>
 
             {/* Select Client Dropdown */}
             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
@@ -514,8 +511,8 @@ export default function InspectionReleaseNotePage() {
         </div>
       </div>
 
-      {/* Jump Links Strip */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs relative">
+      {/* Jump Links Strip (Sticky so inspector can use anytime while scrolling) */}
+      <div className="sticky top-16 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
         {isTabSwitching && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 text-xs font-bold text-[#0084bf]">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -657,7 +654,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 1.0 INSPECTION & RELEASE STATUS */}
-      <div id="sec-1" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-1" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">1.0 INSPECTION &amp; RELEASE STATUS</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 1.0</span>
@@ -702,7 +699,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 2.0 INSPECTION REPORT REFERENCES */}
-      <div id="sec-2" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-2" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">2.0 INSPECTION REPORT REFERENCES</span>
@@ -821,7 +818,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 3.0 COMPLIANCE / DEVIATION REFERENCES */}
-      <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-3" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">3.0 COMPLIANCE / DEVIATION REFERENCES</span>
@@ -943,7 +940,7 @@ export default function InspectionReleaseNotePage() {
         </div>
       </div>
       {/* 4.0 ITEMS RELEASED */}
-      <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-4" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">4.0 ITEMS RELEASED</span>
@@ -1279,7 +1276,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 5.0 BASIS OF RELEASE */}
-      <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-5" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">5.0 BASIS OF RELEASE</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 5.0</span>
@@ -1327,7 +1324,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 6.0 IDENTIFICATION / TRACEABILITY */}
-      <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-6" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">6.0 IDENTIFICATION / TRACEABILITY</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 6.0</span>
@@ -1372,7 +1369,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 7.0 DISPATCH / PRESERVATION INSTRUCTIONS */}
-      <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-7" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">7.0 DISPATCH / PRESERVATION INSTRUCTIONS</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 7.0</span>
@@ -1423,7 +1420,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 8.0 REMARKS / CONDITIONS OF RELEASE */}
-      <div id="sec-8" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-8" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">8.0 REMARKS / CONDITIONS OF RELEASE</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 8.0</span>
@@ -1439,7 +1436,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 9.0 SUPPLIER ACKNOWLEDGEMENT & IQE AUTHORIZATION */}
-      <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-9" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">9.0 SUPPLIER ACKNOWLEDGEMENT &amp; IQE AUTHORIZATION</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-04 Clause 9.0</span>
@@ -1526,7 +1523,7 @@ export default function InspectionReleaseNotePage() {
       </div>
 
       {/* 10.0 DISCLAIMER & LIMITATION OF LIABILITY */}
-      <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl p-4 bg-slate-50/80 space-y-3 text-xs text-slate-600 leading-relaxed">
+      <div id="sec-10" className="scroll-mt-32 border border-slate-200 rounded-xl p-4 bg-slate-50/80 space-y-3 text-xs text-slate-600 leading-relaxed">
         <h4 className="font-extrabold text-[#003366] dark:text-sky-300 uppercase text-xs tracking-wider">
           10.0 DISCLAIMER &amp; LIMITATION OF LIABILITY
         </h4>

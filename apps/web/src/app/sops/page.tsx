@@ -148,7 +148,7 @@ export default function SOPSPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-xs font-mono font-bold mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Standard Operating Procedures (SOP) &bull; ISO 9001 / 17020
+              Standard Operating Procedures (SOP) &bull; TPI Quality Standards
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-heading text-white">
               SOP&apos;s &bull; Standard Operating Procedures

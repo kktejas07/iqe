@@ -955,7 +955,7 @@ export default function QualityBillVerificationPage() {
   if (isLoading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
-        <IQELoader message="Loading ISO 17020 Quality Bill Verification Engine..." />
+        <IQELoader message="Loading Quality Bill Verification Engine..." />
       </div>
     );
   }
@@ -968,10 +968,10 @@ export default function QualityBillVerificationPage() {
           <div className="space-y-0.5 min-w-0 lg:min-w-[340px] lg:flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#003366] dark:text-sky-300 text-[11px] font-extrabold font-mono border border-blue-200">
-                Form No: IQE-QVR-2026 | ISO/IEC 17020 Compliant
+                Form No: IQE-QVR-2026
               </span>
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold font-mono border border-emerald-200">
-                Type A Independent Verification
+                Independent Third-Party Verification
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">

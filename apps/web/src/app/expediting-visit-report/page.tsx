@@ -562,12 +562,6 @@ export default function ExpeditingVisitReportPage() {
               <Compass className="w-6 h-6 text-[#0084bf]" />
               <span>Expediting Visit Report</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
-              IQE-TP-05 &bull; REV 00
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
-              ISO 17020 Expediting Protocol
-            </span>
 
             {/* Select Client Dropdown */}
             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
@@ -705,8 +699,8 @@ export default function ExpeditingVisitReportPage() {
         </div>
       </div>
 
-      {/* Jump Links Strip */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 border-y border-slate-200 text-xs relative">
+      {/* Jump Links Strip (Sticky so inspector can use anytime while scrolling) */}
+      <div className="sticky top-16 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xs py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
         {isTabSwitching && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 text-xs font-bold text-[#0084bf]">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -821,7 +815,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 1.0 ITEMS / ORDER DETAILS */}
-      <div id="sec-1" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-1" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">1.0 ITEMS / ORDER DETAILS</span>
@@ -1072,7 +1066,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 2.0 ORDER & PROGRESS STATUS */}
-      <div id="sec-2" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-2" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">2.0 ORDER &amp; PROGRESS STATUS</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 2.0</span>
@@ -1137,7 +1131,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 3.0 SUMMARY */}
-      <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-3" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">3.0 SUMMARY</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 3.0</span>
@@ -1156,7 +1150,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 4.0 PERSONNEL PRESENT */}
-      <div id="sec-4" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-4" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">4.0 PERSONNEL PRESENT</span>
@@ -1277,7 +1271,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 5.0 DOCUMENTATION DETAILS */}
-      <div id="sec-5" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-5" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">5.0 DOCUMENTATION DETAILS</span>
@@ -1436,7 +1430,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 6.0 SUB-ORDERS / MATERIALS IN STOCK */}
-      <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-6" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">6.0 SUB-ORDERS / MATERIALS IN STOCK</span>
@@ -1605,7 +1599,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 7.0 MANUFACTURING STATUS */}
-      <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-7" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">7.0 MANUFACTURING STATUS</span>
@@ -1768,7 +1762,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 8.0 INSPECTION / TESTING STATUS */}
-      <div id="sec-8" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-8" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">8.0 INSPECTION / TESTING STATUS</span>
@@ -1928,7 +1922,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 9.0 SCHEDULE / DELIVERY ASSESSMENT */}
-      <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-9" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">9.0 SCHEDULE / DELIVERY ASSESSMENT</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 9.0</span>
@@ -2014,7 +2008,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 10.0 ACTIONS / FOLLOW-UP */}
-      <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-10" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-2">
             <span className="uppercase tracking-wider">10.0 ACTIONS / FOLLOW-UP</span>
@@ -2158,7 +2152,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 11.0 CONCLUSION */}
-      <div id="sec-11" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-11" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">11.0 CONCLUSION</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 11.0</span>
@@ -2177,7 +2171,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 12.0 PHOTOGRAPHS */}
-      <div id="sec-12" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-12" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">12.0 PHOTOGRAPHS</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 12.0</span>
@@ -2231,7 +2225,7 @@ export default function ExpeditingVisitReportPage() {
       </div>
 
       {/* 13.0 ACKNOWLEDGEMENT & SIGNATURES */}
-      <div id="sec-13" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div id="sec-13" className="scroll-mt-32 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider">13.0 ACKNOWLEDGEMENT &amp; SIGNATURES</span>
           <span className="font-mono text-[11px] text-sky-200">IQE-TP-05 Clause 13.0</span>

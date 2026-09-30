@@ -87,7 +87,7 @@ const formatsSubModules: SubModuleItem[] = [
   },
   {
     name: "Quality Verification",
-    subtitle: "Concealed Work & ISO 17020",
+    subtitle: "Concealed Work & Quality Audit",
     href: "/quality-bill-verification",
     icon: ShieldCheck,
     color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",

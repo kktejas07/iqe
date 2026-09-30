@@ -125,9 +125,9 @@ const FORMATS: FormatItem[] = [
   {
     id: "f-quality-01",
     code: "F-QUAL-01",
-    title: "Quality Verification (Concealed Work & ISO 17020)",
+    title: "Quality Verification (Concealed Work & Quality Audit)",
     category: "Quality",
-    description: "Pre-pour concealed works, rebar & MEP layout inspection, QA/QC non-destructive testing, and ISO 17020 audit sign-offs.",
+    description: "Pre-pour concealed works, rebar & MEP layout inspection, QA/QC non-destructive testing, and technical audit sign-offs.",
     href: "/quality-bill-verification",
     rev: "Rev 3.0",
     fieldsCount: 36,
@@ -175,7 +175,7 @@ export default function PMSFormatesHubPage() {
               <span>PMS Formats Hub</span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
-              ISO 9001:2015 &bull; ISO 17020 Compliant
+              TPI Quality Standards
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
               Controlled Quality Dossiers

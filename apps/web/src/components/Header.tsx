@@ -347,7 +347,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   </div>
                   <div>
                     <div className="font-bold text-xs">Quality Verification</div>
-                    <div className="text-[11px] text-slate-400 truncate">Concealed Work &amp; ISO 17020 (F-QUAL-01)</div>
+                    <div className="text-[11px] text-slate-400 truncate">Concealed Work &amp; Quality Audit (F-QUAL-01)</div>
                   </div>
                 </Link>
                 <Link
@@ -544,7 +544,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 </Link>
                 <Link
                   onClick={() => setActiveDropdown(null)}
-                  href="/itps#iso17020"
+                  href="/itps#quality"
                   className={`group/item flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
                     isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
                   }`}
@@ -553,8 +553,8 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                     <Shield className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-bold text-xs">ISO 17020 Quality Assurance</div>
-                    <div className="text-[11px] text-slate-400 truncate">Conformity &amp; Accreditation Matrix</div>
+                    <div className="font-bold text-xs">TPI Quality Assurance</div>
+                    <div className="text-[11px] text-slate-400 truncate">Conformity &amp; Inspection Matrix</div>
                   </div>
                 </Link>
               </div>
@@ -879,7 +879,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <div>
                   <div>Quality Verification</div>
-                  <div className="text-[11px] text-slate-400 font-normal">ISO 17020 (F-QUAL-01)</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Quality Audit (F-QUAL-01)</div>
                 </div>
               </Link>
               <Link
@@ -943,11 +943,11 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   ITP Matrix
                 </Link>
                 <Link
-                  href="/itps#iso17020"
+                  href="/itps#quality"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block py-1 hover:text-[#0084bf] font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  ISO 17020 QA
+                  TPI Quality QA
                 </Link>
               </div>
               <div>

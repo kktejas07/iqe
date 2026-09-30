@@ -31,7 +31,7 @@ function VerifyContent() {
           <IQELogo className="w-11 h-11" />
           <div>
             <p className="font-heading font-bold leading-tight">Ideal Quality Engineers (I) Pvt Ltd</p>
-            <p className="text-[11px] text-sky-200/80">ISO 9001:2015 · ISO/IEC 17020 Inspection Body</p>
+            <p className="text-[11px] text-sky-200/80">Third Party Inspection &amp; Engineering Services</p>
           </div>
         </div>
       </div>

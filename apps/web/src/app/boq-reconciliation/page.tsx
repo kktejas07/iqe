@@ -799,9 +799,6 @@ export default function BOQReconciliationPage() {
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <span>BOQ Reconciliation &amp; Material Audit</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
-              FORMAT F-BOQ-01 &bull; ISO 17020
-            </span>
 
             {/* Select Client Asset Dropdown */}
             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs max-w-full min-w-0">
@@ -818,13 +815,6 @@ export default function BOQReconciliationPage() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* FIDIC Red Book Clause Badge */}
-            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-              <Scale className="w-3.5 h-3.5 text-brand-600" />
-              <span className="text-slate-500 text-[11px] font-bold">Standard:</span>
-              <span className="text-slate-800 font-extrabold">FIDIC Red Book Cl. 14.1</span>
             </div>
           </div>
 
@@ -1810,17 +1800,33 @@ export default function BOQReconciliationPage() {
       {/* TAB 4: TPI AUDIT SIGN-OFF CERTIFICATE */}
       {activeTab === "signoff" && (
         <div className="keep-light bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900 font-heading">
-                TPI BOQ Audit &amp; Technical Recommendation Certificate
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-extrabold text-slate-900 font-heading">
+                  TPI BOQ Audit &amp; Technical Recommendation Certificate
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#003366] text-white font-mono text-[11px] font-bold">
+                  CERT-IQE-BOQ-2026-089
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Pursuant to ISO 17020 Type-A Inspection Agency requirements &amp; General Conditions of Contract (GCC).
+                Pursuant to Joint Site Physical Measurements &amp; General Conditions of Contract (GCC).
               </p>
             </div>
-            <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono text-xs font-bold">
-              PASSED FOR BILL VERIFICATION
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPdfPreview(true)}
+                className="px-3 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                title="Preview Certificate"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Preview / Print</span>
+              </button>
+              <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono text-xs font-bold">
+                PASSED FOR BILL VERIFICATION
+              </div>
             </div>
           </div>
 

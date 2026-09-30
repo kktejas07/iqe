@@ -73,7 +73,7 @@ const VENDOR_ANALYTICS_DATA: VendorAnalytics[] = [
     topAuditTypes: ["ASME Sec VIII Hydrotest", "90° Elbow Forging UT Check", "Radiographic Film Sign-off"],
     recommendedAuditors: [
       { name: "Er. K. Patel", qualification: "NDT Level III / Pressure Vessel Specialist", matchScore: 98, completedVisits: 56 },
-      { name: "Er. S. Nair", qualification: "ISO 17020 Lead Auditor", matchScore: 94, completedVisits: 31 },
+      { name: "Er. S. Nair", qualification: "Lead Quality Auditor", matchScore: 94, completedVisits: 31 },
     ],
   },
   {
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
           <div>
             <p className="text-[11px] font-extrabold text-brand-900 uppercase tracking-wider">Avg Quality Compliance Score</p>
             <p className="text-2xl font-extrabold text-brand-900 font-mono mt-1">98.1%</p>
-            <p className="text-[11px] text-brand-800 font-bold mt-0.5">ISO 17020 &amp; ASME Compliant</p>
+            <p className="text-[11px] text-brand-800 font-bold mt-0.5">ASME &amp; TPI Quality Standards</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-white text-brand-700 border border-brand-200 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />

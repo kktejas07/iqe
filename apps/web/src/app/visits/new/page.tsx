@@ -210,7 +210,7 @@ function NewVisitForm() {
                 <option value="API 6D Valve & Flow Control Inspection Standard">API 6D Valve &amp; Flow Control Standard</option>
                 <option value="DIN EN 10204 3.1 Material Certificate Protocol">DIN EN 10204 3.1 Material Certification</option>
                 <option value="AWS D1.1 Structural Fabrication Code">AWS D1.1 Structural Fabrication Code</option>
-                <option value="BS EN ISO 17020 Inspection Agency Quality System">BS EN ISO 17020 Inspection Quality System</option>
+                <option value="TPI Quality Management System & Inspection Plan">TPI Quality Management System &amp; Inspection Plan</option>
               </select>
             </div>
           </div>

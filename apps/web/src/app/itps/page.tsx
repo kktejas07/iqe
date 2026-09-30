@@ -218,14 +218,8 @@ export default function ITPsPage() {
               <Layers className="w-6 h-6 text-[#0084bf]" />
               <span>Inspection &amp; Test Plans (ITP)</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
-              IQE-TP-01 &bull; REV 00
-            </span>
             <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[11px] font-bold font-mono">
               Quality Assurance Matrix
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold font-mono">
-              ISO/IEC 17020 Compliant
             </span>
           </div>
 

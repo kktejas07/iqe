@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import HTTPException
 from modules.jobs.models import Job, SOWItem, AssignmentHistoryEntry
 from modules.service_orders.models import ServiceOrder

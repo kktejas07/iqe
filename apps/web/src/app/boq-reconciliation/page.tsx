@@ -402,6 +402,15 @@ const INITIAL_MATERIALS: MaterialReconciliationItem[] = [
 
 export default function BOQReconciliationPage() {
   const [activeTab, setActiveTab] = useState<"matrix" | "materials" | "variations" | "signoff">("matrix");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleTabSwitch = (tab: "matrix" | "materials" | "variations" | "signoff") => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
+
   const [items, setItems] = useState<BOQItem[]>(INITIAL_BOQ_ITEMS);
   const [materials, setMaterials] = useState<MaterialReconciliationItem[]>(INITIAL_MATERIALS);
   const [selectedClient, setSelectedClient] = useState<string>("Granules India Limited - Gagillapur");
@@ -479,20 +488,20 @@ export default function BOQReconciliationPage() {
   const [search, setSearch] = useState("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
-  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+  const [isFilterSwitching, setIsFilterSwitching] = useState<boolean>(false);
 
   const handleSwitchDiscipline = (d: string) => {
     if (d === selectedDiscipline) return;
-    setIsTabSwitching(true);
+    setIsFilterSwitching(true);
     setSelectedDiscipline(d);
-    setTimeout(() => setIsTabSwitching(false), 220);
+    setTimeout(() => setIsFilterSwitching(false), 220);
   };
 
   const handleSwitchStatus = (s: string) => {
     if (s === selectedStatus) return;
-    setIsTabSwitching(true);
+    setIsFilterSwitching(true);
     setSelectedStatus(s);
-    setTimeout(() => setIsTabSwitching(false), 220);
+    setTimeout(() => setIsFilterSwitching(false), 220);
   };
 
   // Project Info initialized from client map
@@ -861,7 +870,7 @@ export default function BOQReconciliationPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-2">
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
-            onClick={() => setActiveTab("matrix")}
+            onClick={() => handleTabSwitch("matrix")}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === "matrix"
                 ? "bg-[#003366] text-white shadow-sm"
@@ -876,7 +885,7 @@ export default function BOQReconciliationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("materials")}
+            onClick={() => handleTabSwitch("materials")}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === "materials"
                 ? "bg-[#003366] text-white shadow-sm"
@@ -891,7 +900,7 @@ export default function BOQReconciliationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("variations")}
+            onClick={() => handleTabSwitch("variations")}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === "variations"
                 ? "bg-[#003366] text-white shadow-sm"
@@ -903,7 +912,7 @@ export default function BOQReconciliationPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("signoff")}
+            onClick={() => handleTabSwitch("signoff")}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === "signoff"
                 ? "bg-[#003366] text-white shadow-sm"
@@ -924,8 +933,16 @@ export default function BOQReconciliationPage() {
         </Link>
       </div>
 
-      {/* TAB 1: BOQ QUANTITY LEDGER */}
-      {activeTab === "matrix" && (
+      {/* SUB-MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* TAB 1: BOQ QUANTITY LEDGER */}
+          {activeTab === "matrix" && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4 space-y-3">
           {/* Main Table Toolbar (Identical to Bill Verification) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1043,7 +1060,7 @@ export default function BOQReconciliationPage() {
           </div>
 
           {/* TAB SWITCHING LOADER EFFECT */}
-          {isTabSwitching ? (
+          {isFilterSwitching ? (
             <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
               <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
               <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Filtering BOQ records...</p>
@@ -1868,6 +1885,8 @@ export default function BOQReconciliationPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* COMPREHENSIVE EDIT MODAL (Identical Multi-Section Layout to Bill Verification) */}

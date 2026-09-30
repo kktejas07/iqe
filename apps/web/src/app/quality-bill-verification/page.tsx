@@ -723,9 +723,12 @@ export default function QualityBillVerificationPage() {
   }, []);
 
   const handleClientChange = (client: string) => {
+    if (client === selectedClient) return;
+    setIsSwitchingLayout(true);
     setSelectedClient(client);
     setItems(CLIENT_ITEMS_MAP[client] || GRANULES_HYBRID_ITEMS);
     setMetadata(CLIENT_METADATA_MAP[client] || CLIENT_METADATA_MAP["Granules India Limited - Gagillapur"]);
+    setTimeout(() => setIsSwitchingLayout(false), 220);
   };
 
   const processedItems = useMemo(() => {
@@ -1162,7 +1165,7 @@ export default function QualityBillVerificationPage() {
       {isSwitchingLayout ? (
         <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
           <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
-          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Switching Layout View...</p>
+          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Loading Verification View...</p>
         </div>
       ) : (
         <>

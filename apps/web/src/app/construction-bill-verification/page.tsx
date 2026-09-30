@@ -650,8 +650,16 @@ export default function ConstructionBillVerificationPage() {
         </div>
       </div>
 
-      {/* Tab 1: 27-Column Precision Master Ledger */}
-      {activeTab === "abstract" && (
+      {/* MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* Tab 1: 27-Column Precision Master Ledger */}
+          {activeTab === "abstract" && (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm space-y-4">
           <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between bg-slate-50/50 gap-4">
             <div>
@@ -1215,6 +1223,8 @@ export default function ConstructionBillVerificationPage() {
             </button>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* View Item Detail Inspection Modal */}

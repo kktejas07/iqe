@@ -53,6 +53,7 @@ import {
   Users,
   Handshake,
   Landmark,
+  Loader2,
 } from "@/components/icons";
 
 import type { TpiInspectionMode, BillItem, AuditLog } from "./types";
@@ -86,6 +87,14 @@ export default function TPIBillingPage() {
   const [previewReportNo, setPreviewReportNo] = useState<string>("F-BILL-01");
 
   const [tpiMode, setTpiMode] = useState<TpiInspectionMode>("epc_sponsored");
+  const [isSwitchingMode, setIsSwitchingMode] = useState<boolean>(false);
+
+  const handleSwitchMode = (mode: TpiInspectionMode) => {
+    if (mode === tpiMode) return;
+    setIsSwitchingMode(true);
+    setTpiMode(mode);
+    setTimeout(() => setIsSwitchingMode(false), 220);
+  };
 
   const initialDetails = CLIENT_DETAILS_MAP["Granules India Limited - Gagillapur"];
   const [selectedVendor, setSelectedVendor] = useState<string>(initialDetails.vendor);
@@ -99,7 +108,10 @@ export default function TPIBillingPage() {
   const [supplierVendor, setSupplierVendor] = useState<string>(initialDetails.supplierVendor);
 
   const handleClientChange = (client: string) => {
+    if (client === selectedClient) return;
+    setIsSwitchingMode(true);
     setSelectedClient(client);
+    setTimeout(() => setIsSwitchingMode(false), 220);
     const details = CLIENT_DETAILS_MAP[client] || {
       projectName: `${client} Project`,
       projectLocation: "Industrial Site, India",
@@ -597,7 +609,7 @@ export default function TPIBillingPage() {
                 return (
                   <button
                     key={m.id}
-                    onClick={() => setTpiMode(m.id)}
+                    onClick={() => handleSwitchMode(m.id)}
                     title={m.tooltip}
                     className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       tpiMode === m.id
@@ -666,7 +678,14 @@ export default function TPIBillingPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4">
+      {/* TPI BILLING LEDGER TRANSITION LOADER */}
+      {isSwitchingMode ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono tracking-wide">Loading Billing Ledger...</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-brand-600" />
@@ -1048,6 +1067,7 @@ export default function TPIBillingPage() {
           </table>
         </div>
       </div>
+      )}
 
       {/* Add New BOQ Item Row Modal (All 27 Columns / Parameters) */}
       {showAddRowModal && (

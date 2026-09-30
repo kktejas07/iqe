@@ -38,6 +38,7 @@ import {
   Info,
   Settings,
   X,
+  Loader2,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 
@@ -48,6 +49,16 @@ export default function ScheduleMPharmaEPCPage() {
   const [activeTab, setActiveTab] = useState<
     "checklists" | "requirements" | "commercial" | "governance" | "reports" | "expert_scorecard"
   >("checklists");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleTabSwitch = (
+    tab: "checklists" | "requirements" | "commercial" | "governance" | "reports" | "expert_scorecard"
+  ) => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
 
   // Filters & State
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("ALL");
@@ -445,8 +456,8 @@ export default function ScheduleMPharmaEPCPage() {
       {/* Main Tabs Navigation */}
       <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto text-sm">
         <button
-          onClick={() => setActiveTab("checklists")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("checklists")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "checklists"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -460,8 +471,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("requirements")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("requirements")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "requirements"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -475,8 +486,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("commercial")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("commercial")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "commercial"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -490,8 +501,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("governance")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("governance")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "governance"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -505,8 +516,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("reports")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("reports")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "reports"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -517,8 +528,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("expert_scorecard")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("expert_scorecard")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "expert_scorecard"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -529,8 +540,16 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
       </div>
 
-      {/* TAB 1: MASTER FIELD CHECKLISTS */}
-      {activeTab === "checklists" && (
+      {/* MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-slate-900/60 rounded-2xl border border-slate-800 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+          <p className="text-xs font-bold text-slate-300 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* TAB 1: MASTER FIELD CHECKLISTS */}
+          {activeTab === "checklists" && (
         <div className="space-y-4">
           {/* Filter Bar */}
           <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
@@ -2127,6 +2146,8 @@ export default function ScheduleMPharmaEPCPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* PROJECT SETUP & CONTRACT BASIS MODAL */}

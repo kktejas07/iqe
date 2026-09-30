@@ -26,6 +26,7 @@ import {
   Building2,
   Calendar,
   Sparkles,
+  Loader2,
 } from "@/components/icons";
 import { IQELoader } from "@/components/IQELoader";
 import { toast } from "@/components/feedback";
@@ -114,6 +115,15 @@ const IQE_FORMAT_TEMPLATES = [
 export default function TPIProcessFlowPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"flow" | "tm_review" | "templates" | "competence" | "nan">("flow");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleTabSwitch = (tab: "flow" | "tm_review" | "templates" | "competence") => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
+
   const [calls, setCalls] = useState<TPICallItem[]>(INITIAL_CALLS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
@@ -212,8 +222,8 @@ export default function TPIProcessFlowPage() {
       {/* Module Sub-Tabs */}
       <div className="flex border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1 overflow-x-auto text-xs font-bold">
         <button
-          onClick={() => setActiveTab("flow")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("flow")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "flow"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -224,8 +234,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("tm_review")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("tm_review")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "tm_review"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -236,8 +246,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("templates")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("templates")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "templates"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -248,8 +258,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("competence")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("competence")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "competence"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -260,8 +270,16 @@ export default function TPIProcessFlowPage() {
         </button>
       </div>
 
-      {/* TAB 1: 7-STAGE PROCESS FLOW STEPPER */}
-      {activeTab === "flow" && (
+      {/* SUB-MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* TAB 1: 7-STAGE PROCESS FLOW STEPPER */}
+          {activeTab === "flow" && (
         <div className="space-y-6">
           {/* Interactive Stepper Banner */}
           <div className="p-6 rounded-3xl bg-gradient-to-r from-[#002855] via-[#003366] to-[#00509d] text-white shadow-xl space-y-6">
@@ -539,6 +557,8 @@ export default function TPIProcessFlowPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* Format Modal Preview */}

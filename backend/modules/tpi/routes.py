@@ -1,6 +1,9 @@
+import logging
 import os
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Response
+
+logger = logging.getLogger("tpi.pdf")
 from modules.tpi.schemas import (
     CreateReportRequest,
     UpdateReportRequest,
@@ -29,6 +32,7 @@ async def get_blank_pdf(form_code: str):
             headers={"Content-Disposition": f"inline; filename={form_code}_Blank.pdf"}
         )
     except Exception as e:
+        logger.exception("Failed to generate blank PDF for %s", form_code)
         raise HTTPException(status_code=500, detail=f"Failed to generate blank PDF: {str(e)}")
 
 
@@ -43,6 +47,7 @@ async def get_preview_pdf(form_code: str):
             headers={"Content-Disposition": f"inline; filename={form_code}_Controlled.pdf"}
         )
     except Exception as e:
+        logger.exception("Failed to generate preview PDF for %s", form_code)
         raise HTTPException(status_code=500, detail=f"Failed to generate preview PDF: {str(e)}")
 
 
@@ -57,6 +62,7 @@ async def render_live_pdf_post(form_code: str, payload: dict = {}):
             headers={"Content-Disposition": f"inline; filename={form_code}.pdf"}
         )
     except Exception as e:
+        logger.exception("Failed to render live PDF for %s", form_code)
         raise HTTPException(status_code=500, detail=f"Failed to render live PDF: {str(e)}")
 
 
@@ -112,6 +118,7 @@ async def get_report_pdf(id: str, draft: bool = True):
             headers={"Content-Disposition": f"inline; filename={report.report_no}.pdf"}
         )
     except Exception as e:
+        logger.exception("Failed to render PDF for report %s", id)
         raise HTTPException(status_code=500, detail=f"Failed to render PDF: {str(e)}")
 
 

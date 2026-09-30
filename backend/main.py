@@ -78,14 +78,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
-# Filter out '*' if credentials are true to satisfy CORS specification across browsers
-sanitized_origins = [o for o in settings.allowed_origins if o != "*"]
+configured_origins = [o.strip() for o in settings.allowed_origins if o and o.strip()]
+allow_all_origins = "*" in configured_origins
+explicit_origins = [o for o in configured_origins if o != "*"]
+
+# localhost plus private LAN ranges, so the app can be opened from a phone on the same Wi-Fi
+lan_regex = (
+    r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|10(\.\d{1,3}){3}"
+    r"|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})(:\d+)?$"
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=sanitized_origins if sanitized_origins else ["*"],
-    # localhost plus private LAN ranges, so the app can be opened from a phone on the same Wi-Fi
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})(:\d+)?$",
+    allow_origins=explicit_origins,
+    # Reflect any origin (with credentials) when '*' is configured, else allow the
+    # explicit/env origins plus localhost/LAN hosts.
+    allow_origin_regex=r".*" if allow_all_origins else lan_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -157,6 +165,19 @@ async def open_verify_link(code: str):
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": settings.app_name, "platform": sys.platform}
+
+
+@app.get("/health/pdf")
+async def health_pdf():
+    status = {"available": False, "version": None, "error": None}
+    try:
+        import weasyprint
+
+        status["available"] = True
+        status["version"] = getattr(weasyprint, "__version__", "unknown")
+    except Exception as e:
+        status["error"] = str(e)
+    return status
 
 
 def main():

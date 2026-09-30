@@ -1558,7 +1558,35 @@ export default function ConstructionBillVerificationPage() {
         onClose={() => setShowPdfModal(false)}
         title="Construction Bill Verification Certificate & Ledger"
         reportNo="SITE-MUDIGONDA-01"
+        formCode="F-BILL-01"
         pdfUrl={`${API_BASE}/api/v1/construction-bill-verification/export/pdf`}
+        payload={{
+          report_no: "SITE-MUDIGONDA-01",
+          date: new Date().toISOString().split("T")[0],
+          customer: "State Health Medical Infrastructure Corp / MCGM",
+          project: "Civil & Infrastructure Construction - Package A",
+          epc_contractor: "Suguna Metals & Civil Contractors Ltd.",
+          po_no: "PO-MCGM-2026-891",
+          ra_bill_no: "RA-CBV-2026-004",
+          inspector: "Er. Ramesh V (Chief Resident Engineer)",
+          discipline: "Civil & Structural Engineering",
+          items: (abstractData?.items || []).slice(0, 100).map((m: any, idx: number) => ({
+            sl: idx + 1,
+            boq_item: m.item_code || m.boqItem || `CBV-${idx + 1}`,
+            drawing_ref: m.drawingRef,
+            description: m.description,
+            unit: m.unit,
+            scope_qty: m.contractQty,
+            claimed_qty: m.claimedQty,
+            verified_qty: m.verifiedQty,
+            diff_qty: m.diffQty,
+            claimed_amt: m.claimedAmount,
+            verified_amt: m.recommendedAmount,
+            status: m.actionRequired || "Verified & Approved",
+          })),
+          total_claimed_amt: (abstractData?.items || []).reduce((acc: number, m: any) => acc + (m.claimedAmount || 0), 0),
+          total_verified_amt: (abstractData?.items || []).reduce((acc: number, m: any) => acc + (m.recommendedAmount || 0), 0),
+        }}
       />
     </div>
   );

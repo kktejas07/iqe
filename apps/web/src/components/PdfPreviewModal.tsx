@@ -417,7 +417,7 @@ export function PdfPreviewModal({
                         Third Party Inspection &bull; Quality Surveillance &bull; Bill Verification Agency
                       </p>
                       <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                        ISO 9001:2015 Accredited Inspection Body &bull; Reg Ref: IQE-QA-QC-INSP
+                        Third Party Inspection Body &bull; Reg Ref: IQE-QA-QC-INSP
                       </p>
                     </div>
                   </div>
@@ -618,7 +618,7 @@ export function PdfPreviewModal({
               {/* Quality & Legal Disclaimer */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 leading-relaxed">
                 <p className="font-bold text-slate-800 mb-1">Audit Protocol &amp; Certification Statement:</p>
-                This Verification Report is generated in accordance with IQE Standard Operating Procedure SOP-QVR-04, ISO 9001:2015 surveillance parameters, and contract conditions. Verified quantities represent joint physical measurements conducted at site. Disallowed amounts reflect excess claims, pending test reports, or unapproved variations per IS/ASTM codes.
+                This Verification Report is generated in accordance with IQE Standard Operating Procedure SOP-QVR-04, technical surveillance parameters, and contract conditions. Verified quantities represent joint physical measurements conducted at site. Disallowed amounts reflect excess claims, pending test reports, or unapproved variations per IS/ASTM codes.
               </div>
 
               {/* Digital Sign-off & Stamp Section */}

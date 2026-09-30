@@ -3,6 +3,7 @@
 import { API_BASE } from "@/lib/config";
 import { useState, useMemo, useEffect } from "react";
 import { trackButtonClick } from "@/lib/analytics";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { IQELoader } from "@/components/IQELoader";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 import {
@@ -1070,9 +1071,14 @@ export default function QualityBillVerificationPage() {
 
             {/* DOWNLOAD IN PDF BUTTON */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 trackButtonClick("btn_download_qvr_pdf", "pdf_download", "QVR Master PDF", "reports");
-                window.open(`${API_BASE}/api/v1/reports/pdf/quality-bill-verification`, "_blank");
+                const url = `${API_BASE}/api/v1/reports/pdf/quality-bill-verification`;
+                const filename = `Quality_Bill_Verification_${(metadata?.reportNo || "IQE_QVR").replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+                const ok = await downloadPdfFile(url, filename, "/sample-pdfs/FQUAL01.pdf");
+                if (!ok) {
+                  setShowPdfPreview(true);
+                }
               }}
               className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in PDF Format with IQE Logo, Header & Footer"

@@ -153,7 +153,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               Ideal Quality Engineers (I) Pvt Ltd
             </h1>
             <p className="text-[11px] sm:text-[11px] text-red-600 dark:text-red-400 font-semibold block leading-tight flex items-center gap-1">
-              <span>An ISO 9001:2015 Certified Company</span>
+              <span>Third Party Inspection &amp; Engineering</span>
               <span className="relative inline-flex w-1.5 h-1.5">
                 <span className="absolute inset-0 rounded-full bg-red-500 animate-ping-soft" />
                 <span className="relative inline-block w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400" />

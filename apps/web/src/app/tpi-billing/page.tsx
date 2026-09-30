@@ -3,6 +3,7 @@
 import { API_BASE } from "@/lib/config";
 import { useState, useMemo, useEffect } from "react";
 import { trackButtonClick, trackPageView } from "@/lib/analytics";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 import {
   FileSpreadsheet,
@@ -453,7 +454,9 @@ export default function TPIBillingPage() {
     document.body.removeChild(link);
   };
 
-  const handleDownloadSingleRowPDF = (item: BillItem) => {
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleDownloadSingleRowPDF = async (item: BillItem) => {
     trackButtonClick("btn_download_tpi_item_pdf", "pdf_download", `Download BOQ Item ${item.boqItem} PDF Report`, "reports");
     const params = new URLSearchParams({
       boq_item: item.boqItem,
@@ -471,7 +474,30 @@ export default function TPIBillingPage() {
       closure_status: item.closureStatus,
       is_locked: item.isLocked ? "true" : "false",
     });
-    window.open(`${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`, "_blank");
+    const url = `${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`;
+    const filename = `BOQ_Item_${item.boqItem.replace(/[^a-zA-Z0-9]/g, "_")}_Certificate.pdf`;
+    const success = await downloadPdfFile(url, filename, "/sample-pdfs/BOQ.pdf");
+    if (!success) {
+      handlePreviewSingleRowPDF(item);
+    }
+  };
+
+  const handleExportMasterPDF = async () => {
+    setIsExportingPdf(true);
+    trackButtonClick("btn_download_tpi_all_pdf", "pdf_download", "Download All Items TPI Billing PDF Report", "reports");
+    const directUrl = `${API_BASE}/api/v1/reports/pdf/tpi-billing`;
+    const fallbackStatic = `/sample-pdfs/F-BILL-01.pdf`;
+    const safeClient = selectedClient.replace(/[^a-zA-Z0-9]/g, "_");
+    const filename = `IQE_TPI_Billing_Master_Report_${safeClient}.pdf`;
+
+    const success = await downloadPdfFile(directUrl, filename, fallbackStatic);
+    if (!success) {
+      setPreviewPdfUrl(directUrl);
+      setPreviewPdfTitle("TPI Bill Verification Master Report");
+      setPreviewReportNo("F-BILL-01");
+      setShowPdfPreview(true);
+    }
+    setIsExportingPdf(false);
   };
 
   const handlePreviewSingleRowPDF = (item: BillItem) => {
@@ -573,9 +599,6 @@ export default function TPIBillingPage() {
             <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <span>Bill Verification Platform</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] border border-blue-200 dark:bg-sky-900/40 dark:text-sky-200 dark:border-sky-700 text-[11px] font-bold font-mono">
-              ISO 9001:2015 Certified
-            </span>
 
             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
               <Users className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -596,13 +619,13 @@ export default function TPIBillingPage() {
 
             <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold max-w-full">
               <span className="px-2 text-slate-500 text-[11px] font-bold flex items-center gap-1">
-                <Handshake className="w-3.5 h-3.5 text-brand-500" /> TPI Mode:
+                <Handshake className="w-3.5 h-3.5 text-brand-500" /> TPI:
               </span>
               {(
                 [
-                  { id: "epc_sponsored", label: "EPC Sponsored", icon: Building2, tooltip: "EPC = Client | EPC's Client = End Client" },
-                  { id: "end_client_direct", label: "End Client Direct", icon: Landmark, tooltip: "End Client = Primary Client" },
-                  { id: "tripartite", label: "Tripartite (EPC & End Client)", icon: Handshake, tooltip: "Exclusive 3-way alignment between EPC & End Client" },
+                  { id: "epc_sponsored", label: "EPC", icon: Building2, tooltip: "Verification commissioned by EPC Contractor" },
+                  { id: "end_client_direct", label: "End Client", icon: Landmark, tooltip: "Verification commissioned directly by Project Owner / End Client" },
+                  { id: "tripartite", label: "Tripartite", icon: Handshake, tooltip: "Joint 3-party verification agreement between EPC Contractor, End Client, and TPI (Third Party Inspection)" },
                 ] as const
               ).map((m) => {
                 const IconComp = m.icon;
@@ -663,16 +686,13 @@ export default function TPIBillingPage() {
             </button>
 
             <button
-              onClick={() => {
-                trackButtonClick("btn_download_tpi_pdf", "pdf_download", "Download TPI Billing PDF Report", "reports");
-                const apiHost = API_BASE;
-                window.open(`${apiHost}/api/v1/reports/pdf/tpi-billing`, "_blank");
-              }}
-              className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer"
-              title="Download PDF File"
+              onClick={handleExportMasterPDF}
+              disabled={isExportingPdf}
+              className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              title="Download Master PDF File"
               aria-label="Download PDF file"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className={`w-4 h-4 ${isExportingPdf ? "animate-pulse" : ""}`} />
             </button>
           </div>
         </div>
@@ -762,16 +782,13 @@ export default function TPIBillingPage() {
             </button>
 
             <button
-              onClick={() => {
-                trackButtonClick("btn_download_tpi_all_pdf", "pdf_download", "Download All Items TPI Billing PDF Report", "reports");
-                const apiHost = API_BASE;
-                window.open(`${apiHost}/api/v1/reports/pdf/tpi-billing`, "_blank");
-              }}
-              className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+              onClick={handleExportMasterPDF}
+              disabled={isExportingPdf}
+              className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-50"
               title="Export All Items to Master 27-Column PDF Report with IQE Watermark & QR Code"
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Export PDF ({items.length})</span>
+              <FileText className={`w-3.5 h-3.5 ${isExportingPdf ? "animate-pulse" : ""}`} />
+              <span>{isExportingPdf ? "Exporting PDF..." : `Export PDF (${items.length})`}</span>
             </button>
             <button
               onClick={handleOpenAddRowModal}

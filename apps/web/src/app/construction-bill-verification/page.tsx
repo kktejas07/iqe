@@ -2,6 +2,7 @@
 
 import { API_BASE } from "@/lib/config";
 import { useState, useEffect } from "react";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 import {
   Building2,
@@ -351,7 +352,17 @@ export default function ConstructionBillVerificationPage() {
     }
   };
 
-  const handleExport = (type: "pdf" | "excel" | "docx") => {
+  const handleExport = async (type: "pdf" | "excel" | "docx") => {
+    if (type === "pdf") {
+      const url = `${API_BASE}/api/v1/construction-bill-verification/export/pdf`;
+      const fallback = `/sample-pdfs/F-BILL-01.pdf`;
+      const filename = `Construction_Bill_Verification_${new Date().toISOString().split("T")[0]}.pdf`;
+      const ok = await downloadPdfFile(url, filename, fallback);
+      if (!ok) {
+        setShowPdfModal(true);
+      }
+      return;
+    }
     const url = `${API_BASE}/api/v1/construction-bill-verification/export/${type}`;
     window.open(url, "_blank");
   };

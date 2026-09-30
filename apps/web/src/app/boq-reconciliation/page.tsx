@@ -1009,7 +1009,7 @@ export default function BOQReconciliationPage() {
               </button>
 
               <a
-                href="http://localhost:8000/api/v1/reports/pdf/boq-reconciliation"
+                href="/api/v1/reports/pdf/boq-reconciliation"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
@@ -1383,7 +1383,7 @@ export default function BOQReconciliationPage() {
 
                           <button
                             onClick={() => {
-                              window.open("http://localhost:8000/api/v1/reports/pdf/boq-reconciliation", "_blank");
+                              window.open("/api/v1/reports/pdf/boq-reconciliation", "_blank");
                             }}
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                             title="Download Single PDF Report"
@@ -2359,7 +2359,7 @@ export default function BOQReconciliationPage() {
         }}
         title="BOQ Reconciliation & Material Audit Report"
         reportNo="F-BOQ-01"
-        pdfUrl="http://localhost:8000/api/v1/reports/pdf/boq-reconciliation"
+        pdfUrl="/api/v1/reports/pdf/boq-reconciliation"
       />
     </div>
   );

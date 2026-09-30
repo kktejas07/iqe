@@ -88,7 +88,7 @@ export default function JobDetailPage() {
           </div>
 
           <a
-            href="http://localhost:8000/api/v1/reports/pdf/tpi-billing"
+            href="/api/v1/reports/pdf/tpi-billing"
             target="_blank"
             rel="noopener noreferrer"
             className="px-5 py-3 rounded-2xl bg-white hover:bg-slate-100 text-[#003366] text-xs font-extrabold shadow-lg transition-all flex items-center justify-center gap-2"

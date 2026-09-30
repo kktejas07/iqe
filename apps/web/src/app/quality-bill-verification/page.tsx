@@ -631,7 +631,7 @@ export default function QualityBillVerificationPage() {
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
-  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>("/api/v1/reports/pdf/quality-bill-verification");
   const [previewPdfTitle, setPreviewPdfTitle] = useState<string>("Quality Bill Verification Certificate & Audit");
   const [previewReportNo, setPreviewReportNo] = useState<string>("IQE/QVR/2026/084");
 
@@ -919,7 +919,7 @@ export default function QualityBillVerificationPage() {
       closure_status: item.verificationStatus,
       is_locked: item.isLocked.toString(),
     });
-    window.open(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`, "_blank");
+    window.open(`/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`, "_blank");
   };
 
   const handlePreviewSinglePDF = (item: HybridQVRItem) => {
@@ -940,7 +940,7 @@ export default function QualityBillVerificationPage() {
       closure_status: item.verificationStatus,
       is_locked: item.isLocked.toString(),
     });
-    setPreviewPdfUrl(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`);
+    setPreviewPdfUrl(`/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`);
     setPreviewPdfTitle(`Quality Verification - Item ${item.boqItem}`);
     setPreviewReportNo(item.boqItem);
     setShowPdfPreview(true);
@@ -1026,7 +1026,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_qvr_word", "docx_download", "QVR Master Word", "reports");
-                window.open("http://localhost:8000/api/v1/reports/docx/quality-bill-verification", "_blank");
+                window.open("/api/v1/reports/docx/quality-bill-verification", "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in Word (.docx) Format with IQE Logo, Header & Footer"
@@ -1039,7 +1039,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_export_hybrid_qvr_excel", "excel_export", "Export IQE Hybrid QVR Excel", "reports");
-                window.open("http://localhost:8000/api/v1/reports/excel/quality-bill-verification", "_blank");
+                window.open("/api/v1/reports/excel/quality-bill-verification", "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in Excel (.xlsx) Format with IQE Logo, Header & Footer"
@@ -1052,7 +1052,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_live_preview_qvr_pdf", "pdf_preview", "QVR Live Preview", "reports");
-                setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+                setPreviewPdfUrl("/api/v1/reports/pdf/quality-bill-verification");
                 setPreviewPdfTitle("Quality Bill Verification Certificate & Audit");
                 setPreviewReportNo(metadata?.reportNo || "IQE/QVR/2026/084");
                 setShowPdfPreview(true);
@@ -1068,7 +1068,7 @@ export default function QualityBillVerificationPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_qvr_pdf", "pdf_download", "QVR Master PDF", "reports");
-                window.open("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification", "_blank");
+                window.open("/api/v1/reports/pdf/quality-bill-verification", "_blank");
               }}
               className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               title="Download Master Quality Report in PDF Format with IQE Logo, Header & Footer"
@@ -1203,7 +1203,7 @@ export default function QualityBillVerificationPage() {
           <button
             onClick={() => {
               trackButtonClick("btn_live_preview_qvr_pdf_bar", "pdf_preview", "QVR Live Preview Bar", "reports");
-              setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/quality-bill-verification");
+              setPreviewPdfUrl("/api/v1/reports/pdf/quality-bill-verification");
               setPreviewPdfTitle("Quality Bill Verification Certificate & Audit");
               setPreviewReportNo(metadata?.reportNo || "IQE/QVR/2026/084");
               setShowPdfPreview(true);
@@ -1388,7 +1388,7 @@ export default function QualityBillVerificationPage() {
                   </button>
 
                   <button
-                    onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                    onClick={() => window.open(`/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                     className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Download Word Doc for this item with IQE Logo & Header"
                   >
@@ -1406,7 +1406,7 @@ export default function QualityBillVerificationPage() {
                   </button>
 
                   <button
-                    onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                    onClick={() => window.open(`/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                     className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Download Excel for this item with IQE Logo & Header"
                   >
@@ -1664,7 +1664,7 @@ export default function QualityBillVerificationPage() {
                           </button>
 
                           <button
-                            onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                            onClick={() => window.open(`/api/v1/reports/docx/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                             className="p-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 transition-all cursor-pointer"
                             title="Download Word Doc with IQE Header"
                           >
@@ -1680,7 +1680,7 @@ export default function QualityBillVerificationPage() {
                           </button>
 
                           <button
-                            onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
+                            onClick={() => window.open(`/api/v1/reports/excel/tpi-billing-item?boq_item=${item.boqItem}`, "_blank")}
                             className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all cursor-pointer"
                             title="Download Excel with IQE Header"
                           >
@@ -2132,14 +2132,14 @@ export default function QualityBillVerificationPage() {
 
             <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-end gap-2">
               <button
-                onClick={() => window.open(`http://localhost:8000/api/v1/reports/docx/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
+                onClick={() => window.open(`/api/v1/reports/docx/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
                 className="px-3.5 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <FileCode className="w-4 h-4 text-sky-300" />
                 <span>Export Word</span>
               </button>
               <button
-                onClick={() => window.open(`http://localhost:8000/api/v1/reports/excel/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
+                onClick={() => window.open(`/api/v1/reports/excel/tpi-billing-item?boq_item=${viewingItem.boqItem}`, "_blank")}
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Download className="w-4 h-4" />

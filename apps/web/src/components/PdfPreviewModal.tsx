@@ -25,6 +25,7 @@ export function PdfPreviewModal({
   const [activeUrl, setActiveUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLiveSynced, setIsLiveSynced] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const currentBlobUrlRef = useRef<string | null>(null);
 
   const cleanupBlob = useCallback(() => {
@@ -34,75 +35,59 @@ export function PdfPreviewModal({
     }
   }, []);
 
+  const fetchAsBlob = useCallback(
+    async (url: string, init?: RequestInit) => {
+      const response = await fetch(url, init);
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      cleanupBlob();
+      const pdfBlob = new Blob([blob], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      currentBlobUrlRef.current = blobUrl;
+      setActiveUrl(blobUrl);
+      return blobUrl;
+    },
+    [cleanupBlob]
+  );
+
   const loadPdf = useCallback(async () => {
     if (!formCode && !pdfUrl) return;
 
-    // Default fallback url
-    const fallbackUrl =
-      pdfUrl ||
-      `http://localhost:8000/api/tpi/preview/${formCode || "TP02"}.pdf`;
+    setError("");
+    setIsLoading(true);
+    setIsLiveSynced(false);
 
-    if (formCode && payload) {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `http://localhost:8000/api/tpi/render/${formCode}.pdf`,
-          {
+    const previewUrl = `/api/tpi/preview/${formCode || "TP02"}.pdf`;
+    const fallbackUrl = pdfUrl || previewUrl;
+
+    try {
+      if (formCode && payload) {
+        try {
+          await fetchAsBlob(`/api/tpi/render/${formCode}.pdf`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          }
-        );
-
-        if (response.ok) {
-          const blob = await response.blob();
-          cleanupBlob();
-          const pdfBlob = new Blob([blob], { type: "application/pdf" });
-          const blobUrl = URL.createObjectURL(pdfBlob);
-          currentBlobUrlRef.current = blobUrl;
-          setActiveUrl(blobUrl);
+          });
           setIsLiveSynced(true);
-        } else {
-          console.warn("Live PDF render failed, falling back to static preview:", response.statusText);
-          cleanupBlob();
-          setActiveUrl(fallbackUrl);
-          setIsLiveSynced(false);
+          return;
+        } catch (err) {
+          console.warn("Live PDF render failed, trying static preview:", err);
         }
-      } catch (err) {
-        console.warn("Failed to reach live PDF endpoint, using fallback:", err);
-        cleanupBlob();
-        setActiveUrl(fallbackUrl);
-        setIsLiveSynced(false);
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      setIsLoading(true);
-      try {
-        const response = await fetch(fallbackUrl);
-        if (response.ok) {
-          const blob = await response.blob();
-          cleanupBlob();
-          const pdfBlob = new Blob([blob], { type: "application/pdf" });
-          const blobUrl = URL.createObjectURL(pdfBlob);
-          currentBlobUrlRef.current = blobUrl;
-          setActiveUrl(blobUrl);
-        } else {
-          cleanupBlob();
-          setActiveUrl(fallbackUrl);
-        }
-      } catch (err) {
-        console.warn("Failed to fetch PDF blob, using direct URL:", err);
-        cleanupBlob();
-        setActiveUrl(fallbackUrl);
-      } finally {
-        setIsLiveSynced(false);
-        setIsLoading(false);
-      }
+      await fetchAsBlob(fallbackUrl);
+    } catch (err) {
+      console.warn("Failed to load PDF from any source:", err);
+      cleanupBlob();
+      setActiveUrl("");
+      setError(
+        "Unable to reach the PDF service. Check that the API is running and that the /api proxy target is configured."
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }, [formCode, payload, pdfUrl, cleanupBlob]);
+  }, [formCode, payload, pdfUrl, cleanupBlob, fetchAsBlob]);
 
   useEffect(() => {
     if (isOpen) {
@@ -111,6 +96,7 @@ export function PdfPreviewModal({
       cleanupBlob();
       setActiveUrl("");
       setIsLoading(false);
+      setError("");
     }
     return () => {
       cleanupBlob();
@@ -208,6 +194,24 @@ export function PdfPreviewModal({
             </div>
           )}
 
+          {error && !isLoading && (
+            <div className="absolute inset-4 z-10 flex flex-col items-center justify-center gap-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs rounded-2xl border border-rose-200 dark:border-rose-900 text-center px-6">
+              <p className="text-sm font-bold text-rose-700 dark:text-rose-300">
+                PDF service unavailable
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                {error}
+              </p>
+              <button
+                onClick={() => loadPdf()}
+                className="px-3.5 py-2 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry</span>
+              </button>
+            </div>
+          )}
+
           {activeUrl ? (
             <object
               data={`${activeUrl}#toolbar=1&navpanes=0`}
@@ -221,9 +225,11 @@ export function PdfPreviewModal({
               />
             </object>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-              Preparing live preview...
-            </div>
+            !error && (
+              <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
+                Preparing live preview...
+              </div>
+            )
           )}
         </div>
       </div>

@@ -149,7 +149,7 @@ export default function TPIProcessFlowPage() {
             <RefreshCw className="w-4 h-4 text-[#003366]" />
           </button>
           <a
-            href="http://localhost:8000/api/v1/reports/pdf/tpi-billing"
+            href="/api/v1/reports/pdf/tpi-billing"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-2xl bg-[#003366] hover:bg-[#002855] text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-2"

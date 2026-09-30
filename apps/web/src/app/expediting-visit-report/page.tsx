@@ -1070,7 +1070,7 @@ export default function ExpeditingVisitReportPage() {
 
                       {/* 6. Download Single Item PDF */}
                       <button
-                        onClick={() => window.open(`http://localhost:8000/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
+                        onClick={() => window.open(`/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
                         className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                         title="Download Single PDF Report"
                       >
@@ -1807,7 +1807,7 @@ export default function ExpeditingVisitReportPage() {
           })),
           conclusion: conclusionText,
         }}
-        pdfUrl="http://localhost:8000/api/tpi/preview/TP05.pdf"
+        pdfUrl="/api/tpi/preview/TP05.pdf"
         title="IQE-TP-05 Expediting Visit Report"
         reportNo={meta.reportNo}
       />

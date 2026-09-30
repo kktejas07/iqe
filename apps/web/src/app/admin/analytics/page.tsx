@@ -27,7 +27,7 @@ export default function AdminAnalyticsPage() {
   const fetchMetrics = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/analytics/summary?site_id=SITE-01");
+      const res = await fetch("/api/v1/analytics/summary?site_id=SITE-01");
       if (res.ok) {
         const data = await res.json();
         setMigrationStatus(data);
@@ -59,7 +59,7 @@ export default function AdminAnalyticsPage() {
     trackButtonClick("btn_run_legacy_migration", "migration_trigger", "Run Legacy Job Ingestion", "migration");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/jobs/migrate-legacy", {
+      const res = await fetch("/api/v1/jobs/migrate-legacy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

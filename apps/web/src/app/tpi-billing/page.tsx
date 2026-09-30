@@ -4305,7 +4305,7 @@ export default function TPIBillingPage() {
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<"TPI Engineer" | "Super Admin" | "Tenant PM" | "Contractor">("TPI Engineer");
   const [showPdfPreview, setShowPdfPreview] = useState<boolean>(false);
-  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>("http://localhost:8000/api/v1/reports/pdf/tpi-billing");
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string>("/api/v1/reports/pdf/tpi-billing");
   const [previewPdfTitle, setPreviewPdfTitle] = useState<string>("TPI Bill Verification Master Report");
   const [previewReportNo, setPreviewReportNo] = useState<string>("F-BILL-01");
 
@@ -4683,7 +4683,7 @@ export default function TPIBillingPage() {
       closure_status: item.closureStatus,
       is_locked: item.isLocked ? "true" : "false",
     });
-    window.open(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`, "_blank");
+    window.open(`/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`, "_blank");
   };
 
   const handlePreviewSingleRowPDF = (item: BillItem) => {
@@ -4704,7 +4704,7 @@ export default function TPIBillingPage() {
       closure_status: item.closureStatus,
       is_locked: item.isLocked ? "true" : "false",
     });
-    setPreviewPdfUrl(`http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`);
+    setPreviewPdfUrl(`/api/v1/reports/pdf/tpi-billing-item?${params.toString()}`);
     setPreviewPdfTitle(`BOQ Item ${item.boqItem} Verification Certificate`);
     setPreviewReportNo(item.boqItem);
     setShowPdfPreview(true);
@@ -4857,7 +4857,7 @@ export default function TPIBillingPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_live_preview_tpi_pdf", "pdf_preview", "Live Preview TPI Billing PDF", "reports");
-                setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/tpi-billing");
+                setPreviewPdfUrl("/api/v1/reports/pdf/tpi-billing");
                 setPreviewPdfTitle("TPI Bill Verification Master Report");
                 setPreviewReportNo("F-BILL-01");
                 setShowPdfPreview(true);
@@ -4872,7 +4872,7 @@ export default function TPIBillingPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_tpi_pdf", "pdf_download", "Download TPI Billing PDF Report", "reports");
-                const apiHost = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const apiHost = "";
                 window.open(`${apiHost}/api/v1/reports/pdf/tpi-billing`, "_blank");
               }}
               className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer"
@@ -5067,7 +5067,7 @@ export default function TPIBillingPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_live_preview_tpi_table_pdf", "pdf_preview", "Live Preview TPI Billing Ledger PDF", "reports");
-                setPreviewPdfUrl("http://localhost:8000/api/v1/reports/pdf/tpi-billing");
+                setPreviewPdfUrl("/api/v1/reports/pdf/tpi-billing");
                 setPreviewPdfTitle("TPI Bill Verification Master Report");
                 setPreviewReportNo("F-BILL-01");
                 setShowPdfPreview(true);
@@ -5082,7 +5082,7 @@ export default function TPIBillingPage() {
             <button
               onClick={() => {
                 trackButtonClick("btn_download_tpi_all_pdf", "pdf_download", "Download All Items TPI Billing PDF Report", "reports");
-                const apiHost = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const apiHost = "";
                 window.open(`${apiHost}/api/v1/reports/pdf/tpi-billing`, "_blank");
               }}
               className="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-all flex items-center gap-1 shadow-sm cursor-pointer"

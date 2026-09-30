@@ -1123,7 +1123,7 @@ export default function InspectionReleaseNotePage() {
 
                           {/* 6. Download Single Item PDF */}
                           <button
-                            onClick={() => window.open("http://localhost:8000/api/v1/reports/pdf/inspection-release-note", "_blank")}
+                            onClick={() => window.open("/api/v1/reports/pdf/inspection-release-note", "_blank")}
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                             title="Download Single PDF Report"
                           >
@@ -1844,7 +1844,7 @@ export default function InspectionReleaseNotePage() {
           dispatch_instructions: ["packing", "protect", "asbuilt", "dispatch_now"],
           remarks: "All items inspected as per approved QAP. Release granted for dispatch.",
         }}
-        pdfUrl="http://localhost:8000/api/tpi/preview/TP04.pdf"
+        pdfUrl="/api/tpi/preview/TP04.pdf"
         title="IQE-TP-04 Inspection Release Note (IRN)"
         reportNo={irnNo}
       />

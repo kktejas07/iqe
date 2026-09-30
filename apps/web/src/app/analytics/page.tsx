@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
 
         <div className="flex items-center gap-3 shrink-0">
           <a
-            href="http://localhost:8000/api/v1/reports/pdf/tpi-billing"
+            href="/api/v1/reports/pdf/tpi-billing"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-2xl bg-[#003366] hover:bg-[#002244] text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-2"

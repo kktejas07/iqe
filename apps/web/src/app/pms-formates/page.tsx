@@ -51,7 +51,7 @@ const FORMATS: FormatItem[] = [
     badgeColor: "bg-blue-100 text-[#0084bf] dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800/40",
     icon: FileText,
     formCode: "TP02",
-    pdfUrl: "http://localhost:8000/api/tpi/preview/TP02.pdf",
+    pdfUrl: "/api/tpi/preview/TP02.pdf",
   },
   {
     id: "f-tp-03",
@@ -65,7 +65,7 @@ const FORMATS: FormatItem[] = [
     badgeColor: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
     icon: ShieldCheck,
     formCode: "TP03",
-    pdfUrl: "http://localhost:8000/api/tpi/preview/TP03.pdf",
+    pdfUrl: "/api/tpi/preview/TP03.pdf",
   },
   {
     id: "f-tp-04",
@@ -79,7 +79,7 @@ const FORMATS: FormatItem[] = [
     badgeColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
     icon: CheckCircle2,
     formCode: "TP04",
-    pdfUrl: "http://localhost:8000/api/tpi/preview/TP04.pdf",
+    pdfUrl: "/api/tpi/preview/TP04.pdf",
   },
   {
     id: "f-expediting-05",
@@ -93,7 +93,7 @@ const FORMATS: FormatItem[] = [
     badgeColor: "bg-teal-100 text-teal-700 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40",
     icon: Compass,
     formCode: "TP05",
-    pdfUrl: "http://localhost:8000/api/tpi/preview/TP05.pdf",
+    pdfUrl: "/api/tpi/preview/TP05.pdf",
   },
   {
     id: "f-billing-01",
@@ -106,7 +106,7 @@ const FORMATS: FormatItem[] = [
     fieldsCount: 28,
     badgeColor: "bg-sky-100 text-[#0084bf] dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
     icon: FileSpreadsheet,
-    pdfUrl: "http://localhost:8000/api/v1/reports/pdf/tpi-billing",
+    pdfUrl: "/api/v1/reports/pdf/tpi-billing",
   },
   {
     id: "f-boq-01",
@@ -119,7 +119,7 @@ const FORMATS: FormatItem[] = [
     fieldsCount: 32,
     badgeColor: "bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800/40",
     icon: Layers,
-    pdfUrl: "http://localhost:8000/api/v1/reports/pdf/boq-reconciliation",
+    pdfUrl: "/api/v1/reports/pdf/boq-reconciliation",
   },
   {
     id: "f-quality-01",
@@ -132,7 +132,7 @@ const FORMATS: FormatItem[] = [
     fieldsCount: 36,
     badgeColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
     icon: ShieldCheck,
-    pdfUrl: "http://localhost:8000/api/v1/reports/pdf/quality-bill-verification",
+    pdfUrl: "/api/v1/reports/pdf/quality-bill-verification",
   },
   {
     id: "f-pharma-01",
@@ -145,7 +145,7 @@ const FORMATS: FormatItem[] = [
     fieldsCount: 200,
     badgeColor: "bg-amber-100 text-[#e35f14] dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
     icon: Pill,
-    pdfUrl: "http://localhost:8000/api/v1/reports/pdf/schedule-m-pharma-epc",
+    pdfUrl: "/api/v1/reports/pdf/schedule-m-pharma-epc",
   },
 ];
 

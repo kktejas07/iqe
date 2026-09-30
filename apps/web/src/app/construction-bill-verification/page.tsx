@@ -225,10 +225,10 @@ export default function ConstructionBillVerificationPage() {
   const fetchData = async () => {
     try {
       const [absRes, steelRes, dailyRes, waybillRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/abstract"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/steel"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/daily-logs"),
-        fetch("http://localhost:8000/api/v1/construction-bill-verification/waybills"),
+        fetch("/api/v1/construction-bill-verification/abstract"),
+        fetch("/api/v1/construction-bill-verification/steel"),
+        fetch("/api/v1/construction-bill-verification/daily-logs"),
+        fetch("/api/v1/construction-bill-verification/waybills"),
       ]);
 
       if (absRes.ok) setAbstractData(await absRes.json());
@@ -241,7 +241,7 @@ export default function ConstructionBillVerificationPage() {
   };
 
   const handleExport = (type: "pdf" | "excel" | "docx") => {
-    const url = `http://localhost:8000/api/v1/construction-bill-verification/export/${type}`;
+    const url = `/api/v1/construction-bill-verification/export/${type}`;
     window.open(url, "_blank");
   };
 
@@ -258,7 +258,7 @@ export default function ConstructionBillVerificationPage() {
     const rate = item.unitRate || item.unit_rate || 1000;
     const status = item.closureStatus || item.verification_status || "Approved";
 
-    const url = `http://localhost:8000/api/v1/reports/pdf/tpi-billing-item?boq_item=${encodeURIComponent(boq)}&ra_bill=${encodeURIComponent(ra)}&vendor=${encodeURIComponent(vendor)}&client=${encodeURIComponent(client)}&description=${encodeURIComponent(desc)}&unit=${encodeURIComponent(uom)}&drawing_ref=${encodeURIComponent(dwg)}&claimed_qty=${claimed}&verified_qty=${verified}&unit_rate=${rate}&closure_status=${encodeURIComponent(status)}`;
+    const url = `/api/v1/reports/pdf/tpi-billing-item?boq_item=${encodeURIComponent(boq)}&ra_bill=${encodeURIComponent(ra)}&vendor=${encodeURIComponent(vendor)}&client=${encodeURIComponent(client)}&description=${encodeURIComponent(desc)}&unit=${encodeURIComponent(uom)}&drawing_ref=${encodeURIComponent(dwg)}&claimed_qty=${claimed}&verified_qty=${verified}&unit_rate=${rate}&closure_status=${encodeURIComponent(status)}`;
     window.open(url, "_blank");
   };
 
@@ -1229,7 +1229,7 @@ export default function ConstructionBillVerificationPage() {
         onClose={() => setShowPdfModal(false)}
         title="Construction Bill Verification Certificate & Ledger"
         reportNo="SITE-MUDIGONDA-01"
-        pdfUrl="http://localhost:8000/api/v1/construction-bill-verification/export/pdf"
+        pdfUrl="/api/v1/construction-bill-verification/export/pdf"
       />
     </div>
   );

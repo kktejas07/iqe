@@ -1025,7 +1025,7 @@ export default function FlashInspectionReportPage() {
 
                         {/* 6. Download Single Item PDF */}
                         <button
-                          onClick={() => window.open("http://localhost:8000/api/v1/reports/pdf/flash-inspection-report", "_blank")}
+                          onClick={() => window.open("/api/v1/reports/pdf/flash-inspection-report", "_blank")}
                           className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                           title="Download Single PDF Report"
                         >
@@ -1792,7 +1792,7 @@ export default function FlashInspectionReportPage() {
           })),
           remarks: remarksText,
         }}
-        pdfUrl="http://localhost:8000/api/tpi/preview/TP02.pdf"
+        pdfUrl="/api/tpi/preview/TP02.pdf"
         title="IQE-TP-02 Flash Inspection Report"
         reportNo={reportNo}
       />

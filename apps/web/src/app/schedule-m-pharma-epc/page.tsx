@@ -2276,7 +2276,7 @@ export default function ScheduleMPharmaEPCPage() {
         onClose={() => setShowPdfPreview(false)}
         title="Schedule M (2024 Revised) Cleanroom & Pharma EPC Audit Report"
         reportNo="F-01 - F-14"
-        pdfUrl="http://localhost:8000/api/v1/reports/pdf/schedule-m-pharma-epc"
+        pdfUrl="/api/v1/reports/pdf/schedule-m-pharma-epc"
       />
     </div>
   );

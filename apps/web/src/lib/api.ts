@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BASE = "";
 
 class API {
   private token: string | null = null;

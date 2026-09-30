@@ -21,11 +21,17 @@ import {
   CheckSquare,
   Pill,
   Layers,
-  PanelLeftClose,
-  PanelLeft,
   Compass,
   Zap,
   PackageCheck,
+  BookOpen,
+  BarChart3,
+  Award,
+  PhoneCall,
+  HardHat,
+  Receipt,
+  CreditCard,
+  Table,
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -43,6 +49,13 @@ interface SubModuleItem {
 }
 
 const formatsSubModules: SubModuleItem[] = [
+  {
+    name: "PMS Formats Hub",
+    subtitle: "Master Formats Index",
+    href: "/pms-formats",
+    icon: BookOpen,
+    color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
+  },
   {
     name: "Flash Inspection",
     subtitle: "Quick Day Summary (IQE-TP-02)",
@@ -73,17 +86,24 @@ const formatsSubModules: SubModuleItem[] = [
   },
   {
     name: "Bill Verification",
-    subtitle: "RA Bills & TPI Billing",
+    subtitle: "RA Bills & TPI Billing (F-BILL-01)",
     href: "/tpi-billing",
     icon: FileSpreadsheet,
     color: "text-[#0084bf] bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
   },
   {
     name: "BOQ Reconciliation",
-    subtitle: "Material & Quantity Audit",
+    subtitle: "Material & Quantity Audit (F-BOQ-01)",
     href: "/boq-reconciliation",
     icon: Layers,
     color: "text-purple-600 bg-purple-100 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800/40",
+  },
+  {
+    name: "Construction Matrix",
+    subtitle: "27-Col Measurement Verification",
+    href: "/construction-bill-verification",
+    icon: Table,
+    color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40",
   },
   {
     name: "Quality Verification",
@@ -98,6 +118,89 @@ const formatsSubModules: SubModuleItem[] = [
     href: "/schedule-m-pharma-epc",
     icon: Pill,
     color: "text-[#e35f14] bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
+  },
+];
+
+const operationsSubModules: SubModuleItem[] = [
+  {
+    name: "Visit Schedule",
+    subtitle: "Inspection Calendar & Timeline",
+    href: "/visit-schedule",
+    icon: CalendarCheck,
+    color: "text-blue-500 bg-blue-100 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800/40",
+  },
+  {
+    name: "Open Calls Intake",
+    subtitle: "Customer Inspection Call Registry",
+    href: "/open-calls",
+    icon: PhoneCall,
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
+  },
+  {
+    name: "Proposed Assignments",
+    subtitle: "Inspector Allocation Matrix",
+    href: "/proposed-assignments",
+    icon: Briefcase,
+    color: "text-purple-600 bg-purple-100 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800/40",
+  },
+  {
+    name: "Site Daily Logsheet",
+    subtitle: "Daily Inspection & Attendance",
+    href: "/logsheet",
+    icon: HardHat,
+    color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40",
+  },
+  {
+    name: "Control Numbers",
+    subtitle: "IRN / IVR Certificate Control",
+    href: "/control-numbers",
+    icon: ShieldCheck,
+    color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
+  },
+  {
+    name: "Public Authenticator",
+    subtitle: "QR Certificate Verification",
+    href: "/verify",
+    icon: Shield,
+    color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
+  },
+];
+
+const financeSubModules: SubModuleItem[] = [
+  {
+    name: "Billing Invoices",
+    subtitle: "Client Invoices & Records",
+    href: "/invoices",
+    icon: Receipt,
+    color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
+  },
+  {
+    name: "Accounts Receivable",
+    subtitle: "Customer Inflows & Tracking",
+    href: "/accounts-receivable",
+    icon: CreditCard,
+    color: "text-blue-600 bg-blue-100 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800/40",
+  },
+  {
+    name: "Accounts Payable",
+    subtitle: "Vendor Outflows & Bills",
+    href: "/accounts-payable",
+    icon: Receipt,
+    color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40",
+  },
+  {
+    name: "Service Orders",
+    subtitle: "Client Service Engagements",
+    href: "/service-orders",
+    icon: ClipboardList,
+    color: "text-[#0084bf] bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
+  },
+  {
+    name: "Purchase Orders",
+    subtitle: "Procurement & PO Tracking",
+    href: "/purchase-orders",
+    icon: FileText,
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
   },
 ];
 
@@ -116,15 +219,21 @@ const sopsSubModules: SubModuleItem[] = [
     icon: Sparkles,
     color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40",
   },
+  {
+    name: "Complaints & Feedback",
+    subtitle: "Customer Service Quality Log",
+    href: "/complaints",
+    icon: Award,
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
+  },
 ];
 
 const generalNavItems = [
+  { name: "Vendor Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Assessments", href: "/jobs", icon: Briefcase },
   { name: "Visits", href: "/visits", icon: CalendarCheck },
-  { name: "Invoices", href: "/invoices", icon: FileText },
   { name: "Clients", href: "/clients", icon: Building2 },
   { name: "Manufacturers", href: "/manufacturers", icon: Factory },
-  { name: "Service Orders", href: "/service-orders", icon: ClipboardList },
   { name: "Admin System", href: "/admin", icon: ShieldCheck },
 ];
 
@@ -134,24 +243,51 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
   const [role, setRole] = useState<string>("user");
   const [userName, setUserName] = useState<string>("TPI Engineer");
   const [formatsOpen, setFormatsOpen] = useState<boolean>(true);
-  const [sopsOpen, setSopsOpen] = useState<boolean>(true);
+  const [operationsOpen, setOperationsOpen] = useState<boolean>(false);
+  const [financeOpen, setFinanceOpen] = useState<boolean>(false);
+  const [sopsOpen, setSopsOpen] = useState<boolean>(false);
 
   const isFormatsActive =
+    pathname.startsWith("/pms-formats") ||
     pathname.startsWith("/flash-inspection-report") ||
     pathname.startsWith("/inspection-visit-report") ||
     pathname.startsWith("/inspection-release-note") ||
     pathname.startsWith("/expediting-visit-report") ||
     pathname.startsWith("/boq-reconciliation") ||
+    pathname.startsWith("/construction-bill-verification") ||
     pathname.startsWith("/tpi-billing") ||
     pathname.startsWith("/quality-bill-verification") ||
     pathname.startsWith("/schedule-m-pharma-epc");
 
+  const isOperationsActive =
+    pathname.startsWith("/visit-schedule") ||
+    pathname.startsWith("/open-calls") ||
+    pathname.startsWith("/proposed-assignments") ||
+    pathname.startsWith("/logsheet") ||
+    pathname.startsWith("/control-numbers") ||
+    pathname.startsWith("/verify");
+
+  const isFinanceActive =
+    pathname.startsWith("/invoices") ||
+    pathname.startsWith("/accounts-receivable") ||
+    pathname.startsWith("/accounts-payable") ||
+    pathname.startsWith("/service-orders") ||
+    pathname.startsWith("/purchase-orders");
+
   const isSopsActive =
     pathname.startsWith("/sops") ||
-    pathname.startsWith("/tpi-process-flow");
+    pathname.startsWith("/tpi-process-flow") ||
+    pathname.startsWith("/complaints");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
   const isQualityPlansActive = pathname.startsWith("/itps");
+
+  // Automatically expand active sections
+  useEffect(() => {
+    if (isOperationsActive) setOperationsOpen(true);
+    if (isFinanceActive) setFinanceOpen(true);
+    if (isSopsActive) setSopsOpen(true);
+  }, [isOperationsActive, isFinanceActive, isSopsActive]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -310,7 +446,127 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
             )}
           </div>
 
-          {/* MAIN TITLE 2: SOPS */}
+          {/* MAIN TITLE 2: OPERATIONS & FIELD */}
+          <div className="pt-1">
+            <button
+              onClick={() => setOperationsOpen(!operationsOpen)}
+              title={isCollapsed ? "Operations" : undefined}
+              className={`w-full flex items-center ${
+                isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+              } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                isOperationsActive
+                  ? "bg-blue-950/60 text-blue-300 border border-blue-800/60"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <CalendarCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">Operations</span>}
+              </div>
+              {!isCollapsed && (
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    operationsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </button>
+
+            {/* Operations Sub-items */}
+            {(!isCollapsed && operationsOpen) && (
+              <div className="mt-1 pl-2.5 pr-1 space-y-1.5 border-l-2 border-blue-500/30 ml-4 py-1">
+                {operationsSubModules.map((item) => {
+                  const SubIcon = item.icon;
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs transition-all ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold shadow-xs border border-blue-400/30"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${isActive ? "bg-white/20 text-white border-white/30" : item.color}`}>
+                        <SubIcon className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate font-semibold text-xs leading-tight">
+                          {item.name}
+                        </div>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-blue-200" : "text-slate-400"}`}>
+                          {item.subtitle}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* MAIN TITLE 3: FINANCE & ORDERS */}
+          <div className="pt-1">
+            <button
+              onClick={() => setFinanceOpen(!financeOpen)}
+              title={isCollapsed ? "Finance" : undefined}
+              className={`w-full flex items-center ${
+                isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+              } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                isFinanceActive
+                  ? "bg-amber-950/60 text-amber-300 border border-amber-800/60"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Receipt className="w-4 h-4 text-[#e35f14] shrink-0" />
+                {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">Finance</span>}
+              </div>
+              {!isCollapsed && (
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    financeOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </button>
+
+            {/* Finance Sub-items */}
+            {(!isCollapsed && financeOpen) && (
+              <div className="mt-1 pl-2.5 pr-1 space-y-1.5 border-l-2 border-amber-500/30 ml-4 py-1">
+                {financeSubModules.map((item) => {
+                  const SubIcon = item.icon;
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs transition-all ${
+                        isActive
+                          ? "bg-gradient-to-r from-amber-600 to-[#e35f14] text-white font-bold shadow-xs border border-amber-400/30"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${isActive ? "bg-white/20 text-white border-white/30" : item.color}`}>
+                        <SubIcon className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate font-semibold text-xs leading-tight">
+                          {item.name}
+                        </div>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-amber-200" : "text-slate-400"}`}>
+                          {item.subtitle}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* MAIN TITLE 4: SOPS & QMS */}
           <div className="pt-1">
             <button
               onClick={() => setSopsOpen(!sopsOpen)}

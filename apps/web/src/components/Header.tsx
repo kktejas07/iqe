@@ -42,6 +42,12 @@ import {
   PackageCheck,
   Menu,
   X,
+  BookOpen,
+  Table,
+  Receipt,
+  CreditCard,
+  PhoneCall,
+  HardHat,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { ThemeType } from "./LayoutWrapper";
@@ -209,17 +215,108 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             <span>ANALYTICS</span>
           </Link>
 
+          {/* OPERATIONS Dropdown */}
+          <div className="relative group/dd" onMouseEnter={() => setActiveDropdown("operations")} onMouseLeave={() => setActiveDropdown(null)}>
+            <button
+              type="button"
+              onClick={() => setActiveDropdown(activeDropdown === "operations" ? null : "operations")}
+              className={`flex items-center gap-1 px-2.5 py-1.5 xl:px-3 xl:py-2 rounded-xl transition-all cursor-pointer ${
+              pathname.startsWith("/visit-schedule") ||
+              pathname.startsWith("/open-calls") ||
+              pathname.startsWith("/visits") ||
+              pathname.startsWith("/jobs") ||
+              pathname.startsWith("/proposed-assignments") ||
+              pathname.startsWith("/logsheet") ||
+              pathname.startsWith("/control-numbers") ||
+              pathname.startsWith("/verify")
+                ? "bg-[#0084bf] text-white font-extrabold shadow-sm shadow-sky-500/20"
+                : isDark
+                ? "text-slate-100 hover:bg-slate-800 font-extrabold"
+                : "text-[#004b6e] hover:bg-sky-50 hover:text-[#0084bf] font-extrabold"
+            }`}>
+              <CalendarCheck className="w-3.5 h-3.5 hidden 2xl:block" />
+              <span>OPERATIONS</span>
+              <ChevronDown className={`w-3.5 h-3.5 ${isDark ? "text-slate-300" : "text-[#0084bf]"} transition-transform duration-300 group-hover/dd:rotate-180`} />
+            </button>
+            {activeDropdown === "operations" && (
+              <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                  <span>Field Operations</span>
+                  <span className="text-blue-500 font-bold">8 Tools</span>
+                </div>
+                <Link onClick={() => setActiveDropdown(null)} href="/visit-schedule" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-blue-50 text-blue-900"} font-bold`}>
+                  <CalendarCheck className="w-4 h-4 text-blue-500" />
+                  <div>
+                    <div>Visit Schedule</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Inspection Calendar &amp; Timeline</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/open-calls" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-amber-50 text-amber-900"} font-bold`}>
+                  <PhoneCall className="w-4 h-4 text-amber-600" />
+                  <div>
+                    <div>Open Calls Intake</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Customer Call Request Intake</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/visits" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-sky-50 text-[#00618e]"} font-bold`}>
+                  <CalendarCheck className="w-4 h-4 text-[#0084bf]" />
+                  <div>
+                    <div>Field Visits</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Site Visits &amp; Attendance</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/jobs" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-purple-50 text-purple-900"} font-bold`}>
+                  <Briefcase className="w-4 h-4 text-purple-600" />
+                  <div>
+                    <div>Assessments / Jobs</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Active Inspection Assignments</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/proposed-assignments" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-indigo-50 text-indigo-900"} font-bold`}>
+                  <Users className="w-4 h-4 text-indigo-600" />
+                  <div>
+                    <div>Proposed Assignments</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Inspector Allocation Matrix</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/logsheet" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-teal-50 text-teal-900"} font-bold`}>
+                  <HardHat className="w-4 h-4 text-teal-600" />
+                  <div>
+                    <div>Site Daily Logsheet</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Daily Inspection Records</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/control-numbers" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-sky-50 text-[#00618e]"} font-bold`}>
+                  <ShieldCheck className="w-4 h-4 text-sky-600" />
+                  <div>
+                    <div>Control Numbers</div>
+                    <div className="text-[11px] text-slate-400 font-normal">IRN / IVR Certificate Registry</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/verify" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-emerald-50 text-emerald-900"} font-bold`}>
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  <div>
+                    <div>Public Authenticator</div>
+                    <div className="text-[11px] text-slate-400 font-normal">QR Certificate Verification</div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+
           {/* MAIN TITLE 1: FORMATS */}
           <div className="relative group/dd" onMouseEnter={() => setActiveDropdown("formats")} onMouseLeave={() => setActiveDropdown(null)}>
             <button
               type="button"
               onClick={() => setActiveDropdown(activeDropdown === "formats" ? null : "formats")}
               className={`flex items-center gap-1 px-2.5 py-1.5 xl:px-3 xl:py-2 rounded-xl transition-all cursor-pointer ${
+              pathname.startsWith("/pms-formats") ||
               pathname.startsWith("/boq-reconciliation") ||
               pathname.startsWith("/expediting-visit-report") ||
               pathname.startsWith("/flash-inspection-report") ||
               pathname.startsWith("/inspection-visit-report") ||
               pathname.startsWith("/inspection-release-note") ||
+              pathname.startsWith("/construction-bill-verification") ||
               pathname.startsWith("/tpi-billing") ||
               pathname.startsWith("/quality-bill-verification") ||
               pathname.startsWith("/schedule-m-pharma-epc")
@@ -236,8 +333,24 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <div className={`absolute top-full left-0 w-88 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Inspection Formats</span>
-                  <span className="text-sky-500 font-bold">8 Formats</span>
+                  <span className="text-sky-500 font-bold">10 Formats</span>
                 </div>
+                <Link
+                  href="/pms-formats"
+                  className={`group/item flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
+                    pathname.startsWith("/pms-formats")
+                      ? isDark ? "bg-indigo-950/70 text-white" : "bg-indigo-50 text-indigo-900"
+                      : isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover/item:scale-110 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 flex items-center justify-center shrink-0">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs">PMS Formats Hub</div>
+                    <div className="text-[11px] text-slate-400 truncate">Central Index of All Engineering Formats</div>
+                  </div>
+                </Link>
                 <Link
                   href="/tpi-billing"
                   className={`group/item flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
@@ -268,6 +381,22 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   <div>
                     <div className="font-bold text-xs">BOQ Reconciliation</div>
                     <div className="text-[11px] text-slate-400 truncate">Material &amp; Quantity Audit (F-BOQ-01)</div>
+                  </div>
+                </Link>
+                <Link
+                  href="/construction-bill-verification"
+                  className={`group/item flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
+                    pathname.startsWith("/construction-bill-verification")
+                      ? isDark ? "bg-cyan-950/70 text-white" : "bg-cyan-50 text-cyan-900"
+                      : isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover/item:scale-110 bg-cyan-100 dark:bg-cyan-950/80 text-cyan-600 flex items-center justify-center shrink-0">
+                    <Table className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs">Construction Bill Verification</div>
+                    <div className="text-[11px] text-slate-400 truncate">27-Col Measurements &amp; Rate Matrix</div>
                   </div>
                 </Link>
                 <Link
@@ -364,6 +493,71 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   <div>
                     <div className="font-bold text-xs">Mpharma EPC</div>
                     <div className="text-[11px] text-slate-400 truncate">Inspection Formats F-01 to F-12</div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* FINANCE Dropdown */}
+          <div className="relative group/dd" onMouseEnter={() => setActiveDropdown("finance")} onMouseLeave={() => setActiveDropdown(null)}>
+            <button
+              type="button"
+              onClick={() => setActiveDropdown(activeDropdown === "finance" ? null : "finance")}
+              className={`flex items-center gap-1 px-2.5 py-1.5 xl:px-3 xl:py-2 rounded-xl transition-all cursor-pointer ${
+              pathname.startsWith("/invoices") ||
+              pathname.startsWith("/accounts-receivable") ||
+              pathname.startsWith("/accounts-payable") ||
+              pathname.startsWith("/service-orders") ||
+              pathname.startsWith("/purchase-orders")
+                ? "bg-gradient-to-r from-amber-600 to-[#e35f14] text-white font-extrabold shadow-md"
+                : isDark
+                ? "text-amber-400 hover:bg-slate-800 font-extrabold"
+                : "text-amber-800 hover:bg-amber-50 hover:text-amber-900 font-extrabold"
+            }`}>
+              <Receipt className="w-3.5 h-3.5 hidden 2xl:block" />
+              <span>FINANCE</span>
+              <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
+            </button>
+            {activeDropdown === "finance" && (
+              <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
+                <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
+                  <span>Finance &amp; Contracts</span>
+                  <span className="text-amber-600 font-bold">5 Modules</span>
+                </div>
+                <Link onClick={() => setActiveDropdown(null)} href="/invoices" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-emerald-50 text-emerald-900"} font-bold`}>
+                  <Receipt className="w-4 h-4 text-emerald-600" />
+                  <div>
+                    <div>Billing Invoices</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Client Invoices &amp; Ledger</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/accounts-receivable" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-blue-50 text-blue-900"} font-bold`}>
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                  <div>
+                    <div>Accounts Receivable</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Client Inflows &amp; Aging</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/accounts-payable" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-rose-50 text-rose-900"} font-bold`}>
+                  <Receipt className="w-4 h-4 text-rose-600" />
+                  <div>
+                    <div>Accounts Payable</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Vendor Bills &amp; Outflows</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/service-orders" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-sky-50 text-[#00618e]"} font-bold`}>
+                  <ClipboardList className="w-4 h-4 text-[#0084bf]" />
+                  <div>
+                    <div>Service Orders</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Client Engagement Contracts</div>
+                  </div>
+                </Link>
+                <Link onClick={() => setActiveDropdown(null)} href="/purchase-orders" className={`flex items-center gap-2.5 p-2 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-amber-50 text-amber-900"} font-bold`}>
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  <div>
+                    <div>Purchase Orders</div>
+                    <div className="text-[11px] text-slate-400 font-normal">Procurement &amp; PO Tracking</div>
                   </div>
                 </Link>
               </div>
@@ -796,15 +990,126 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </div>
           </div>
 
-          {/* Section 2: FORMATS */}
+          {/* Section 2: OPERATIONS & FIELD */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-blue-500 mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <CalendarCheck className="w-3.5 h-3.5" /> OPERATIONS &amp; FIELD
+              </span>
+              <span>8 Modules</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              <Link
+                href="/visit-schedule"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <CalendarCheck className="w-4 h-4 text-blue-500" />
+                <div>
+                  <div>Visit Schedule</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Inspection Calendar &amp; Timeline</div>
+                </div>
+              </Link>
+              <Link
+                href="/open-calls"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <PhoneCall className="w-4 h-4 text-amber-600" />
+                <div>
+                  <div>Open Calls Intake</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Customer Call Request Intake</div>
+                </div>
+              </Link>
+              <Link
+                href="/visits"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <CalendarCheck className="w-4 h-4 text-[#0084bf]" />
+                <div>
+                  <div>Field Visits</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Site Visits &amp; Attendance</div>
+                </div>
+              </Link>
+              <Link
+                href="/jobs"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Briefcase className="w-4 h-4 text-purple-600" />
+                <div>
+                  <div>Assessments / Jobs</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Active Inspection Assignments</div>
+                </div>
+              </Link>
+              <Link
+                href="/proposed-assignments"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Users className="w-4 h-4 text-indigo-600" />
+                <div>
+                  <div>Proposed Assignments</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Inspector Allocation Matrix</div>
+                </div>
+              </Link>
+              <Link
+                href="/logsheet"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-teal-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <HardHat className="w-4 h-4 text-teal-600" />
+                <div>
+                  <div>Site Daily Logsheet</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Daily Inspection Records</div>
+                </div>
+              </Link>
+              <Link
+                href="/control-numbers"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <ShieldCheck className="w-4 h-4 text-sky-600" />
+                <div>
+                  <div>Control Numbers</div>
+                  <div className="text-[11px] text-slate-400 font-normal">IRN / IVR Certificate Registry</div>
+                </div>
+              </Link>
+              <Link
+                href="/verify"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Shield className="w-4 h-4 text-emerald-600" />
+                <div>
+                  <div>Public Authenticator</div>
+                  <div className="text-[11px] text-slate-400 font-normal">QR Certificate Verification</div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Section 3: FORMATS */}
           <div>
             <div className="text-[11px] font-extrabold uppercase tracking-wider text-sky-500 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <FileSpreadsheet className="w-3.5 h-3.5" /> INSPECTION FORMATS
               </span>
-              <span>8 Formats</span>
+              <span>10 Formats</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              <Link
+                href="/pms-formats"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <BookOpen className="w-4 h-4 text-indigo-600" />
+                <div>
+                  <div>PMS Formats Hub</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Master Formats Directory</div>
+                </div>
+              </Link>
               <Link
                 href="/tpi-billing"
                 onClick={() => setMobileMenuOpen(false)}
@@ -825,6 +1130,17 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 <div>
                   <div>BOQ Reconciliation</div>
                   <div className="text-[11px] text-slate-400 font-normal">Material Audit (F-BOQ-01)</div>
+                </div>
+              </Link>
+              <Link
+                href="/construction-bill-verification"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-cyan-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Table className="w-4 h-4 text-cyan-600" />
+                <div>
+                  <div>Construction Bill Verification</div>
+                  <div className="text-[11px] text-slate-400 font-normal">27-Col Measurement Matrix</div>
                 </div>
               </Link>
               <Link
@@ -896,7 +1212,74 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </div>
           </div>
 
-          {/* Section 3: SOPS, WI, QP, QMS */}
+          {/* Section 4: FINANCE & CONTRACTS */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-amber-500 mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5" /> FINANCE &amp; CONTRACTS
+              </span>
+              <span>5 Modules</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              <Link
+                href="/invoices"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Receipt className="w-4 h-4 text-emerald-600" />
+                <div>
+                  <div>Billing Invoices</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Client Invoices &amp; Ledger</div>
+                </div>
+              </Link>
+              <Link
+                href="/accounts-receivable"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <CreditCard className="w-4 h-4 text-blue-600" />
+                <div>
+                  <div>Accounts Receivable</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Client Inflows &amp; Aging</div>
+                </div>
+              </Link>
+              <Link
+                href="/accounts-payable"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <Receipt className="w-4 h-4 text-rose-600" />
+                <div>
+                  <div>Accounts Payable</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Vendor Bills &amp; Outflows</div>
+                </div>
+              </Link>
+              <Link
+                href="/service-orders"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-sky-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <ClipboardList className="w-4 h-4 text-[#0084bf]" />
+                <div>
+                  <div>Service Orders</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Client Service Engagements</div>
+                </div>
+              </Link>
+              <Link
+                href="/purchase-orders"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold"
+              >
+                <FileText className="w-4 h-4 text-amber-600" />
+                <div>
+                  <div>Purchase Orders</div>
+                  <div className="text-[11px] text-slate-400 font-normal">Procurement &amp; PO Tracking</div>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Section 5: SOPS, WI, QP, QMS */}
           <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div>

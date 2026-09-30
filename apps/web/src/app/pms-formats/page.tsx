@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/config";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -319,7 +320,7 @@ export default function PMSFormatesHubPage() {
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                     {item.fieldsCount} Audit Parameters
                   </span>
-                  <span className="font-mono text-[11px] font-semibold text-slate-400">ISO Controlled</span>
+                  <span className="font-mono text-[11px] font-semibold text-slate-400">IQE Controlled</span>
                 </div>
               </div>
 
@@ -331,7 +332,20 @@ export default function PMSFormatesHubPage() {
                   title={`Live PDF Preview for ${item.code}`}
                 >
                   <Eye className="w-3.5 h-3.5 text-[#0084bf]" />
-                  <span>Live Preview</span>
+                  <span>Preview</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (item.pdfUrl) {
+                      const fallback = `/sample-pdfs/${item.id === "f-flash-02" ? "TP02.pdf" : item.id === "f-ivr-03" ? "TP03.pdf" : item.id === "f-irn-04" ? "TP04.pdf" : item.id === "f-evr-05" ? "TP05.pdf" : item.id === "f-boq-01" ? "BOQ.pdf" : item.id === "f-bill-01" ? "F-BILL-01.pdf" : item.id === "f-quality-01" ? "FQUAL01.pdf" : "default.pdf"}`;
+                      await downloadPdfFile(item.pdfUrl, `${item.code}_Report.pdf`, fallback);
+                    }
+                  }}
+                  className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
+                  title={`Direct Download PDF for ${item.code}`}
+                >
+                  <Download className="w-3.5 h-3.5" />
                 </button>
                 <Link
                   href={item.href}

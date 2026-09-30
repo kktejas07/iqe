@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/config";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -595,11 +596,26 @@ export default function ExpeditingVisitReportPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setShowPdfPreview(true)}
-              className="px-3 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               title="Preview Live PDF"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-3.5 h-3.5" />
               <span>Preview Live PDF</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                await downloadPdfFile(
+                  `${API_BASE}/api/tpi/preview/TP05.pdf`,
+                  `EVR_${meta.reportNo || "IQE-TP-05"}.pdf`,
+                  "/sample-pdfs/TP05.pdf"
+                );
+              }}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Download PDF Report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
             </button>
 
             <button aria-label="Save Report"
@@ -612,10 +628,10 @@ export default function ExpeditingVisitReportPage() {
 
             <button aria-label="Export CSV"
               onClick={handleExportCSV}
-              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-2xs cursor-pointer"
               title="Export CSV"
             >
-              <Download className="w-4 h-4" />
+              <FileSpreadsheet className="w-4 h-4 text-slate-600" />
             </button>
 
             <button aria-label="Print Formal Dossier"
@@ -1050,7 +1066,7 @@ export default function ExpeditingVisitReportPage() {
 
                       {/* 6. Download Single Item PDF */}
                       <button aria-label="Download Single PDF Report"
-                        onClick={() => window.open(`${API_BASE}/api/pdf/generate?form_code=TP05&item_no=${it.itemNo}`, "_blank")}
+                        onClick={() => downloadPdfFile(`${API_BASE}/api/tpi/preview/TP05.pdf`, `EVR_Item_${it.itemNo}_Report.pdf`, "/sample-pdfs/TP05.pdf")}
                         className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                         title="Download Single PDF Report"
                       >

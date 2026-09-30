@@ -906,7 +906,7 @@ export default function QualityBillVerificationPage() {
     document.body.removeChild(link);
   };
 
-  const handleDownloadSinglePDF = (item: HybridQVRItem) => {
+  const handleDownloadSinglePDF = async (item: HybridQVRItem) => {
     trackButtonClick("btn_download_qvr_item_pdf", "pdf_download", `QVR Item ${item.boqItem} PDF`, "reports");
     const query = new URLSearchParams({
       boq_item: item.boqItem,
@@ -924,7 +924,11 @@ export default function QualityBillVerificationPage() {
       closure_status: item.verificationStatus,
       is_locked: item.isLocked.toString(),
     });
-    window.open(`${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`, "_blank");
+    await downloadPdfFile(
+      `${API_BASE}/api/v1/reports/pdf/tpi-billing-item?${query.toString()}`,
+      `QVR_Item_${item.boqItem}_Certificate.pdf`,
+      "/sample-pdfs/FQUAL01.pdf"
+    );
   };
 
   const handlePreviewSinglePDF = (item: HybridQVRItem) => {

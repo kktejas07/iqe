@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/config";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
@@ -821,12 +822,36 @@ export default function BOQReconciliationPage() {
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
+              onClick={() => handleTabSwitch("signoff")}
+              className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+              title="Go to TPI Sign-Off Certificate"
+            >
+              <FileCheck2 className="w-3.5 h-3.5 text-purple-600" />
+              <span>Sign-Off Certificate</span>
+            </button>
+
+            <button
               onClick={() => setShowPdfPreview(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               title="Live Preview PDF"
             >
-              <Eye className="w-4 h-4" />
-              <span>Live Preview</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span>Preview Live PDF</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                await downloadPdfFile(
+                  `${API_BASE}/api/tpi/preview/BOQ.pdf`,
+                  `BOQ_Reconciliation_Ledger.pdf`,
+                  "/sample-pdfs/BOQ.pdf"
+                );
+              }}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Download PDF Report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
             </button>
 
             <button aria-label="Save BOQ Audit Ledger"
@@ -839,15 +864,15 @@ export default function BOQReconciliationPage() {
 
             <button aria-label="Export Full BOQ Ledger to CSV"
               onClick={handleExportCSV}
-              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-2xs cursor-pointer"
               title="Export Full BOQ Ledger to CSV"
             >
-              <Download className="w-4 h-4" />
+              <FileSpreadsheet className="w-4 h-4 text-slate-600" />
             </button>
 
             <button aria-label="Print BOQ Audit Dossier"
               onClick={() => window.print()}
-              className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-sm cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-sm cursor-pointer"
               title="Print BOQ Audit Dossier"
             >
               <Printer className="w-4 h-4" />
@@ -1366,7 +1391,7 @@ export default function BOQReconciliationPage() {
 
                           <button aria-label="Download Single PDF Report"
                             onClick={() => {
-                              window.open(`${API_BASE}/api/v1/reports/pdf/boq-reconciliation`, "_blank");
+                              downloadPdfFile(`${API_BASE}/api/tpi/preview/BOQ.pdf`, `BOQ_Item_${item.itemNo}_Reconciliation.pdf`, "/sample-pdfs/BOQ.pdf");
                             }}
                             className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                             title="Download Single PDF Report"
@@ -1814,7 +1839,7 @@ export default function BOQReconciliationPage() {
                 Pursuant to Joint Site Physical Measurements &amp; General Conditions of Contract (GCC).
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowPdfPreview(true)}
@@ -1824,6 +1849,23 @@ export default function BOQReconciliationPage() {
                 <Eye className="w-3.5 h-3.5" />
                 <span>Preview / Print</span>
               </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  await downloadPdfFile(
+                    `${API_BASE}/api/tpi/preview/BOQ.pdf`,
+                    "CERT-IQE-BOQ-2026-089.pdf",
+                    "/sample-pdfs/BOQ.pdf"
+                  );
+                }}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                title="Download PDF Certificate"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download PDF Certificate</span>
+              </button>
+
               <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono text-xs font-bold">
                 PASSED FOR BILL VERIFICATION
               </div>

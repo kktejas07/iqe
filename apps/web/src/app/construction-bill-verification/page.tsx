@@ -367,7 +367,7 @@ export default function ConstructionBillVerificationPage() {
     window.open(url, "_blank");
   };
 
-  const handleSingleItemPdf = (item: any) => {
+  const handleSingleItemPdf = async (item: any) => {
     const boq = item.boqItem || item.item_code || "1.01";
     const ra = item.raBillNo || "RA-001";
     const vendor = item.contractor || "Suguna Metals Ltd";
@@ -381,7 +381,7 @@ export default function ConstructionBillVerificationPage() {
     const status = item.closureStatus || item.verification_status || "Approved";
 
     const url = `${API_BASE}/api/v1/reports/pdf/tpi-billing-item?boq_item=${encodeURIComponent(boq)}&ra_bill=${encodeURIComponent(ra)}&vendor=${encodeURIComponent(vendor)}&client=${encodeURIComponent(client)}&description=${encodeURIComponent(desc)}&unit=${encodeURIComponent(uom)}&drawing_ref=${encodeURIComponent(dwg)}&claimed_qty=${claimed}&verified_qty=${verified}&unit_rate=${rate}&closure_status=${encodeURIComponent(status)}`;
-    window.open(url, "_blank");
+    await downloadPdfFile(url, `Item_${boq}_Verification_Certificate.pdf`, "/sample-pdfs/F-BILL-01.pdf");
   };
 
   const handleSaveEditItem = () => {

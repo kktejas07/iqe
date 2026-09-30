@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/config";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   X,
@@ -336,17 +337,19 @@ export function PdfPreviewModal({
               <span>Print / Save</span>
             </button>
 
-            {activeUrl && (
-              <a
-                href={activeUrl}
-                download={`${displayReportNo}.pdf`}
-                className="px-3 py-1.5 rounded-xl bg-[#003366] hover:bg-[#002244] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
-                title="Download PDF document"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download</span>
-              </a>
-            )}
+            <button
+              onClick={async () => {
+                const safeForm = formCode || "F-BILL-01";
+                const fallbackUrl = `/sample-pdfs/${safeForm}.pdf`;
+                await downloadPdfFile(activeUrl || `${API_BASE}/api/tpi/preview/${safeForm}.pdf`, `${displayReportNo}.pdf`, fallbackUrl);
+              }}
+              type="button"
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title="Download PDF document"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
+            </button>
 
             <button
               onClick={() => loadPdf()}

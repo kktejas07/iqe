@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/config";
+import { downloadPdfFile } from "@/lib/downloadPdf";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
@@ -462,6 +463,21 @@ export default function FlashInspectionReportPage() {
               <span>Preview Live PDF</span>
             </button>
 
+            <button
+              onClick={async () => {
+                await downloadPdfFile(
+                  `${API_BASE}/api/tpi/preview/TP02.pdf`,
+                  `Flash_Report_${reportNo}.pdf`,
+                  "/sample-pdfs/TP02.pdf"
+                );
+              }}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title="Download PDF Report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
+            </button>
+
             <button aria-label="Save Flash Report"
               onClick={triggerSaveToast}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
@@ -472,10 +488,10 @@ export default function FlashInspectionReportPage() {
 
             <button aria-label="Export CSV"
               onClick={handleExportCSV}
-              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-2xs cursor-pointer"
               title="Export CSV"
             >
-              <Download className="w-4 h-4" />
+              <FileSpreadsheet className="w-4 h-4 text-slate-600" />
             </button>
 
             <button aria-label="Print / PDF"
@@ -946,7 +962,7 @@ export default function FlashInspectionReportPage() {
 
                         {/* 6. Download Single Item PDF */}
                         <button aria-label="Download Single PDF Report"
-                          onClick={() => window.open(`${API_BASE}/api/v1/reports/pdf/flash-inspection-report`, "_blank")}
+                          onClick={() => downloadPdfFile(`${API_BASE}/api/tpi/preview/TP02.pdf`, `Flash_Report_Item_${item.itemNo}.pdf`, "/sample-pdfs/TP02.pdf")}
                           className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                           title="Download Single PDF Report"
                         >

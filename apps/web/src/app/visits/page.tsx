@@ -10,7 +10,7 @@ import {
   Receipt,
   Printer,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function VisitsPage() {
@@ -108,7 +108,7 @@ export default function VisitsPage() {
 
         <Link
           href="/visits/new"
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold text-xs shadow-lg glow-indigo hover:opacity-95 transition-opacity flex items-center justify-center gap-1.5 shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 text-white font-semibold text-xs shadow-lg glow-indigo hover:opacity-95 transition-opacity flex items-center justify-center gap-1.5 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Schedule Visit</span>
@@ -119,9 +119,10 @@ export default function VisitsPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-3">
         <div className="relative w-full sm:w-64">
           <select
+            aria-label="Filter visits by status"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
           >
             <option value="">All Visit Statuses</option>
             <option value="scheduled">Scheduled</option>
@@ -159,8 +160,8 @@ export default function VisitsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {visits.map((v) => (
-                  <tr key={v.visit_id} className="hover:bg-indigo-50/30 transition-colors">
-                    <td className="p-4 font-mono font-bold text-indigo-600">{v.visit_id}</td>
+                  <tr key={v.visit_id} className="hover:bg-brand-50/30 transition-colors">
+                    <td className="p-4 font-mono font-bold text-brand-600">{v.visit_id}</td>
                     <td className="p-4">
                       <span className="font-mono text-slate-700 font-medium">{v.job_id}</span>
                     </td>
@@ -172,7 +173,7 @@ export default function VisitsPage() {
                     </td>
                     <td className="p-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                           statusBadges[v.status] || "badge-blue"
                         }`}
                       >
@@ -191,7 +192,7 @@ export default function VisitsPage() {
                       )}
                       <Link
                         href={`/visits/${v.visit_id}`}
-                        className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800"
+                        className="inline-flex items-center gap-1 font-semibold text-brand-600 hover:text-brand-800"
                       >
                         <span>Open Workspace</span>
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -208,7 +209,7 @@ export default function VisitsPage() {
       {/* View Generated 30-Day Net Invoice Modal */}
       {showInvoiceModal && invoiceData && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
+          <div className="keep-light bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
             
             {/* Background Watermark Logo of IQE */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
@@ -217,8 +218,8 @@ export default function VisitsPage() {
 
             <div className="relative z-10 space-y-6">
               {/* Invoice Header Branding */}
-              <div className="flex items-center justify-between border-b border-slate-200 pb-5">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-5">
+                <div className="flex items-center gap-4 min-w-0">
                   <img src="/iqe-logo.png" alt="IQE Logo" className="h-12 w-auto object-contain" />
                   <div>
                     <h2 className="text-xl font-extrabold text-slate-900 font-heading">
@@ -237,7 +238,7 @@ export default function VisitsPage() {
                     <Printer className="w-4 h-4" />
                     <span>Print / Save PDF</span>
                   </button>
-                  <button onClick={() => setShowInvoiceModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                  <button type="button" onClick={() => setShowInvoiceModal(false)} aria-label="Close invoice" title="Close invoice" className="p-2 text-slate-400 hover:text-slate-600">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -246,25 +247,25 @@ export default function VisitsPage() {
               {/* Invoice Details Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Customer Client</span>
                   <p className="font-extrabold text-slate-900 mt-0.5">{invoiceData.client_name || "Reliance Industries Ltd"}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Job Reference</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Job Reference</span>
                   <p className="font-extrabold text-[#0084bf] mt-0.5">{invoiceData.job_id || "JOB-2026-MIG-0001"}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Payment Terms</span>
-                  <p className="font-extrabold text-indigo-700 mt-0.5">Net 30 Days</p>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Payment Terms</span>
+                  <p className="font-extrabold text-brand-700 mt-0.5">Net 30 Days</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Due Date</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Due Date</span>
                   <p className="font-extrabold text-[#e35f14] mt-0.5">{invoiceData.due_date ? new Date(invoiceData.due_date).toLocaleDateString() : "+30 Days"}</p>
                 </div>
               </div>
 
               {/* Line Items Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+              <div className="border border-slate-200 rounded-xl overflow-x-auto text-xs">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
                     <tr>

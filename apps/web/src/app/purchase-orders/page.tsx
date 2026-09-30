@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { 
   ShoppingBag, Search, Plus, MapPin, Mail, Phone, X, CheckCircle2, 
   MoreVertical, Edit3, Power, Layers, LayoutGrid, LayoutList, RefreshCw, Factory, Tag, Globe, Compass, DollarSign, Calendar, FileText, ArrowRight 
-} from "lucide-react";
+} from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 interface POItem {
   po_item_id: string;
@@ -236,7 +237,7 @@ export default function PurchaseOrdersPage() {
       loadPOs();
     } catch (err) {
       console.error("Failed to save purchase order:", err);
-      alert("Failed to save Purchase Order details.");
+      toast.error("Couldn't save the purchase order. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -300,7 +301,7 @@ export default function PurchaseOrdersPage() {
       loadPOs();
     } catch (e) {
       console.error("Failed to add line item", e);
-      alert("Failed to add line item to Purchase Order.");
+      toast.error("Couldn't add the line item to the purchase order. Please try again.");
     }
   };
 
@@ -334,7 +335,7 @@ export default function PurchaseOrdersPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh Directory"
             onClick={loadPOs}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -345,7 +346,7 @@ export default function PurchaseOrdersPage() {
 
           <button
             onClick={handleOpenAddModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-brand-600 text-white font-semibold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Purchase Order</span>
@@ -383,6 +384,7 @@ export default function PurchaseOrdersPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search PO by File No (e.g. PO-001), PO Ref, Customer, Supplier, Remarks..."
@@ -391,7 +393,7 @@ export default function PurchaseOrdersPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("active")}
@@ -420,14 +422,14 @@ export default function PurchaseOrdersPage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-blue-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-blue-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
@@ -473,11 +475,11 @@ export default function PurchaseOrdersPage() {
                       </td>
                       <td className="p-3">
                         <p className="font-medium text-slate-800">{p.manufacturer_name || "Unassigned Supplier"}</p>
-                        {p.manufacturer_unit_name && <p className="text-[10px] text-slate-400">Plant: {p.manufacturer_unit_name}</p>}
+                        {p.manufacturer_unit_name && <p className="text-[11px] text-slate-400">Plant: {p.manufacturer_unit_name}</p>}
                       </td>
                       <td className="p-3">
                         <p className="font-mono font-bold text-slate-800">{p.po_number}</p>
-                        {p.po_date && <p className="text-[10px] text-slate-400">{new Date(p.po_date).toLocaleDateString()}</p>}
+                        {p.po_date && <p className="text-[11px] text-slate-400">{new Date(p.po_date).toLocaleDateString()}</p>}
                       </td>
                       <td className="p-3 text-right font-mono font-bold text-slate-900">
                         ₹{(p.po_amount || 0).toLocaleString()}
@@ -492,14 +494,14 @@ export default function PurchaseOrdersPage() {
                         </button>
                       </td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           p.is_active !== false ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                         }`}>
                           {p.is_active !== false ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="p-3 text-right relative">
-                        <button
+                        <button aria-label="More actions" title="More actions"
                           onClick={() => setActiveDropdown(activeDropdown === p.po_id ? null : p.po_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
@@ -511,7 +513,7 @@ export default function PurchaseOrdersPage() {
                           <div className="absolute right-3 top-10 z-20 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1 text-left text-xs space-y-0.5">
                             <button
                               onClick={() => handleStartJobWithPO(p)}
-                              className="w-full px-3 py-1.5 hover:bg-indigo-50 text-indigo-700 flex items-center gap-2 font-bold"
+                              className="w-full px-3 py-1.5 hover:bg-brand-50 text-brand-700 flex items-center gap-2 font-bold"
                             >
                               <ArrowRight className="w-3.5 h-3.5" />
                               <span>Start Job with PO</span>
@@ -561,7 +563,7 @@ export default function PurchaseOrdersPage() {
                   <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-lg">
                     {p.po_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     p.is_active !== false ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                   }`}>
                     {p.is_active !== false ? "Active" : "Inactive"}
@@ -583,7 +585,7 @@ export default function PurchaseOrdersPage() {
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <button
                   onClick={() => handleStartJobWithPO(p)}
-                  className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 transition-colors flex items-center gap-1"
                 >
                   <span>Start Job</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -612,7 +614,7 @@ export default function PurchaseOrdersPage() {
                   {editingPO ? `Edit Purchase Order (${editingPO.po_id})` : "Add New Purchase Order"}
                 </h2>
               </div>
-              <button onClick={() => setShowPOModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowPOModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -620,8 +622,8 @@ export default function PurchaseOrdersPage() {
             <form onSubmit={handleSavePO} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
-                  <select
+                  <label htmlFor="purord-customer-client" className="block text-xs font-semibold text-slate-700 mb-1">Customer / Client *</label>
+                  <select id="purord-customer-client"
                     required
                     value={selectedClientId}
                     onChange={(e) => setSelectedClientId(e.target.value)}
@@ -637,8 +639,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
-                  <select
+                  <label htmlFor="purord-client-plant-unit-site" className="block text-xs font-semibold text-slate-700 mb-1">Client Plant Unit Site</label>
+                  <select id="purord-client-plant-unit-site"
                     value={selectedClientUnitId}
                     onChange={(e) => setSelectedClientUnitId(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -655,8 +657,8 @@ export default function PurchaseOrdersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
-                  <select
+                  <label htmlFor="purord-supplier-manufacturer" className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
+                  <select id="purord-supplier-manufacturer"
                     required
                     value={selectedMfrId}
                     onChange={(e) => setSelectedMfrId(e.target.value)}
@@ -672,8 +674,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
-                  <select
+                  <label htmlFor="purord-supplier-plant-unit" className="block text-xs font-semibold text-slate-700 mb-1">Supplier Plant Unit</label>
+                  <select id="purord-supplier-plant-unit"
                     value={selectedMfrUnitId}
                     onChange={(e) => setSelectedMfrUnitId(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -690,8 +692,8 @@ export default function PurchaseOrdersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">PO Ref / Number *</label>
-                  <input
+                  <label htmlFor="purord-po-ref-number" className="block text-xs font-semibold text-slate-700 mb-1">PO Ref / Number *</label>
+                  <input id="purord-po-ref-number"
                     type="text"
                     required
                     value={poNumber}
@@ -702,8 +704,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">PO Date</label>
-                  <input
+                  <label htmlFor="purord-po-date" className="block text-xs font-semibold text-slate-700 mb-1">PO Date</label>
+                  <input id="purord-po-date"
                     type="date"
                     value={poDate}
                     onChange={(e) => setPoDate(e.target.value)}
@@ -713,8 +715,8 @@ export default function PurchaseOrdersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Total PO Amount (INR)</label>
-                <input
+                <label htmlFor="purord-total-po-amount-inr" className="block text-xs font-semibold text-slate-700 mb-1">Total PO Amount (INR)</label>
+                <input id="purord-total-po-amount-inr"
                   type="number"
                   value={poAmount}
                   onChange={(e) => setPoAmount(Number(e.target.value))}
@@ -724,8 +726,8 @@ export default function PurchaseOrdersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Remarks / Contract Scope Notes</label>
-                <textarea
+                <label htmlFor="purord-remarks-contract-scope-notes" className="block text-xs font-semibold text-slate-700 mb-1">Remarks / Contract Scope Notes</label>
+                <textarea id="purord-remarks-contract-scope-notes"
                   rows={2}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
@@ -769,7 +771,7 @@ export default function PurchaseOrdersPage() {
                   <p className="text-xs text-slate-500">File No: {selectedPOForItems.po_id} • Customer: {selectedPOForItems.client_name}</p>
                 </div>
               </div>
-              <button onClick={() => setShowItemsModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowItemsModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -797,7 +799,7 @@ export default function PurchaseOrdersPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-slate-500">#{item.item_no || idx + 1}</span>
                           <span className="font-bold text-slate-900">{item.description}</span>
-                          {item.tag_number && <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-mono text-[10px] font-bold">{item.tag_number}</span>}
+                          {item.tag_number && <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-mono text-[11px] font-bold">{item.tag_number}</span>}
                         </div>
                         <p className="text-[11px] text-slate-500">
                           <span>Activity: {item.inspection_activity || "TPI Inspection"} • </span>
@@ -820,8 +822,8 @@ export default function PurchaseOrdersPage() {
               <h3 className="text-xs font-bold text-slate-900 font-heading">Add New BOQ Line Item</h3>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Equipment Description / BOQ Item *</label>
-                <input
+                <label htmlFor="purord-equipment-description-boq-item" className="block text-xs font-semibold text-slate-700 mb-1">Equipment Description / BOQ Item *</label>
+                <input id="purord-equipment-description-boq-item"
                   type="text"
                   required
                   value={itemDesc}
@@ -833,8 +835,8 @@ export default function PurchaseOrdersPage() {
 
               <div className="grid grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tag / Drawing No</label>
-                  <input
+                  <label htmlFor="purord-tag-drawing-no" className="block text-xs font-semibold text-slate-700 mb-1">Tag / Drawing No</label>
+                  <input id="purord-tag-drawing-no"
                     type="text"
                     value={itemTag}
                     onChange={(e) => setItemTag(e.target.value)}
@@ -844,8 +846,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Quantity</label>
-                  <input
+                  <label htmlFor="purord-quantity" className="block text-xs font-semibold text-slate-700 mb-1">Quantity</label>
+                  <input id="purord-quantity"
                     type="number"
                     value={itemQty}
                     onChange={(e) => setItemQty(Number(e.target.value))}
@@ -854,8 +856,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Unit of Measure</label>
-                  <select
+                  <label htmlFor="purord-unit-of-measure" className="block text-xs font-semibold text-slate-700 mb-1">Unit of Measure</label>
+                  <select id="purord-unit-of-measure"
                     value={itemUom}
                     onChange={(e) => setItemUom(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -869,8 +871,8 @@ export default function PurchaseOrdersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Unit Rate (INR)</label>
-                  <input
+                  <label htmlFor="purord-unit-rate-inr" className="block text-xs font-semibold text-slate-700 mb-1">Unit Rate (INR)</label>
+                  <input id="purord-unit-rate-inr"
                     type="number"
                     value={itemRate}
                     onChange={(e) => setItemRate(Number(e.target.value))}

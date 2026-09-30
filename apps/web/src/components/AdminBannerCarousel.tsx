@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, ClipboardList, Award, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, ClipboardList, Award, ArrowRight } from "@/components/icons";
 import Link from "next/link";
 
 interface Slide {

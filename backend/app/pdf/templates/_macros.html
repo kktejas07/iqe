@@ -22,6 +22,12 @@
       <div>REVISION: {{ revision or '00' }}</div>
       <div>{{ third_line_label }}: {{ report_no or '________________' }}</div>
     </td>
+    {% if qr_data_uri %}
+    <td class="header-qr-cell">
+      <img class="header-qr" src="{{ qr_data_uri }}" alt="Scan to verify">
+      <div class="header-qr-caption">Scan to verify</div>
+    </td>
+    {% endif %}
   </tr>
 </table>
 {% endmacro %}

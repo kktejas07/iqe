@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 
 export type InspectionFlowStepId =
   | "expediting"
@@ -102,7 +102,7 @@ export function InspectionFlowStepper({ currentStep }: InspectionFlowStepperProp
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 print:hidden">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-[#003366] text-white">
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-[#003366] text-white">
             TPI Quality Lifecycle Flow
           </span>
           <span className="text-xs text-slate-500 font-medium">
@@ -143,7 +143,7 @@ export function InspectionFlowStepper({ currentStep }: InspectionFlowStepperProp
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span
-                  className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${
                     isCurrent
                       ? "bg-[#003366] text-white"
                       : isCompleted
@@ -155,7 +155,7 @@ export function InspectionFlowStepper({ currentStep }: InspectionFlowStepperProp
                 </span>
 
                 <span
-                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                  className={`text-[11px] font-mono px-1.5 py-0.5 rounded font-bold ${
                     isCurrent
                       ? "bg-[#003366] text-white"
                       : isCompleted
@@ -172,12 +172,12 @@ export function InspectionFlowStepper({ currentStep }: InspectionFlowStepperProp
                 <span className="truncate">{step.name}</span>
               </div>
 
-              <div className="text-[10px] text-slate-500 truncate mt-0.5">
+              <div className="text-[11px] text-slate-500 truncate mt-0.5">
                 {step.shortDesc}
               </div>
 
               {isCurrent && (
-                <div className="mt-1 flex items-center gap-1 text-[9px] font-extrabold text-[#003366]">
+                <div className="mt-1 flex items-center gap-1 text-[11px] font-extrabold text-[#003366]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#003366] animate-pulse"></span>
                   <span>CURRENT DOCUMENT</span>
                 </div>

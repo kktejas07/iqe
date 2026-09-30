@@ -24,13 +24,13 @@ class DashboardService:
         return {
             "site_id": site_id,
             "counts": [
-                {"id": "Employee", "name": "Employees / Inspectors", "count": users_count or 24, "icon": "Users", "link": "/admin"},
-                {"id": "Client", "name": "Clients", "count": clients_count or 18, "icon": "Building2", "link": "/clients"},
-                {"id": "Manufacturer", "name": "Manufacturers", "count": manufacturers_count or 35, "icon": "Factory", "link": "/manufacturers"},
-                {"id": "PurchaseOrder", "name": "Purchase Orders", "count": purchase_orders_count or 42, "icon": "ShoppingBag", "link": "/tpi-billing"},
-                {"id": "ServiceOrder", "name": "Service Orders", "count": service_orders_count or 89, "icon": "Layers", "link": "/service-orders"},
-                {"id": "Visits", "name": "Scheduled Visits", "count": visits_count or 126, "icon": "Calendar", "link": "/visits"},
-                {"id": "InvoiceDetails", "name": "Invoices", "count": invoices_count or 54, "icon": "Receipt", "link": "/invoices"},
-                {"id": "Financials", "name": "Payments & Revenue", "count": payments_count or 31, "icon": "CreditCard", "link": "/invoices"},
+                {"id": "Employee", "name": "Employees / Inspectors", "count": users_count, "icon": "Users", "link": "/admin"},
+                {"id": "Client", "name": "Clients", "count": clients_count, "icon": "Building2", "link": "/clients"},
+                {"id": "Manufacturer", "name": "Manufacturers", "count": manufacturers_count, "icon": "Factory", "link": "/manufacturers"},
+                {"id": "PurchaseOrder", "name": "Purchase Orders", "count": purchase_orders_count, "icon": "ShoppingBag", "link": "/tpi-billing"},
+                {"id": "ServiceOrder", "name": "Service Orders", "count": service_orders_count, "icon": "Layers", "link": "/service-orders"},
+                {"id": "Visits", "name": "Scheduled Visits", "count": visits_count, "icon": "Calendar", "link": "/visits"},
+                {"id": "InvoiceDetails", "name": "Invoices", "count": invoices_count, "icon": "Receipt", "link": "/invoices"},
+                {"id": "Financials", "name": "Payments & Revenue", "count": payments_count, "icon": "CreditCard", "link": "/invoices"},
             ]
         }

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp } from "@/components/icons";
 import { Header } from "./Header";
+import { FeedbackHost } from "./feedback";
 
 export type ThemeType = "iqe-brand" | "google-light" | "google-dark" | "material-blue";
 
@@ -12,7 +13,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeType>("iqe-brand");
   const [routeLoading, setRouteLoading] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const isAuthPage = pathname === "/login" || pathname === "/";
+  // Public pages render without the app header (verify is opened by scanning a report QR)
+  const isAuthPage = pathname === "/login" || pathname === "/" || pathname.startsWith("/verify");
 
   useEffect(() => {
     const saved = localStorage.getItem("iqe_theme") as ThemeType;
@@ -44,7 +46,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   };
 
   if (isAuthPage) {
-    return <main className="min-h-screen bg-slate-950 text-slate-100">{children}</main>;
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100">
+        {children}
+        <FeedbackHost />
+      </main>
+    );
   }
 
   const getThemeBg = () => {
@@ -86,6 +93,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       >
         <ArrowUp className="w-4 h-4" />
       </button>
+
+      <FeedbackHost />
     </div>
   );
 }

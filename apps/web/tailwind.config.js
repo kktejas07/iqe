@@ -63,8 +63,13 @@ module.exports = {
         navyDark: '#001a2c',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        heading: ['Outfit', 'Inter', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-heading)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      fontWeight: {
+        // 800 read as shouty across 600+ labels; cap "extrabold" at bold
+        extrabold: '700',
       },
       spacing: {
         88: '22rem',

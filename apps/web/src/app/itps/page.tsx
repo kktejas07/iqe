@@ -18,7 +18,7 @@ import {
   Sparkles,
   Eye,
   FileSpreadsheet,
-} from "lucide-react";
+} from "@/components/icons";
 
 interface ITPActivity {
   slNo: number;
@@ -198,13 +198,13 @@ export default function ITPsPage() {
   const getBadge = (type: "H" | "W" | "R" | "S") => {
     switch (type) {
       case "H":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-300">H (Hold)</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-300">H (Hold)</span>;
       case "W":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">W (Witness)</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">W (Witness)</span>;
       case "R":
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border border-sky-300">R (Review)</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border border-sky-300">R (Review)</span>;
       default:
-        return <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">S (Surv)</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">S (Surv)</span>;
     }
   };
 
@@ -214,11 +214,11 @@ export default function ITPsPage() {
       <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] font-heading tracking-tight flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
               <Layers className="w-6 h-6 text-[#0084bf]" />
               <span>Inspection &amp; Test Plans (ITP)</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] border border-blue-200 text-[11px] font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#003366] dark:text-sky-300 border border-blue-200 text-[11px] font-bold font-mono">
               IQE-TP-01 &bull; REV 00
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[11px] font-bold font-mono">
@@ -249,7 +249,7 @@ export default function ITPsPage() {
             <BookOpen className="w-4 h-4 text-sky-600" />
             <div>
               <div className="font-extrabold text-slate-800">Formats</div>
-              <div className="text-[10px] text-slate-400">Audit &amp; Formats</div>
+              <div className="text-[11px] text-slate-400">Audit &amp; Formats</div>
             </div>
           </Link>
           <Link
@@ -259,7 +259,7 @@ export default function ITPsPage() {
             <FileText className="w-4 h-4 text-emerald-600" />
             <div>
               <div className="font-extrabold text-slate-800">SOP&apos;s</div>
-              <div className="text-[10px] text-slate-400">Operating Procedures</div>
+              <div className="text-[11px] text-slate-400">Operating Procedures</div>
             </div>
           </Link>
           <Link
@@ -269,7 +269,7 @@ export default function ITPsPage() {
             <CheckCircle2 className="w-4 h-4 text-amber-600" />
             <div>
               <div className="font-extrabold text-slate-800">Work Instructions</div>
-              <div className="text-[10px] text-slate-400">Technical Protocols</div>
+              <div className="text-[11px] text-slate-400">Technical Protocols</div>
             </div>
           </Link>
           <Link
@@ -279,7 +279,7 @@ export default function ITPsPage() {
             <Layers className="w-4 h-4 text-purple-600" />
             <div>
               <div className="font-extrabold text-purple-900">ITP&apos;s</div>
-              <div className="text-[10px] text-purple-700">Active Quality Plans</div>
+              <div className="text-[11px] text-purple-700">Active Quality Plans</div>
             </div>
           </Link>
         </div>
@@ -290,7 +290,7 @@ export default function ITPsPage() {
         {/* Left Side: Select ITP Register */}
         <div className="lg:col-span-1 space-y-3">
           <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-xs font-extrabold uppercase text-slate-400 font-mono tracking-wider mb-2">
+            <h3 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider mb-2">
               Select Quality Plan (ITP)
             </h3>
             <div className="space-y-2">
@@ -306,14 +306,14 @@ export default function ITPsPage() {
                         : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#0084bf]">
+                    <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#0084bf]">
                       <span>{plan.code}</span>
                       <span className="text-slate-500">{plan.rev}</span>
                     </div>
                     <div className="font-extrabold text-xs text-slate-900 dark:text-white mt-1 leading-snug">
                       {plan.title}
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {plan.project}
                     </div>
                   </button>
@@ -324,7 +324,7 @@ export default function ITPsPage() {
 
           {/* ITP Summary Card */}
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs space-y-2">
-            <div className="text-slate-400 uppercase font-mono text-[10px] font-bold">Legend Matrix</div>
+            <div className="text-slate-400 uppercase text-[11px] font-bold">Legend Matrix</div>
             <div className="flex items-center justify-between">
               <span><strong>H</strong>: Hold Point</span>
               <span className="text-slate-400">Formal sign-off required</span>
@@ -359,10 +359,10 @@ export default function ITPsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 text-[10px] font-bold font-mono">
+                <span className="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 text-[11px] font-bold font-mono">
                   {selectedITP.holdPointsCount} Hold Points
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 text-[10px] font-bold font-mono">
+                <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 text-[11px] font-bold font-mono">
                   {selectedITP.witnessPointsCount} Witness Points
                 </span>
               </div>
@@ -372,7 +372,7 @@ export default function ITPsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 text-[10px] font-extrabold uppercase font-mono text-slate-500 dark:text-slate-400">
+                  <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-extrabold uppercase text-slate-500 dark:text-slate-400">
                     <th className="p-3 w-12 text-center">#</th>
                     <th className="p-3">Activity &amp; Component</th>
                     <th className="p-3">Reference Spec</th>
@@ -390,7 +390,7 @@ export default function ITPsPage() {
                       <td className="p-3 font-mono font-bold text-center text-slate-400">{act.slNo}</td>
                       <td className="p-3 font-semibold text-slate-900 dark:text-white max-w-xs leading-snug">
                         {act.activity}
-                        <div className="text-[10px] text-slate-400 font-normal mt-0.5">{act.acceptanceCriteria}</div>
+                        <div className="text-[11px] text-slate-400 font-normal mt-0.5">{act.acceptanceCriteria}</div>
                       </td>
                       <td className="p-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">{act.referenceSpec}</td>
                       <td className="p-3 text-slate-600 dark:text-slate-300">{act.checkMethod}</td>
@@ -399,7 +399,7 @@ export default function ITPsPage() {
                       <td className="p-3 text-center font-bold">{getBadge(act.tpiIQE)}</td>
                       <td className="p-3 text-center">{getBadge(act.client)}</td>
                       <td className="p-3 text-right">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
                           act.status === "Completed"
                             ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                             : act.status === "Hold Point Active"

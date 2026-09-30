@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from beanie import init_beanie
@@ -78,20 +78,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
-configured_origins = [o.strip() for o in settings.allowed_origins if o and o.strip()]
-allow_all_origins = "*" in configured_origins
-explicit_origins = [o for o in configured_origins if o != "*"]
-
-origin_regex = (
-    r".*"
-    if allow_all_origins
-    else r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$"
-)
+# Filter out '*' if credentials are true to satisfy CORS specification across browsers
+sanitized_origins = [o for o in settings.allowed_origins if o != "*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=explicit_origins,
-    allow_origin_regex=origin_regex,
+    allow_origins=sanitized_origins if sanitized_origins else ["*"],
+    # localhost plus private LAN ranges, so the app can be opened from a phone on the same Wi-Fi
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -132,23 +126,37 @@ app.include_router(schedule_m_pharma_epc_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 
+@app.get("/api/pdf/generate", include_in_schema=False)
+async def generate_form_pdf(form_code: str, item_no: str = "", disposition: str = "inline"):
+    """Legacy link used by the Expediting page (per-item PDF)."""
+    from fastapi.responses import Response
+    from app.pdf.service import render_pdf
+
+    try:
+        pdf = render_pdf(form_code, payload={"item_no": item_no} if item_no else {})
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    disp = "attachment" if disposition == "attachment" else "inline"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'{disp}; filename="{form_code}_{item_no or "report"}.pdf"'})
+
+
+@app.get("/v/{code}", include_in_schema=False)
+async def open_verify_link(code: str):
+    """Short link encoded in document QR codes -> the web app's /verify page."""
+    from fastapi.responses import RedirectResponse
+    from core.qr import resolve_short
+
+    target = resolve_short(code)
+    if not target:
+        raise HTTPException(status_code=404, detail="Unknown or expired verification code")
+    return RedirectResponse(target, status_code=302)
+
+
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": settings.app_name, "platform": sys.platform}
-
-
-@app.get("/health/pdf")
-async def health_pdf():
-    status = {"available": False, "version": None, "error": None}
-    try:
-        import weasyprint
-
-        status["available"] = True
-        status["version"] = getattr(weasyprint, "__version__", "unknown")
-    except Exception as e:
-        status["error"] = str(e)
-    return status
 
 
 def main():

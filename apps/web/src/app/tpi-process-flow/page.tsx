@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -25,8 +26,10 @@ import {
   Building2,
   Calendar,
   Sparkles,
-} from "lucide-react";
+  Loader2,
+} from "@/components/icons";
 import { IQELoader } from "@/components/IQELoader";
+import { toast } from "@/components/feedback";
 
 interface TPICallItem {
   id: string;
@@ -112,6 +115,15 @@ const IQE_FORMAT_TEMPLATES = [
 export default function TPIProcessFlowPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<"flow" | "tm_review" | "templates" | "competence" | "nan">("flow");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleTabSwitch = (tab: "flow" | "tm_review" | "templates" | "competence") => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
+
   const [calls, setCalls] = useState<TPICallItem[]>(INITIAL_CALLS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
@@ -141,15 +153,15 @@ export default function TPIProcessFlowPage() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <button aria-label="Refresh Data"
             onClick={handleRefresh}
             className="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
             title="Refresh Data"
           >
-            <RefreshCw className="w-4 h-4 text-[#003366]" />
+            <RefreshCw className="w-4 h-4 text-[#003366] dark:text-sky-300" />
           </button>
           <a
-            href="/api/v1/reports/pdf/tpi-billing"
+            href={`${API_BASE}/api/v1/reports/pdf/tpi-billing`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-2xl bg-[#003366] hover:bg-[#002855] text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-2"
@@ -166,7 +178,7 @@ export default function TPIProcessFlowPage() {
           <div>
             <p className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">4h RFI Acknowledgment SLA</p>
             <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-1">100%</p>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">Response within 4 working hrs</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">Response within 4 working hrs</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <Clock className="w-5 h-5" />
@@ -177,7 +189,7 @@ export default function TPIProcessFlowPage() {
           <div>
             <p className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Inspector Response SLA</p>
             <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 font-mono mt-1">24h / 1 Wk</p>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">PAN India (24h) | Worldwide (1 Wk)</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">PAN India (24h) | Worldwide (1 Wk)</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
             <Users className="w-5 h-5" />
@@ -188,7 +200,7 @@ export default function TPIProcessFlowPage() {
           <div>
             <p className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">TM Review &amp; Query Queue</p>
             <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 font-mono mt-1">1 Pending</p>
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">Technical Manager Approval</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-semibold">Technical Manager Approval</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />
@@ -198,10 +210,10 @@ export default function TPIProcessFlowPage() {
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">24h Client Delivery Goal</p>
-            <p className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 font-mono mt-1">94.2%</p>
-            <p className="text-[10px] text-indigo-700 dark:text-indigo-300 font-bold mt-0.5">Target: 90% submitted &lt;24h</p>
+            <p className="text-2xl font-extrabold text-brand-600 dark:text-brand-400 font-mono mt-1">94.2%</p>
+            <p className="text-[11px] text-brand-700 dark:text-brand-300 font-bold mt-0.5">Target: 90% submitted &lt;24h</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 flex items-center justify-center">
             <Award className="w-5 h-5" />
           </div>
         </div>
@@ -210,8 +222,8 @@ export default function TPIProcessFlowPage() {
       {/* Module Sub-Tabs */}
       <div className="flex border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1 overflow-x-auto text-xs font-bold">
         <button
-          onClick={() => setActiveTab("flow")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("flow")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "flow"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -222,8 +234,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("tm_review")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("tm_review")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "tm_review"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -234,8 +246,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("templates")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("templates")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "templates"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -246,8 +258,8 @@ export default function TPIProcessFlowPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("competence")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+          onClick={() => handleTabSwitch("competence")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             activeTab === "competence"
               ? "bg-[#003366] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -258,8 +270,16 @@ export default function TPIProcessFlowPage() {
         </button>
       </div>
 
-      {/* TAB 1: 7-STAGE PROCESS FLOW STEPPER */}
-      {activeTab === "flow" && (
+      {/* SUB-MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-white rounded-2xl border border-slate-200 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0084bf]" />
+          <p className="text-xs font-bold text-slate-600 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* TAB 1: 7-STAGE PROCESS FLOW STEPPER */}
+          {activeTab === "flow" && (
         <div className="space-y-6">
           {/* Interactive Stepper Banner */}
           <div className="p-6 rounded-3xl bg-gradient-to-r from-[#002855] via-[#003366] to-[#00509d] text-white shadow-xl space-y-6">
@@ -270,45 +290,45 @@ export default function TPIProcessFlowPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-7 gap-3 text-xs">
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-sky-500/30 text-sky-200 font-mono text-[10px] font-bold">Stage 1</span>
+                <span className="px-2 py-0.5 rounded bg-sky-500/30 text-sky-200 font-mono text-[11px] font-bold">Stage 1</span>
                 <p className="font-extrabold text-white">Receipt of RFI &amp; Docs</p>
-                <p className="text-[10px] text-slate-300">Log details in call logsheet</p>
+                <p className="text-[11px] text-slate-300">Log details in call logsheet</p>
               </div>
 
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-emerald-500/30 text-emerald-200 font-mono text-[10px] font-bold">Stage 2</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/30 text-emerald-200 font-mono text-[11px] font-bold">Stage 2</span>
                 <p className="font-extrabold text-white">Check Readiness</p>
-                <p className="text-[10px] text-slate-300">SLA: 4 working hours</p>
+                <p className="text-[11px] text-slate-300">SLA: 4 working hours</p>
               </div>
 
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-mono text-[10px] font-bold">Stage 3</span>
+                <span className="px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-mono text-[11px] font-bold">Stage 3</span>
                 <p className="font-extrabold text-white">Schedule Inspector</p>
-                <p className="text-[10px] text-slate-300">TP-01A Competence Matrix</p>
+                <p className="text-[11px] text-slate-300">TP-01A Competence Matrix</p>
               </div>
 
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-purple-500/30 text-purple-200 font-mono text-[10px] font-bold">Stage 4</span>
+                <span className="px-2 py-0.5 rounded bg-purple-500/30 text-purple-200 font-mono text-[11px] font-bold">Stage 4</span>
                 <p className="font-extrabold text-white">Site Inspection</p>
-                <p className="text-[10px] text-slate-300">Per approved Drawings &amp; ITP</p>
+                <p className="text-[11px] text-slate-300">Per approved Drawings &amp; ITP</p>
               </div>
 
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 font-mono text-[10px] font-bold">Stage 5</span>
+                <span className="px-2 py-0.5 rounded bg-brand-500/30 text-brand-200 font-mono text-[11px] font-bold">Stage 5</span>
                 <p className="font-extrabold text-white">Generate Reports</p>
-                <p className="text-[10px] text-slate-300">Flash, Visit, IRN, NAN</p>
+                <p className="text-[11px] text-slate-300">Flash, Visit, IRN, NAN</p>
               </div>
 
               <div className="bg-white/10 p-3 rounded-2xl border border-white/10 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-rose-500/30 text-rose-200 font-mono text-[10px] font-bold">Stage 6</span>
+                <span className="px-2 py-0.5 rounded bg-rose-500/30 text-rose-200 font-mono text-[11px] font-bold">Stage 6</span>
                 <p className="font-extrabold text-white">TM Review</p>
-                <p className="text-[10px] text-slate-300">Technical Manager sign-off</p>
+                <p className="text-[11px] text-slate-300">Technical Manager sign-off</p>
               </div>
 
               <div className="bg-emerald-500/30 p-3 rounded-2xl border border-emerald-400/40 space-y-1">
-                <span className="px-2 py-0.5 rounded bg-emerald-500 text-white font-mono text-[10px] font-bold">Stage 7</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500 text-white font-mono text-[11px] font-bold">Stage 7</span>
                 <p className="font-extrabold text-white">Client Dispatch</p>
-                <p className="text-[10px] text-emerald-200">Submit &lt;24h (CC: Coord/GM)</p>
+                <p className="text-[11px] text-emerald-200">Submit &lt;24h (CC: Coord/GM)</p>
               </div>
             </div>
           </div>
@@ -323,6 +343,7 @@ export default function TPIProcessFlowPage() {
               <div className="relative max-w-xs w-full">
                 <input
                   type="text"
+                  aria-label="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search calls, inspectors, clients..."
@@ -334,7 +355,7 @@ export default function TPIProcessFlowPage() {
 
             <div className="overflow-x-auto border rounded-2xl">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase text-[10px]">
+                <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase text-[11px]">
                   <tr>
                     <th className="p-3">Call / RFI No</th>
                     <th className="p-3">Client &amp; Manufacturer</th>
@@ -351,25 +372,25 @@ export default function TPIProcessFlowPage() {
                       <td className="p-3 font-mono font-bold text-blue-700">{call.rfiNo}</td>
                       <td className="p-3">
                         <p className="font-bold text-slate-900">{call.client}</p>
-                        <p className="text-[10px] text-slate-500">{call.mfr}</p>
+                        <p className="text-[11px] text-slate-500">{call.mfr}</p>
                       </td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">
                           {call.ackStatus}
                         </span>
                       </td>
                       <td className="p-3">
                         <p className="font-bold text-slate-800">{call.assignedInspector}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">{call.locationType}</p>
+                        <p className="text-[11px] text-slate-500 font-mono">{call.locationType}</p>
                       </td>
                       <td className="p-3">
-                        <span className="px-2.5 py-1 rounded-xl bg-blue-50 text-[#003366] font-extrabold">
+                        <span className="px-2.5 py-1 rounded-xl bg-blue-50 text-[#003366] dark:text-sky-300 font-extrabold">
                           Stage {call.currentStage} of 7
                         </span>
                       </td>
                       <td className="p-3">
                         <span
-                          className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                          className={`px-2 py-0.5 rounded-full font-bold text-[11px] ${
                             call.tmReviewStatus === "Approved"
                               ? "bg-emerald-100 text-emerald-800"
                               : call.tmReviewStatus === "Pending Review"
@@ -382,7 +403,7 @@ export default function TPIProcessFlowPage() {
                       </td>
                       <td className="p-3 text-center">
                         <span
-                          className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                          className={`px-2 py-0.5 rounded-full font-bold text-[11px] ${
                             call.dispatchStatus === "Dispatched (<24h)"
                               ? "bg-emerald-100 text-emerald-800"
                               : "bg-blue-100 text-blue-800"
@@ -430,22 +451,22 @@ export default function TPIProcessFlowPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Inspector</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-bold">Inspector</span>
                     <span className="font-bold text-slate-800">{call.assignedInspector}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">ITP Reference</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-bold">ITP Reference</span>
                     <span className="font-mono text-slate-800">{call.itpRef}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Review Status</span>
+                    <span className="text-slate-400 block text-[11px] uppercase font-bold">Review Status</span>
                     <span className="font-bold text-amber-700">{call.tmReviewStatus}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
-                    onClick={() => alert(`Queries flagged for ${call.rfiNo}. Sent back to inspector.`)}
+                    onClick={() => toast.info(`Query flagged on ${call.rfiNo} and sent back to the inspector.`)}
                     className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors"
                   >
                     Flag Query
@@ -455,7 +476,7 @@ export default function TPIProcessFlowPage() {
                       setCalls((prev) =>
                         prev.map((c) => (c.id === call.id ? { ...c, tmReviewStatus: "Approved", dispatchStatus: "Dispatched (<24h)" } : c))
                       );
-                      alert(`Approved report ${call.rfiNo}! Dispatched to Client with CC to Coordinator & GM.`);
+                      toast.success(`Report ${call.rfiNo} approved and sent to the client, with a copy to the coordinator and GM.`);
                     }}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-1.5"
                   >
@@ -485,10 +506,10 @@ export default function TPIProcessFlowPage() {
             {IQE_FORMAT_TEMPLATES.map((tmpl) => (
               <div key={tmpl.code} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-blue-300 transition-all space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-extrabold text-xs text-[#003366] bg-blue-100 px-2.5 py-0.5 rounded-lg">
+                  <span className="font-mono font-extrabold text-xs text-[#003366] dark:text-sky-300 bg-blue-100 px-2.5 py-0.5 rounded-lg">
                     {tmpl.code}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">{tmpl.category}</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">{tmpl.category}</span>
                 </div>
                 <h4 className="font-bold text-xs text-slate-900">{tmpl.name}</h4>
                 <button
@@ -520,22 +541,24 @@ export default function TPIProcessFlowPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-2">
-              <h4 className="font-extrabold text-xs text-[#003366]">Er. Rao (Senior Lead TPI)</h4>
+              <h4 className="font-extrabold text-xs text-[#003366] dark:text-sky-300">Er. Rao (Senior Lead TPI)</h4>
               <p className="text-[11px] text-slate-600">NDT Level III (UT, RT, MPT, LPT) • ASME Sec VIII</p>
-              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">PAN India 24h</span>
+              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold font-mono">PAN India 24h</span>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-2">
-              <h4 className="font-extrabold text-xs text-[#003366]">Er. V. Sharma (Electrical Inspector)</h4>
+              <h4 className="font-extrabold text-xs text-[#003366] dark:text-sky-300">Er. V. Sharma (Electrical Inspector)</h4>
               <p className="text-[11px] text-slate-600">Substation &amp; Transformer Calibration • HV Testing</p>
-              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">PAN India 24h</span>
+              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold font-mono">PAN India 24h</span>
             </div>
             <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-2">
-              <h4 className="font-extrabold text-xs text-[#003366]">Er. K. Patel (Global Expeditor)</h4>
+              <h4 className="font-extrabold text-xs text-[#003366] dark:text-sky-300">Er. K. Patel (Global Expeditor)</h4>
               <p className="text-[11px] text-slate-600">Pressure Vessel Hydrotest • ISO Quality Lead Auditor</p>
-              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-bold font-mono">Worldwide WWI</span>
+              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[11px] font-bold font-mono">Worldwide WWI</span>
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* Format Modal Preview */}
@@ -546,7 +569,7 @@ export default function TPIProcessFlowPage() {
               <h3 className="font-bold text-lg text-slate-900 font-heading">
                 Format Preview: {selectedFormat}
               </h3>
-              <button onClick={() => setSelectedFormat(null)} className="p-1 text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setSelectedFormat(null)} className="p-1 text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -577,7 +600,7 @@ export default function TPIProcessFlowPage() {
               </button>
               <button
                 onClick={() => {
-                  alert(`Downloading format ${selectedFormat} PDF template...`);
+                  toast.info(`Downloading the ${selectedFormat} PDF template.`);
                   setSelectedFormat(null);
                 }}
                 className="px-4 py-2 rounded-xl bg-[#003366] text-white font-extrabold text-xs shadow-md"

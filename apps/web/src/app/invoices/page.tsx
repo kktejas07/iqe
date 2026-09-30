@@ -15,8 +15,9 @@ import {
   Clock,
   AlertTriangle,
   Printer,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -218,7 +219,7 @@ export default function InvoicesPage() {
       loadInvoices();
     } catch (e) {
       console.error("Failed to generate invoice", e);
-      alert("Failed to generate invoice.");
+      toast.error("Couldn't generate the invoice. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -246,7 +247,7 @@ export default function InvoicesPage() {
       loadInvoices();
     } catch (e) {
       console.error("Failed to record payment", e);
-      alert("Failed to record payment.");
+      toast.error("Couldn't record the payment. Please try again.");
     }
   };
 
@@ -257,7 +258,7 @@ export default function InvoicesPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Invoice Directory & Billing Ledger</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-xs font-bold font-mono">
               30-Day Payment Cycle Enabled
             </span>
           </div>
@@ -267,7 +268,7 @@ export default function InvoicesPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
+          <button aria-label="Refresh Invoices"
             onClick={loadInvoices}
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
@@ -372,6 +373,7 @@ export default function InvoicesPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Invoice No (INV/IQE/2026/001), Job ID, Customer Name, Amount..."
@@ -380,7 +382,7 @@ export default function InvoicesPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setPaymentFilter("all")}
@@ -417,14 +419,14 @@ export default function InvoicesPage() {
           </div>
 
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
-            <button
+            <button aria-label="Table View"
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-emerald-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
             >
               <LayoutList className="w-4 h-4" />
             </button>
-            <button
+            <button aria-label="Card Grid View"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-emerald-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
@@ -472,12 +474,12 @@ export default function InvoicesPage() {
                       <td className="p-3 font-mono font-bold text-emerald-700">{inv.invoice_number}</td>
                       <td className="p-3 font-mono text-slate-900">
                         <p className="font-bold">{inv.invoice_date ? inv.invoice_date.split("T")[0] : "N/A"}</p>
-                        <p className="text-[10px] text-slate-500">
-                          Due: <span className="font-bold text-indigo-700">{inv.due_date ? inv.due_date.split("T")[0] : "+30 Days"}</span>
+                        <p className="text-[11px] text-slate-500">
+                          Due: <span className="font-bold text-brand-700">{inv.due_date ? inv.due_date.split("T")[0] : "+30 Days"}</span>
                         </p>
                       </td>
                       <td className="p-3 font-bold text-slate-900">{inv.client_name || "Unassigned Client"}</td>
-                      <td className="p-3 font-mono font-bold text-indigo-600">{inv.job_id || "N/A"}</td>
+                      <td className="p-3 font-mono font-bold text-brand-600">{inv.job_id || "N/A"}</td>
                       <td className="p-3 font-medium capitalize">
                         {inv.billing_type === "hourly" ? (
                           <span className="text-slate-800 font-bold">Hourly ({inv.total_hours || 0} hrs @ ₹{inv.hourly_rate || 0})</span>
@@ -490,7 +492,7 @@ export default function InvoicesPage() {
                       <td className="p-3 font-mono font-extrabold text-slate-900 text-sm">₹{(inv.grand_total || 0).toLocaleString()}</td>
                       <td className="p-3">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                             inv.payment_status === "paid"
                               ? "bg-emerald-100 text-emerald-800"
                               : inv.payment_status === "overdue" || inv.overdue_alert
@@ -509,7 +511,7 @@ export default function InvoicesPage() {
                           <Receipt className="w-3.5 h-3.5" />
                           <span>View Invoice</span>
                         </button>
-                        <button
+                        <button aria-label="More actions" title="More actions"
                           onClick={() => setActiveDropdown(activeDropdown === inv.invoice_id ? null : inv.invoice_id)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
@@ -562,7 +564,7 @@ export default function InvoicesPage() {
                     {inv.invoice_number}
                   </span>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                       inv.payment_status === "paid"
                         ? "bg-emerald-100 text-emerald-800"
                         : inv.payment_status === "overdue" || inv.overdue_alert
@@ -576,7 +578,7 @@ export default function InvoicesPage() {
 
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 font-heading">{inv.client_name}</h3>
-                  <p className="text-[11px] font-mono text-indigo-600 font-bold">Job: {inv.job_id}</p>
+                  <p className="text-[11px] font-mono text-brand-600 font-bold">Job: {inv.job_id}</p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
@@ -585,7 +587,7 @@ export default function InvoicesPage() {
                     <span className="font-mono font-extrabold text-slate-900 text-sm">₹{(inv.grand_total || 0).toLocaleString()}</span>
                   </p>
                   <p>
-                    <span className="text-slate-400">Payment Cycle:</span> <span className="font-bold text-indigo-700">30-Day Mandatory</span>
+                    <span className="text-slate-400">Payment Cycle:</span> <span className="font-bold text-brand-700">30-Day Mandatory</span>
                   </p>
                   <p>
                     <span className="text-slate-400">Due Date:</span>{" "}
@@ -626,7 +628,7 @@ export default function InvoicesPage() {
                 <Receipt className="w-5 h-5 text-emerald-600" />
                 <h2 className="text-base font-bold text-slate-900">Generate Invoice (Order / Job Completed)</h2>
               </div>
-              <button onClick={() => setShowGenModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowGenModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -634,8 +636,8 @@ export default function InvoicesPage() {
             <form onSubmit={handleSaveInvoice} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Number *</label>
-                  <input
+                  <label htmlFor="inv-invoice-number" className="block text-xs font-semibold text-slate-700 mb-1">Invoice Number *</label>
+                  <input id="inv-invoice-number"
                     type="text"
                     required
                     value={invNo}
@@ -645,20 +647,20 @@ export default function InvoicesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Completed Job ID *</label>
-                  <input
+                  <label htmlFor="inv-completed-job-id" className="block text-xs font-semibold text-slate-700 mb-1">Completed Job ID *</label>
+                  <input id="inv-completed-job-id"
                     type="text"
                     required
                     value={jobId}
                     onChange={(e) => setJobId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold text-indigo-700"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold text-brand-700"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Corporate Client *</label>
-                <select
+                <label htmlFor="inv-corporate-client" className="block text-xs font-semibold text-slate-700 mb-1">Corporate Client *</label>
+                <select id="inv-corporate-client"
                   required
                   value={selectedClientId}
                   onChange={(e) => setSelectedClientId(e.target.value)}
@@ -696,8 +698,8 @@ export default function InvoicesPage() {
               {billingType === "hourly" ? (
                 <div className="grid grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Hourly Rate (₹/hr) *</label>
-                    <input
+                    <label htmlFor="inv-hourly-rate-hr" className="block text-xs font-semibold text-slate-700 mb-1">Hourly Rate (₹/hr) *</label>
+                    <input id="inv-hourly-rate-hr"
                       type="number"
                       required
                       value={hourlyRate}
@@ -706,8 +708,8 @@ export default function InvoicesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Total Inspector Hours *</label>
-                    <input
+                    <label htmlFor="inv-total-inspector-hours" className="block text-xs font-semibold text-slate-700 mb-1">Total Inspector Hours *</label>
+                    <input id="inv-total-inspector-hours"
                       type="number"
                       required
                       value={totalHours}
@@ -718,8 +720,8 @@ export default function InvoicesPage() {
                 </div>
               ) : (
                 <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-200">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Bulk Package Lump-Sum Amount (₹) *</label>
-                  <input
+                  <label htmlFor="inv-bulk-package-lump-sum-amount" className="block text-xs font-semibold text-slate-700 mb-1">Bulk Package Lump-Sum Amount (₹) *</label>
+                  <input id="inv-bulk-package-lump-sum-amount"
                     type="number"
                     required
                     value={bulkAmount}
@@ -776,15 +778,15 @@ export default function InvoicesPage() {
                   Record Received Payment — {selectedInvForPayment.invoice_number}
                 </h2>
               </div>
-              <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Close" title="Close" onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleRecordPaymentSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode *</label>
-                <select
+                <label htmlFor="inv-payment-mode" className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode *</label>
+                <select id="inv-payment-mode"
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
@@ -797,8 +799,8 @@ export default function InvoicesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Bank Transaction Ref Number *</label>
-                <input
+                <label htmlFor="inv-bank-transaction-ref-number" className="block text-xs font-semibold text-slate-700 mb-1">Bank Transaction Ref Number *</label>
+                <input id="inv-bank-transaction-ref-number"
                   type="text"
                   required
                   value={txnRef}
@@ -834,7 +836,7 @@ export default function InvoicesPage() {
       {/* View Generated 30-Day Net Invoice Modal */}
       {showViewModal && viewInvoiceData && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
+          <div className="keep-light bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
             
             {/* Background Watermark Logo of IQE */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
@@ -863,7 +865,7 @@ export default function InvoicesPage() {
                     <Printer className="w-4 h-4" />
                     <span>Print / Save PDF</span>
                   </button>
-                  <button onClick={() => setShowViewModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                  <button aria-label="Close" title="Close" onClick={() => setShowViewModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -872,19 +874,19 @@ export default function InvoicesPage() {
               {/* Invoice Details Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Customer Client</span>
                   <p className="font-extrabold text-slate-900 mt-0.5">{viewInvoiceData.client_name}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Job Reference</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Job Reference</span>
                   <p className="font-extrabold text-[#0084bf] mt-0.5">{viewInvoiceData.job_id || "JOB-2026-MIG-0001"}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Payment Terms</span>
-                  <p className="font-extrabold text-indigo-700 mt-0.5">Net 30 Days</p>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Payment Terms</span>
+                  <p className="font-extrabold text-brand-700 mt-0.5">Net 30 Days</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Due Date</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Due Date</span>
                   <p className="font-extrabold text-[#e35f14] mt-0.5">{viewInvoiceData.due_date ? new Date(viewInvoiceData.due_date).toLocaleDateString() : "+30 Days"}</p>
                 </div>
               </div>

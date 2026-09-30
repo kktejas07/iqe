@@ -1,5 +1,7 @@
 "use client";
+import { promptDialog, toast } from "@/components/feedback";
 
+import { API_BASE } from "@/lib/config";
 import { useEffect, useState } from "react";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
 import {
@@ -36,7 +38,8 @@ import {
   Info,
   Settings,
   X,
-} from "lucide-react";
+  Loader2,
+} from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function ScheduleMPharmaEPCPage() {
@@ -46,6 +49,16 @@ export default function ScheduleMPharmaEPCPage() {
   const [activeTab, setActiveTab] = useState<
     "checklists" | "requirements" | "commercial" | "governance" | "reports" | "expert_scorecard"
   >("checklists");
+  const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
+
+  const handleTabSwitch = (
+    tab: "checklists" | "requirements" | "commercial" | "governance" | "reports" | "expert_scorecard"
+  ) => {
+    if (tab === activeTab) return;
+    setIsTabSwitching(true);
+    setActiveTab(tab);
+    setTimeout(() => setIsTabSwitching(false), 220);
+  };
 
   // Filters & State
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("ALL");
@@ -426,13 +439,13 @@ export default function ScheduleMPharmaEPCPage() {
         </div>
 
         {/* Handover Readiness */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-indigo-500/50 transition-all">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-brand-500/50 transition-all">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
             <span>CQV Handover</span>
-            <Layers className="w-4 h-4 text-indigo-400" />
+            <Layers className="w-4 h-4 text-brand-400" />
           </div>
           <div className="my-2">
-            <span className="text-2xl font-black text-indigo-400">
+            <span className="text-2xl font-black text-brand-400">
               {summary?.cqv_handover_readiness || 33.3}%
             </span>
           </div>
@@ -443,8 +456,8 @@ export default function ScheduleMPharmaEPCPage() {
       {/* Main Tabs Navigation */}
       <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto text-sm">
         <button
-          onClick={() => setActiveTab("checklists")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("checklists")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "checklists"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -458,8 +471,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("requirements")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("requirements")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "requirements"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -473,8 +486,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("commercial")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("commercial")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "commercial"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -488,8 +501,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("governance")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("governance")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "governance"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -503,8 +516,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("reports")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("reports")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "reports"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -515,8 +528,8 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("expert_scorecard")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 ${
+          onClick={() => handleTabSwitch("expert_scorecard")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shrink-0 cursor-pointer ${
             activeTab === "expert_scorecard"
               ? "bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
@@ -527,14 +540,22 @@ export default function ScheduleMPharmaEPCPage() {
         </button>
       </div>
 
-      {/* TAB 1: MASTER FIELD CHECKLISTS */}
-      {activeTab === "checklists" && (
+      {/* MODULE TABS BODY WITH TRANSITION LOADER */}
+      {isTabSwitching ? (
+        <div className="py-24 flex flex-col items-center justify-center gap-3 bg-slate-900/60 rounded-2xl border border-slate-800 shadow-2xs animate-in fade-in duration-200">
+          <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+          <p className="text-xs font-bold text-slate-300 font-mono tracking-wide">Switching Module View...</p>
+        </div>
+      ) : (
+        <>
+          {/* TAB 1: MASTER FIELD CHECKLISTS */}
+          {activeTab === "checklists" && (
         <div className="space-y-4">
           {/* Filter Bar */}
           <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
             <div className="flex-1 relative">
               <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-              <input
+              <input aria-label="Search verification points"
                 type="text"
                 placeholder="Search by verification point, ID, clause, drawing..."
                 value={searchTerm}
@@ -614,7 +635,7 @@ export default function ScheduleMPharmaEPCPage() {
                           <span className="font-mono font-bold text-sky-400 block">{item.item_id}</span>
                           <span className="text-[11px] text-slate-400">{item.discipline}</span>
                           {item.sub_category && (
-                            <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300">
+                            <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-slate-800 text-[11px] text-cyan-300">
                               {item.sub_category}
                             </span>
                           )}
@@ -631,12 +652,12 @@ export default function ScheduleMPharmaEPCPage() {
                           <p className="text-[11px] leading-tight font-medium text-slate-200">
                             {item.acceptance_criteria || "Per approved ITP & URS"}
                           </p>
-                          <span className="inline-block mt-1 font-mono text-[10px] text-sky-400/80">
+                          <span className="inline-block mt-1 font-mono text-[11px] text-sky-400/80">
                             {item.requirement_source} • {item.drawing_spec_ref}
                           </span>
                         </td>
                         <td className="p-3.5 align-top whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                             {item.inspection_intensity || "Risk-based sample"}
                           </span>
                         </td>
@@ -688,7 +709,7 @@ export default function ScheduleMPharmaEPCPage() {
                             </button>
                           </div>
                           {isDefect && (
-                            <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-950 text-red-300 border border-red-800/60">
+                            <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-red-950 text-red-300 border border-red-800/60">
                               Sev: {item.severity || "Major"}
                             </span>
                           )}
@@ -700,15 +721,25 @@ export default function ScheduleMPharmaEPCPage() {
                             <span className="text-slate-600">—</span>
                           )}
                           {item.evidence_ref && (
-                            <span className="text-[10px] text-cyan-400 block font-mono">{item.evidence_ref}</span>
+                            <span className="text-[11px] text-cyan-400 block font-mono">{item.evidence_ref}</span>
                           )}
                         </td>
                         <td className="p-3.5 align-top whitespace-nowrap">
                           <button
-                            onClick={() => {
-                              const note = prompt("Enter Inspector Actual Reading / Observation:", item.comments || "");
+                            onClick={async () => {
+                              const note = await promptDialog({
+                                title: "Add inspector note",
+                                label: "Actual reading or observation",
+                                defaultValue: item.comments || "",
+                                multiline: true,
+                              });
                               if (note !== null) {
-                                api.updateScheduleMChecklist(item.item_id, { comments: note }).then(() => loadData());
+                                api.updateScheduleMChecklist(item.item_id, { comments: note })
+                                  .then(() => {
+                                    toast.success("Note saved");
+                                    loadData();
+                                  })
+                                  .catch(() => toast.error("Couldn't save the note. Please try again."));
                               }
                             }}
                             className="text-sky-400 hover:text-sky-300 font-medium underline text-[11px]"
@@ -769,14 +800,14 @@ export default function ScheduleMPharmaEPCPage() {
                       <td className="p-3 font-semibold text-white max-w-xs">{req.theme}</td>
                       <td className="p-3 text-slate-300 max-w-md leading-relaxed">{req.statement}</td>
                       <td className="p-3 text-slate-400">
-                        <span className="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800 text-[10px] font-bold block w-fit mb-1">
+                        <span className="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800 text-[11px] font-bold block w-fit mb-1">
                           {req.applicability}
                         </span>
-                        <span className="text-[10px] italic">{req.rationale}</span>
+                        <span className="text-[11px] italic">{req.rationale}</span>
                       </td>
                       <td className="p-3 font-mono text-cyan-400">{req.design_ref}</td>
                       <td className="p-3">
-                        <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-emerald-950/90 text-emerald-300 border border-emerald-600/50">
+                        <span className="px-2.5 py-1 rounded-full font-bold text-[11px] bg-emerald-950/90 text-emerald-300 border border-emerald-600/50">
                           {req.compliance_status}
                         </span>
                       </td>
@@ -792,14 +823,14 @@ export default function ScheduleMPharmaEPCPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-indigo-400" />
+                  <Layers className="w-5 h-5 text-brand-400" />
                   URS-to-Design & Qualification Traceability Matrix
                 </h3>
                 <p className="text-xs text-slate-400">
                   Critical process parameters (CPP) and critical quality attributes (CQA) traced from URS to OQ protocol evidence.
                 </p>
               </div>
-              <span className="text-xs px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 font-semibold">
+              <span className="text-xs px-3 py-1 rounded-full bg-brand-950/80 border border-brand-500/40 text-brand-300 font-semibold">
                 GAMP 5 & Schedule M V-Model
               </span>
             </div>
@@ -819,7 +850,7 @@ export default function ScheduleMPharmaEPCPage() {
                 <tbody className="divide-y divide-slate-800/60 font-sans">
                   {(project?.urs_traceabilities || []).map((u: any) => (
                     <tr key={u.urs_id} className="hover:bg-slate-800/40">
-                      <td className="p-3 font-mono font-bold text-indigo-400 align-top">{u.urs_id}</td>
+                      <td className="p-3 font-mono font-bold text-brand-400 align-top">{u.urs_id}</td>
                       <td className="p-3 font-medium text-white max-w-sm align-top">{u.urs_requirement}</td>
                       <td className="p-3 font-mono text-sky-400 align-top">{u.design_ref}</td>
                       <td className="p-3 align-top max-w-xs text-slate-300">
@@ -829,14 +860,14 @@ export default function ScheduleMPharmaEPCPage() {
                       <td className="p-3 align-top text-slate-300 max-w-md">
                         <p className="text-[11px] text-slate-200">{u.finding}</p>
                         {u.evidence_ref && (
-                          <span className="text-[10px] font-mono text-cyan-400 block mt-1">
+                          <span className="text-[11px] font-mono text-cyan-400 block mt-1">
                             Evidence: {u.evidence_ref}
                           </span>
                         )}
                       </td>
                       <td className="p-3 align-top">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                             u.risk === "Critical"
                               ? "bg-red-950 text-red-300 border border-red-700"
                               : "bg-amber-950 text-amber-300 border border-amber-700"
@@ -858,7 +889,7 @@ export default function ScheduleMPharmaEPCPage() {
       {activeTab === "commercial" && (
         <div className="space-y-6">
           {/* Sub Navigation */}
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2">
             {[
               { id: "red_flags", label: "D16 Fraud & Overbilling Red Flags", icon: Flame, badge: "10 Checks" },
               { id: "measurements", label: "Quantity Measurements (F-07)", icon: Ruler, badge: `${project?.quantity_measurements?.length || 3}` },
@@ -878,7 +909,7 @@ export default function ScheduleMPharmaEPCPage() {
                 >
                   <Icon className="w-3.5 h-3.5" />
                   {sub.label}
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">
+                  <span className="text-[11px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">
                     {sub.badge}
                   </span>
                 </button>
@@ -923,7 +954,7 @@ export default function ScheduleMPharmaEPCPage() {
                           <div className="flex items-center justify-between">
                             <span className="font-mono text-xs font-bold text-sky-400">{rf.check_id}</span>
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                                 isClear
                                   ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
                                   : "bg-red-900 text-white animate-pulse"
@@ -938,7 +969,7 @@ export default function ScheduleMPharmaEPCPage() {
                           </p>
                         </div>
                         <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between">
-                          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                          <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
                             Risk Impact: {rf.risk_impact}
                           </span>
                           <button
@@ -985,8 +1016,8 @@ export default function ScheduleMPharmaEPCPage() {
                   <h4 className="text-xs font-bold text-slate-300 uppercase">New Measurement Line</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <label className="text-slate-400 block mb-1">BOQ Item Ref</label>
-                      <input
+                      <label htmlFor="smp-boq-item-ref" className="text-slate-400 block mb-1">BOQ Item Ref</label>
+                      <input id="smp-boq-item-ref"
                         type="text"
                         placeholder="BOQ-CIV-04"
                         value={newMeasurement.boq_item}
@@ -996,8 +1027,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Description</label>
-                      <input
+                      <label htmlFor="smp-description" className="text-slate-400 block mb-1">Description</label>
+                      <input id="smp-description"
                         type="text"
                         placeholder="Cleanroom panels 50mm"
                         value={newMeasurement.description}
@@ -1007,8 +1038,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Unit</label>
-                      <select
+                      <label htmlFor="smp-unit" className="text-slate-400 block mb-1">Unit</label>
+                      <select id="smp-unit"
                         value={newMeasurement.unit}
                         onChange={(e) => setNewMeasurement({ ...newMeasurement, unit: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
@@ -1021,8 +1052,8 @@ export default function ScheduleMPharmaEPCPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Rate (₹)</label>
-                      <input
+                      <label htmlFor="smp-rate" className="text-slate-400 block mb-1">Rate (₹)</label>
+                      <input id="smp-rate"
                         type="number"
                         placeholder="3850"
                         value={newMeasurement.rate || ""}
@@ -1032,8 +1063,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Length (m)</label>
-                      <input
+                      <label htmlFor="smp-length-m" className="text-slate-400 block mb-1">Length (m)</label>
+                      <input id="smp-length-m"
                         type="number"
                         step="0.01"
                         placeholder="18.5"
@@ -1044,8 +1075,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Width (m)</label>
-                      <input
+                      <label htmlFor="smp-width-m" className="text-slate-400 block mb-1">Width (m)</label>
+                      <input id="smp-width-m"
                         type="number"
                         step="0.01"
                         placeholder="3.2"
@@ -1056,8 +1087,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Height / Depth (m)</label>
-                      <input
+                      <label htmlFor="smp-height-depth-m" className="text-slate-400 block mb-1">Height / Depth (m)</label>
+                      <input id="smp-height-depth-m"
                         type="number"
                         step="0.01"
                         placeholder="0"
@@ -1067,8 +1098,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Location Grid / Tag</label>
-                      <input
+                      <label htmlFor="smp-location-grid-tag" className="text-slate-400 block mb-1">Location Grid / Tag</label>
+                      <input id="smp-location-grid-tag"
                         type="text"
                         placeholder="Room 104 Grid A3"
                         value={newMeasurement.location_grid_room_tag}
@@ -1129,7 +1160,7 @@ export default function ScheduleMPharmaEPCPage() {
                         </td>
                         <td className="p-3 text-slate-400">{m.location_grid_room_tag}</td>
                         <td className="p-3">
-                          <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold">
+                          <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px] font-bold">
                             {m.status}
                           </span>
                         </td>
@@ -1146,7 +1177,7 @@ export default function ScheduleMPharmaEPCPage() {
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-indigo-400" />
+                  <FileSpreadsheet className="w-5 h-5 text-brand-400" />
                   BOQ Quantity Reconciliation (F-08)
                 </h3>
                 <p className="text-xs text-slate-400">
@@ -1181,7 +1212,7 @@ export default function ScheduleMPharmaEPCPage() {
                         <td className="p-3 font-mono text-slate-400">{b.previous_certified_qty}</td>
                         <td className="p-3 font-mono font-bold text-emerald-400">{b.current_measured_qty}</td>
                         <td className="p-3 font-mono text-cyan-300">{b.cumulative_qty}</td>
-                        <td className="p-3 font-mono text-indigo-300 font-bold">{b.balance_qty}</td>
+                        <td className="p-3 font-mono text-brand-300 font-bold">{b.balance_qty}</td>
                         <td className="p-3 font-mono font-bold text-emerald-400">
                           ₹{b.cumulative_value.toLocaleString()}
                         </td>
@@ -1238,7 +1269,7 @@ export default function ScheduleMPharmaEPCPage() {
                         </td>
                         <td className="p-3 align-top">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                               r.status === "VERIFIED"
                                 ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
                                 : "bg-red-950 text-red-300 border border-red-800"
@@ -1282,7 +1313,7 @@ export default function ScheduleMPharmaEPCPage() {
                 }`}
               >
                 {sub.label}
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">
+                <span className="text-[11px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono">
                   {sub.count}
                 </span>
               </button>
@@ -1315,8 +1346,8 @@ export default function ScheduleMPharmaEPCPage() {
                   <h4 className="font-bold text-slate-300 uppercase">Raise Formal Non-Conformance Report</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-slate-400 block mb-1">NCR ID</label>
-                      <input
+                      <label htmlFor="smp-ncr-id" className="text-slate-400 block mb-1">NCR ID</label>
+                      <input id="smp-ncr-id"
                         type="text"
                         value={newNCR.ncr_id}
                         onChange={(e) => setNewNCR({ ...newNCR, ncr_id: e.target.value })}
@@ -1325,8 +1356,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Severity Class</label>
-                      <select
+                      <label htmlFor="smp-severity-class" className="text-slate-400 block mb-1">Severity Class</label>
+                      <select id="smp-severity-class"
                         value={newNCR.severity}
                         onChange={(e) => setNewNCR({ ...newNCR, severity: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
@@ -1337,8 +1368,8 @@ export default function ScheduleMPharmaEPCPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Discipline</label>
-                      <input
+                      <label htmlFor="smp-discipline" className="text-slate-400 block mb-1">Discipline</label>
+                      <input id="smp-discipline"
                         type="text"
                         value={newNCR.discipline}
                         onChange={(e) => setNewNCR({ ...newNCR, discipline: e.target.value })}
@@ -1348,8 +1379,8 @@ export default function ScheduleMPharmaEPCPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-slate-400 block mb-1">Objective Evidence</label>
-                    <textarea
+                    <label htmlFor="smp-objective-evidence" className="text-slate-400 block mb-1">Objective Evidence</label>
+                    <textarea id="smp-objective-evidence"
                       rows={2}
                       placeholder="Detail exact physical discrepancy, measurement, or test failure..."
                       value={newNCR.objective_evidence}
@@ -1360,8 +1391,8 @@ export default function ScheduleMPharmaEPCPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-slate-400 block mb-1">Immediate Containment Action</label>
-                      <input
+                      <label htmlFor="smp-immediate-containment-action" className="text-slate-400 block mb-1">Immediate Containment Action</label>
+                      <input id="smp-immediate-containment-action"
                         type="text"
                         placeholder="Tag out of service, quarantine..."
                         value={newNCR.containment}
@@ -1371,8 +1402,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Corrective Action Plan (CAPA)</label>
-                      <input
+                      <label htmlFor="smp-corrective-action-plan-capa" className="text-slate-400 block mb-1">Corrective Action Plan (CAPA)</label>
+                      <input id="smp-corrective-action-plan-capa"
                         type="text"
                         placeholder="Re-weld, re-torque, replace..."
                         value={newNCR.corrective_action}
@@ -1410,7 +1441,7 @@ export default function ScheduleMPharmaEPCPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-red-400 text-sm">{ncr.ncr_id}</span>
                         <span
-                          className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                          className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                             ncr.severity === "Critical"
                               ? "bg-red-950 text-red-300 border border-red-700"
                               : ncr.severity === "Major"
@@ -1425,7 +1456,7 @@ export default function ScheduleMPharmaEPCPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-slate-400">Status:</span>
                         <span
-                          className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                          className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                             ncr.status === "CLOSED"
                               ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
                               : "bg-red-950 text-red-300 border border-red-700"
@@ -1492,8 +1523,8 @@ export default function ScheduleMPharmaEPCPage() {
                   <h4 className="font-bold text-slate-300 uppercase">Raise Technical Query RFI</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-slate-400 block mb-1">RFI ID</label>
-                      <input
+                      <label htmlFor="smp-rfi-id" className="text-slate-400 block mb-1">RFI ID</label>
+                      <input id="smp-rfi-id"
                         type="text"
                         value={newRFI.rfi_id}
                         onChange={(e) => setNewRFI({ ...newRFI, rfi_id: e.target.value })}
@@ -1502,8 +1533,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Discipline</label>
-                      <input
+                      <label htmlFor="smp-discipline-2" className="text-slate-400 block mb-1">Discipline</label>
+                      <input id="smp-discipline-2"
                         type="text"
                         value={newRFI.discipline}
                         onChange={(e) => setNewRFI({ ...newRFI, discipline: e.target.value })}
@@ -1512,8 +1543,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Drawing / Spec Ref</label>
-                      <input
+                      <label htmlFor="smp-drawing-spec-ref" className="text-slate-400 block mb-1">Drawing / Spec Ref</label>
+                      <input id="smp-drawing-spec-ref"
                         type="text"
                         value={newRFI.doc_ref}
                         onChange={(e) => setNewRFI({ ...newRFI, doc_ref: e.target.value })}
@@ -1523,8 +1554,8 @@ export default function ScheduleMPharmaEPCPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-slate-400 block mb-1">Query Statement</label>
-                    <textarea
+                    <label htmlFor="smp-query-statement" className="text-slate-400 block mb-1">Query Statement</label>
+                    <textarea id="smp-query-statement"
                       rows={2}
                       placeholder="Specify conflict between drawings or specification..."
                       value={newRFI.query}
@@ -1578,7 +1609,7 @@ export default function ScheduleMPharmaEPCPage() {
                         </td>
                         <td className="p-3 align-top">
                           <span
-                            className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                               rfi.status === "CLOSED"
                                 ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
                                 : "bg-amber-950 text-amber-300 border border-amber-700"
@@ -1621,8 +1652,8 @@ export default function ScheduleMPharmaEPCPage() {
                   <h4 className="font-bold text-slate-300 uppercase">Log Site Punch Item</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-slate-400 block mb-1">Item ID</label>
-                      <input
+                      <label htmlFor="smp-item-id" className="text-slate-400 block mb-1">Item ID</label>
+                      <input id="smp-item-id"
                         type="text"
                         value={newPunch.item_id}
                         onChange={(e) => setNewPunch({ ...newPunch, item_id: e.target.value })}
@@ -1631,8 +1662,8 @@ export default function ScheduleMPharmaEPCPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">Category</label>
-                      <select
+                      <label htmlFor="smp-category" className="text-slate-400 block mb-1">Category</label>
+                      <select id="smp-category"
                         value={newPunch.category}
                         onChange={(e) => setNewPunch({ ...newPunch, category: e.target.value })}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
@@ -1643,8 +1674,8 @@ export default function ScheduleMPharmaEPCPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">System / Package</label>
-                      <input
+                      <label htmlFor="smp-system-package" className="text-slate-400 block mb-1">System / Package</label>
+                      <input id="smp-system-package"
                         type="text"
                         value={newPunch.system}
                         onChange={(e) => setNewPunch({ ...newPunch, system: e.target.value })}
@@ -1654,8 +1685,8 @@ export default function ScheduleMPharmaEPCPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-slate-400 block mb-1">Description</label>
-                    <input
+                    <label htmlFor="smp-description-2" className="text-slate-400 block mb-1">Description</label>
+                    <input id="smp-description-2"
                       type="text"
                       placeholder="Specify punch snag..."
                       value={newPunch.description}
@@ -1701,7 +1732,7 @@ export default function ScheduleMPharmaEPCPage() {
                         <td className="p-3 font-mono font-bold text-sky-400 align-top">{pl.item_id}</td>
                         <td className="p-3 align-top whitespace-nowrap">
                           <span
-                            className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                               pl.category === "CAT_A"
                                 ? "bg-red-950 text-red-300 border border-red-700 animate-pulse"
                                 : pl.category === "CAT_B"
@@ -1720,7 +1751,7 @@ export default function ScheduleMPharmaEPCPage() {
                         <td className="p-3 align-top text-amber-300 text-[11px]">{pl.prerequisite_impact}</td>
                         <td className="p-3 align-top">
                           <span
-                            className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                               pl.status === "CLOSED"
                                 ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
                                 : "bg-amber-950 text-amber-300 border border-amber-700"
@@ -1788,7 +1819,7 @@ export default function ScheduleMPharmaEPCPage() {
                         <td className="p-3 font-mono font-bold text-white">{cal.due_date}</td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                               cal.status === "VALID"
                                 ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
                                 : "bg-amber-950 text-amber-300 border border-amber-700"
@@ -1810,7 +1841,7 @@ export default function ScheduleMPharmaEPCPage() {
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-indigo-400" />
+                  <Layers className="w-5 h-5 text-brand-400" />
                   Turnover Package Dossier Register (TOP / Handover Gate)
                 </h3>
                 <p className="text-xs text-slate-400">
@@ -1833,7 +1864,7 @@ export default function ScheduleMPharmaEPCPage() {
                   <tbody className="divide-y divide-slate-800/60 font-sans">
                     {(project?.turnover_dossiers || []).map((top: any) => (
                       <tr key={top.dossier_id} className="hover:bg-slate-800/40">
-                        <td className="p-3 font-mono font-bold text-indigo-400 align-top">{top.dossier_id}</td>
+                        <td className="p-3 font-mono font-bold text-brand-400 align-top">{top.dossier_id}</td>
                         <td className="p-3 font-bold text-white align-top">{top.system_package}</td>
                         <td className="p-3 font-medium text-slate-300 align-top">{top.record_category}</td>
                         <td className="p-3 text-slate-300 align-top max-w-md leading-relaxed">
@@ -1842,7 +1873,7 @@ export default function ScheduleMPharmaEPCPage() {
                         <td className="p-3 text-slate-400 align-top whitespace-nowrap">{top.responsible_party}</td>
                         <td className="p-3 align-top">
                           <span
-                            className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                            className={`px-2 py-0.5 rounded font-bold text-[11px] ${
                               top.status === "APPROVED"
                                 ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
                                 : "bg-sky-950 text-sky-300 border border-sky-700"
@@ -1939,25 +1970,25 @@ export default function ScheduleMPharmaEPCPage() {
               {/* Digital Sign-off Signatures */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-xs">
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">IQE Lead Inspector</span>
+                  <span className="text-[11px] text-slate-500 uppercase font-bold block">IQE Lead Inspector</span>
                   <p className="font-bold text-sky-400">{ir.inspector_sign}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     <span>Digitally Signed &amp; Authenticated</span>
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Technical Reviewer</span>
+                  <span className="text-[11px] text-slate-500 uppercase font-bold block">Technical Reviewer</span>
                   <p className="font-bold text-cyan-400">{ir.technical_reviewer_sign}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     <span>Peer Review Sign-Off</span>
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Client Acknowledgement</span>
+                  <span className="text-[11px] text-slate-500 uppercase font-bold block">Client Acknowledgement</span>
                   <p className="font-bold text-slate-300">{ir.client_ack}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     <span>Verified &amp; Logged</span>
                   </span>
@@ -2044,7 +2075,7 @@ export default function ScheduleMPharmaEPCPage() {
                       <td className="p-3 align-top whitespace-nowrap">
                         <span className="font-mono font-bold text-white block">#{gap.gap_no}</span>
                         <span
-                          className={`px-1.5 py-0.2 rounded font-bold text-[9px] ${
+                          className={`px-1.5 py-0.2 rounded font-bold text-[11px] ${
                             gap.priority === "P1"
                               ? "bg-red-950 text-red-300 border border-red-800"
                               : gap.priority === "P2"
@@ -2063,7 +2094,7 @@ export default function ScheduleMPharmaEPCPage() {
                         {gap.recommended_fix}
                       </td>
                       <td className="p-3 align-top whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[10px] inline-flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[11px] inline-flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                           <span>{gap.status}</span>
                         </span>
@@ -2100,14 +2131,14 @@ export default function ScheduleMPharmaEPCPage() {
                 >
                   <div className="flex justify-between items-start gap-2">
                     <span className="font-semibold text-white">{bench.parameter}</span>
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300 font-medium shrink-0">
+                    <span className="px-2 py-0.5 rounded bg-slate-800 text-[11px] text-cyan-300 font-medium shrink-0">
                       {bench.category}
                     </span>
                   </div>
                   <div className="p-2 rounded bg-slate-900/90 border border-slate-800 font-mono text-emerald-400 font-bold text-[11px]">
                     {bench.commonly_referenced_value}
                   </div>
-                  <p className="text-[10px] text-slate-500 font-sans italic">
+                  <p className="text-[11px] text-slate-500 font-sans italic">
                     Source: {bench.typical_source}
                   </p>
                 </div>
@@ -2115,6 +2146,8 @@ export default function ScheduleMPharmaEPCPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* PROJECT SETUP & CONTRACT BASIS MODAL */}
@@ -2133,7 +2166,7 @@ export default function ScheduleMPharmaEPCPage() {
                   </p>
                 </div>
               </div>
-              <button
+              <button aria-label="Close"
                 onClick={() => setShowProjectSetupModal(false)}
                 className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                 title="Close"
@@ -2149,67 +2182,67 @@ export default function ScheduleMPharmaEPCPage() {
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Project / Site</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Project / Site</span>
                     <span className="font-bold text-white text-sm">{project?.project_name || "Schedule M Revised Formulation & Sterile Facility EPC"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Client / Owner</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Client / Owner</span>
                     <span className="font-medium text-slate-200">{project?.client_name || "SunPharma BioTech Ltd."}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Turnkey EPC Contractor</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Turnkey EPC Contractor</span>
                     <span className="font-medium text-slate-200">{project?.epc_contractor || "Ideal Pharma EPC Solutions Pvt. Ltd."}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Site Location</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Site Location</span>
                     <span className="font-medium text-slate-200">{project?.facility_location || "Baddi Pharma Hub, Himachal Pradesh"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Product / Facility Type</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Product / Facility Type</span>
                     <span className="font-medium text-cyan-300">{project?.facility_type || "Formulation & Sterile Injectables Facility"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Statutory Licence / Basis</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Statutory Licence / Basis</span>
                     <span className="font-medium text-amber-300">{project?.licence_authority || "CDSCO / State FDA (Revised Schedule M 2024)"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Schedule M Verified By / Date</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Schedule M Verified By / Date</span>
                     <span className="font-medium text-emerald-400">{project?.schedule_m_verified_by_date || "Dr. A. V. Kumar (Director QA) / 28-Sep-2026"}</span>
                   </div>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3">
-                <h4 className="font-bold text-indigo-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <h4 className="font-bold text-brand-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5" /> Engineering &amp; Quality Specifications
                 </h4>
                 <div className="space-y-2">
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Requirements Register Ref</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Requirements Register Ref</span>
                     <span className="font-mono text-sky-400">{project?.requirements_register_ref || "REQ-SCH-M-2026-01"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">URS &amp; Design Basis Revision</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">URS &amp; Design Basis Revision</span>
                     <span className="font-mono text-slate-200">{project?.urs_design_basis_rev || "BOD-REV-02 / URS-QA-2026-01 Rev C"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Quality Plan &amp; ITP Revision</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Quality Plan &amp; ITP Revision</span>
                     <span className="font-mono text-emerald-400">{project?.quality_plan_itp_rev || "ITP-PH-EPC-001 Rev 1.0"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">IQE Project Lead Inspector</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">IQE Project Lead Inspector</span>
                     <span className="font-medium text-white">{project?.iqe_project_lead || "Er. S. Mehta (Lead QA/QC Inspector)"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Client Quality Head Contact</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Client Quality Head Contact</span>
                     <span className="font-medium text-white">{project?.client_qa_contact || "P. Nair (Head QA, SunPharma)"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Design Authority Consultant</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Design Authority Consultant</span>
                     <span className="font-medium text-slate-200">{project?.design_authority || "PharmEng Solutions Consulting"}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-semibold">Escalation Route</span>
+                    <span className="text-slate-500 block text-[11px] uppercase font-semibold">Escalation Route</span>
                     <span className="font-medium text-slate-300">{project?.escalation_route || "Lead Inspector -> IQE Technical Director -> Client Steering Committee"}</span>
                   </div>
                 </div>
@@ -2222,38 +2255,38 @@ export default function ScheduleMPharmaEPCPage() {
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <span className="text-slate-500 block text-[10px] uppercase">Min IR Notice</span>
+                  <span className="text-slate-500 block text-[11px] uppercase">Min IR Notice</span>
                   <span className="font-bold text-white text-sm">{project?.minimum_ir_notice_days || 1} Working Day</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <span className="text-slate-500 block text-[10px] uppercase">Bill Review Turnaround</span>
+                  <span className="text-slate-500 block text-[11px] uppercase">Bill Review Turnaround</span>
                   <span className="font-bold text-white text-sm">{project?.bill_review_turnaround || "5 to 7 days"}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <span className="text-slate-500 block text-[10px] uppercase">Over-Claim Alert Trigger</span>
+                  <span className="text-slate-500 block text-[11px] uppercase">Over-Claim Alert Trigger</span>
                   <span className="font-bold text-amber-400 text-sm">&gt; {project?.overclaim_review_threshold_percent || 10}%</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <span className="text-slate-500 block text-[10px] uppercase">Calibration Alert Window</span>
+                  <span className="text-slate-500 block text-[11px] uppercase">Calibration Alert Window</span>
                   <span className="font-bold text-cyan-400 text-sm">{project?.calibration_alert_window_days || 30} Days</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div className="p-3 rounded-xl bg-red-950/50 border border-red-800/60">
-                  <span className="text-red-400 block text-[10px] font-bold uppercase">Critical NC Response SLA</span>
+                  <span className="text-red-400 block text-[11px] font-bold uppercase">Critical NC Response SLA</span>
                   <span className="font-black text-red-200 text-sm">24 Hours (1 Day)</span>
-                  <p className="text-[10px] text-red-300 mt-1">Immediate stop-work and containment required.</p>
+                  <p className="text-[11px] text-red-300 mt-1">Immediate stop-work and containment required.</p>
                 </div>
                 <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-800/60">
-                  <span className="text-amber-400 block text-[10px] font-bold uppercase">Major NC Response SLA</span>
+                  <span className="text-amber-400 block text-[11px] font-bold uppercase">Major NC Response SLA</span>
                   <span className="font-black text-amber-200 text-sm">5 Days (48h Containment)</span>
-                  <p className="text-[10px] text-amber-300 mt-1">Engineering disposition and CAPA approval.</p>
+                  <p className="text-[11px] text-amber-300 mt-1">Engineering disposition and CAPA approval.</p>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-950/50 border border-blue-800/60">
-                  <span className="text-blue-400 block text-[10px] font-bold uppercase">Minor NC Response SLA</span>
+                  <span className="text-blue-400 block text-[11px] font-bold uppercase">Minor NC Response SLA</span>
                   <span className="font-black text-blue-200 text-sm">30 Calendar Days</span>
-                  <p className="text-[10px] text-blue-300 mt-1">Rectification before final turnover dossier closure.</p>
+                  <p className="text-[11px] text-blue-300 mt-1">Rectification before final turnover dossier closure.</p>
                 </div>
               </div>
             </div>
@@ -2276,7 +2309,7 @@ export default function ScheduleMPharmaEPCPage() {
         onClose={() => setShowPdfPreview(false)}
         title="Schedule M (2024 Revised) Cleanroom & Pharma EPC Audit Report"
         reportNo="F-01 - F-14"
-        pdfUrl="/api/v1/reports/pdf/schedule-m-pharma-epc"
+        pdfUrl={`${API_BASE}/api/v1/reports/pdf/schedule-m-pharma-epc`}
       />
     </div>
   );

@@ -29,8 +29,9 @@ import {
   Info,
   Receipt,
   Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 export default function VisitDetailPage() {
   const { id } = useParams();
@@ -120,43 +121,68 @@ export default function VisitDetailPage() {
   const checklistProgressPercent = checklists.length > 0 ? Math.round((completedChecklistsCount / checklists.length) * 100) : 100;
 
   async function handleAccept() {
-    await api.acceptVisit(visit.visit_id);
-    loadVisit();
-    alert("Field visit initiated! Scope checklists are now ready for verification.");
+    try {
+      await api.acceptVisit(visit.visit_id);
+      loadVisit();
+      toast.success("Field visit started. The scope checklists are ready to verify.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn't start the field visit. Please try again.");
+    }
   }
 
-  async function handleToggleChecklist(index: number) {
-    const updated = [...checklists];
-    updated[index].is_completed = !updated[index].is_completed;
-    setChecklists(updated);
+  function handleToggleChecklist(index: number) {
+    setChecklists((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, is_completed: !c.is_completed } : c))
+    );
   }
 
   async function handleSaveChecklists() {
-    await api.updateScopeChecklists(visit.visit_id, checklists);
-    loadVisit();
-    alert("Scope checklists progress saved! Step 2 complete.");
+    try {
+      await api.updateScopeChecklists(visit.visit_id, checklists);
+      loadVisit();
+      toast.success("Checklist progress saved.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn't save the checklist progress. Please try again.");
+    }
   }
 
   async function handleSubmitCapture() {
     if (!submitForm.comments) {
-      alert("Please enter field inspection observations and comments before submitting.");
+      toast.error("Enter your inspection observations before submitting.");
       return;
     }
-    await api.submitVisit(visit.visit_id, submitForm);
-    loadVisit();
-    alert("Field Visit Log submitted successfully! Status updated to Field Completed (Passed to QC).");
+    try {
+      await api.submitVisit(visit.visit_id, submitForm);
+      loadVisit();
+      toast.success("Field visit log submitted and passed to quality control.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn't submit the field visit log. Please try again.");
+    }
   }
 
   async function handleQC() {
-    await api.qualityCheck(visit.visit_id, { status: "approved", comments: qcComment });
-    loadVisit();
-    alert("Quality Control (QC) check approved! Passed to Finance Manager.");
+    try {
+      await api.qualityCheck(visit.visit_id, { status: "approved", comments: qcComment });
+      loadVisit();
+      toast.success("Quality check approved and passed to finance.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn't approve the quality check. Please try again.");
+    }
   }
 
   async function handleFinance() {
-    await api.financeApproval(visit.visit_id, { status: "approved", comments: finComment });
-    loadVisit();
-    alert("Finance claim approved! You can now generate & view the 30-day Net Invoice.");
+    try {
+      await api.financeApproval(visit.visit_id, { status: "approved", comments: finComment });
+      loadVisit();
+      toast.success("Finance claim approved. You can now generate the 30-day invoice.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn't approve the finance claim. Please try again.");
+    }
   }
 
   async function handleGenerateInvoice() {
@@ -172,7 +198,7 @@ export default function VisitDetailPage() {
       loadVisit();
     } catch (e) {
       console.error(e);
-      alert("Failed to generate invoice");
+      toast.error("Couldn't generate the invoice. Please try again.");
     }
   }
 
@@ -245,16 +271,16 @@ export default function VisitDetailPage() {
 
       {/* Header Banner */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#001a2c] via-[#003752] to-[#0084bf] border border-[#0084bf]/30 text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-xs font-bold text-sky-200 bg-sky-950/80 px-3 py-1 rounded-lg border border-sky-600/40">
               {visit.visit_id}
             </span>
-            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e35f14] text-white">
+            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#e35f14] text-white">
               {visit.status.replace(/_/g, " ")}
             </span>
             {visit.is_invoiced && (
-              <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white border border-emerald-400/40 flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-600 text-white border border-emerald-400/40 flex items-center gap-1">
                 <Receipt className="w-3 h-3" /> Net-30 Invoiced ({visit.invoice_id})
               </span>
             )}
@@ -309,7 +335,7 @@ export default function VisitDetailPage() {
 
       {/* Progress Pipeline Stepper */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
           <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
             Multi-Stage Operational Workflow Pipeline
           </p>
@@ -373,7 +399,7 @@ export default function VisitDetailPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="text-right">
                   <span className="text-xs font-mono font-bold text-[#00618e]">
                     {completedChecklistsCount} / {checklists.length} Criteria Verified
@@ -397,9 +423,8 @@ export default function VisitDetailPage() {
             {/* Checklist Items Interactive Table */}
             <div className="space-y-2">
               {checklists.map((item, idx) => (
-                <div
+                <label
                   key={idx}
-                  onClick={() => handleToggleChecklist(idx)}
                   className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     item.is_completed
                       ? "bg-sky-50/60 border-sky-200 text-slate-900"
@@ -412,12 +437,12 @@ export default function VisitDetailPage() {
                     onChange={() => handleToggleChecklist(idx)}
                     className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#0084bf] focus:ring-[#0084bf] cursor-pointer"
                   />
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                       <span className={`text-xs font-bold ${item.is_completed ? "text-slate-900 line-through text-slate-500" : "text-slate-900"}`}>
                         {item.title}
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400 font-semibold inline-flex items-center gap-1">
+                      <span className="text-[11px] font-mono text-slate-400 font-semibold inline-flex items-center gap-1">
                         {item.is_completed ? (
                           <>
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -429,17 +454,17 @@ export default function VisitDetailPage() {
                       </span>
                     </div>
                     {item.description && (
-                      <p className="text-[11px] text-[#00618e]">{item.description}</p>
+                      <p className="text-[11px] text-[#00618e] dark:text-sky-300">{item.description}</p>
                     )}
                   </div>
-                </div>
+                </label>
               ))}
             </div>
           </div>
 
           {/* Section B: Manual Observation Entry & AI Report Option Trigger */}
           <div className="p-6 rounded-2xl bg-white border border-sky-200 shadow-md space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#0084bf]" />
                 <span>Manual Inspection Observation &amp; Field Comments</span>
@@ -450,8 +475,9 @@ export default function VisitDetailPage() {
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-800">Inspection Report Reference No (Auto-Generated) *</label>
+                  <label htmlFor="visit-report-no" className="text-xs font-bold text-slate-800">Inspection Report Reference No (Auto-Generated) *</label>
                   <input
+                    id="visit-report-no"
                     value={submitForm.inspection_report_no}
                     onChange={(e) => setSubmitForm({ ...submitForm, inspection_report_no: e.target.value })}
                     placeholder="e.g. REP-2026-001"
@@ -461,8 +487,9 @@ export default function VisitDetailPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-800">Field Inspection Observations &amp; Technical Findings *</label>
+                <label htmlFor="visit-observations" className="text-xs font-bold text-slate-800">Field Inspection Observations &amp; Technical Findings *</label>
                 <textarea
+                  id="visit-observations"
                   value={submitForm.comments}
                   onChange={(e) => setSubmitForm({ ...submitForm, comments: e.target.value })}
                   rows={4}
@@ -483,7 +510,7 @@ export default function VisitDetailPage() {
                 <button
                   onClick={handleGenerateReport}
                   disabled={generatingAi}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs shadow-md hover:opacity-95 disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-brand-600 text-white font-extrabold text-xs shadow-md hover:opacity-95 disabled:opacity-50 shrink-0 flex items-center gap-1.5"
                 >
                   <Sparkles className="w-4 h-4 text-purple-200" />
                   <span>{generatingAi ? "Generating AI Report..." : "Synthesize AI Observations"}</span>
@@ -573,6 +600,7 @@ export default function VisitDetailPage() {
             <div className="p-5 rounded-2xl bg-purple-50/70 border border-purple-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
               <h3 className="text-sm font-bold text-purple-900 font-heading">Quality Control (QC) Sign-off Gate</h3>
               <textarea
+                aria-label="Quality control review notes"
                 value={qcComment}
                 onChange={(e) => setQcComment(e.target.value)}
                 placeholder="QC review notes, QAP compliance verification..."
@@ -594,6 +622,7 @@ export default function VisitDetailPage() {
             <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 shadow-sm col-span-1 md:col-span-2 space-y-3">
               <h3 className="text-sm font-bold text-emerald-900 font-heading">Finance Review &amp; Approval Gate</h3>
               <textarea
+                aria-label="Finance review notes"
                 value={finComment}
                 onChange={(e) => setFinComment(e.target.value)}
                 placeholder="Finance review notes, travel expense audit..."
@@ -621,6 +650,7 @@ export default function VisitDetailPage() {
 
           <div className="flex flex-col sm:flex-row gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <select
+              aria-label="Expense type"
               value={expenseForm.type}
               onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })}
               className="p-2 border border-slate-200 rounded-xl text-xs bg-white font-semibold"
@@ -632,16 +662,18 @@ export default function VisitDetailPage() {
             </select>
             <input
               type="number"
+              aria-label="Expense amount in rupees"
               value={expenseForm.amount}
               onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
               placeholder="Amount (₹)"
-              className="p-2 border border-slate-200 rounded-xl text-xs bg-white w-32 font-bold font-mono"
+              className="p-2 border border-slate-200 rounded-xl text-xs bg-white w-full sm:w-32 font-bold font-mono"
             />
             <input
+              aria-label="Expense details"
               value={expenseForm.description}
               onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
               placeholder="Expense details (e.g. Mumbai to Hazira Yard 280km travel)..."
-              className="p-2 border border-slate-200 rounded-xl text-xs bg-white flex-1"
+              className="p-2 border border-slate-200 rounded-xl text-xs bg-white flex-1 min-w-0"
             />
             <button
               onClick={handleAddExpense}
@@ -651,6 +683,7 @@ export default function VisitDetailPage() {
             </button>
           </div>
 
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500 font-semibold border-b">
@@ -671,17 +704,18 @@ export default function VisitDetailPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
       {/* Tab 4: AI Inspection Report */}
       {activeTab === "ai-report" && (
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold text-slate-900 font-heading">AI Generated Inspection Report</h3>
             <button
               onClick={handleGenerateReport}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-extrabold hover:opacity-95 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-brand-600 text-white text-xs font-extrabold hover:opacity-95 flex items-center gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
               <span>Synthesize AI Report</span>
@@ -705,7 +739,7 @@ export default function VisitDetailPage() {
       {/* View Generated 30-Day Net Invoice Modal */}
       {showInvoiceModal && invoiceData && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
+          <div className="keep-light bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none">
             
             {/* Background Watermark Logo of IQE */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
@@ -714,8 +748,8 @@ export default function VisitDetailPage() {
 
             <div className="relative z-10 space-y-6">
               {/* Invoice Header Branding */}
-              <div className="flex items-center justify-between border-b border-slate-200 pb-5">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-5">
+                <div className="flex items-center gap-4 min-w-0">
                   <img src="/iqe-logo.png" alt="IQE Logo" className="h-12 w-auto object-contain" />
                   <div>
                     <h2 className="text-xl font-extrabold text-slate-900 font-heading">
@@ -734,7 +768,7 @@ export default function VisitDetailPage() {
                     <Printer className="w-4 h-4" />
                     <span>Print / Save PDF</span>
                   </button>
-                  <button onClick={() => setShowInvoiceModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                  <button type="button" onClick={() => setShowInvoiceModal(false)} aria-label="Close invoice" title="Close invoice" className="p-2 text-slate-400 hover:text-slate-600">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -743,25 +777,25 @@ export default function VisitDetailPage() {
               {/* Invoice Details Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Customer Client</span>
                   <p className="font-extrabold text-slate-900 mt-0.5">{invoiceData.client_name}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Job Reference</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Job Reference</span>
                   <p className="font-extrabold text-[#0084bf] mt-0.5">{invoiceData.job_id}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Payment Terms</span>
-                  <p className="font-extrabold text-indigo-700 mt-0.5">Net 30 Days</p>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Payment Terms</span>
+                  <p className="font-extrabold text-brand-700 mt-0.5">Net 30 Days</p>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Due Date</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400 block">Due Date</span>
                   <p className="font-extrabold text-[#e35f14] mt-0.5">{new Date(invoiceData.due_date).toLocaleDateString()}</p>
                 </div>
               </div>
 
               {/* Line Items Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+              <div className="border border-slate-200 rounded-xl overflow-x-auto text-xs">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
                     <tr>
@@ -814,7 +848,7 @@ export default function VisitDetailPage() {
       {/* Job & Visit Master Summary Report Modal with Official IQE Watermark & Print View */}
       {showMasterReportModal && masterReport && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none print:shadow-none">
+          <div className="keep-light bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative print:p-0 print:border-none print:shadow-none">
             
             {/* Background Watermark Logo of IQE */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0">
@@ -823,8 +857,8 @@ export default function VisitDetailPage() {
 
             <div className="relative z-10 space-y-6">
               {/* Report Header Branding */}
-              <div className="flex items-center justify-between border-b border-slate-200 pb-5">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-5">
+                <div className="flex items-center gap-4 min-w-0">
                   <img src="/iqe-logo.png" alt="IQE Logo" className="h-12 w-auto object-contain" />
                   <div>
                     <h2 className="text-xl font-extrabold text-slate-900 font-heading">
@@ -843,7 +877,7 @@ export default function VisitDetailPage() {
                     <Printer className="w-4 h-4" />
                     <span>Print / Save PDF</span>
                   </button>
-                  <button onClick={() => setShowMasterReportModal(false)} className="p-2 text-slate-400 hover:text-slate-600">
+                  <button type="button" onClick={() => setShowMasterReportModal(false)} aria-label="Close report" title="Close report" className="p-2 text-slate-400 hover:text-slate-600">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -854,19 +888,19 @@ export default function VisitDetailPage() {
                 {/* Job Metadata Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Client</span>
+                    <span className="text-[11px] uppercase font-bold text-slate-400 block">Customer Client</span>
                     <p className="font-extrabold text-slate-900 mt-0.5">{masterReport.customer_name || "Reliance Industries Ltd"}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Manufacturer Plant</span>
+                    <span className="text-[11px] uppercase font-bold text-slate-400 block">Manufacturer Plant</span>
                     <p className="font-extrabold text-slate-900 mt-0.5">{masterReport.manufacturer_name || "BHEL Boilers"}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">TPI Protocol</span>
+                    <span className="text-[11px] uppercase font-bold text-slate-400 block">TPI Protocol</span>
                     <p className="font-extrabold text-[#0084bf] mt-0.5">{masterReport.protocol_standard}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Net-30 Payment Due</span>
+                    <span className="text-[11px] uppercase font-bold text-slate-400 block">Net-30 Payment Due</span>
                     <p className="font-extrabold text-[#e35f14] mt-0.5">{new Date(masterReport.payment_due_date).toLocaleDateString()}</p>
                   </div>
                 </div>
@@ -877,7 +911,7 @@ export default function VisitDetailPage() {
                     <ClipboardCheck className="w-4 h-4 text-[#0084bf]" />
                     <span>Scope of Work Checklist Execution Status ({masterReport.checklist_progress_percent}% Passed)</span>
                   </h4>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
                         <tr>
@@ -921,11 +955,11 @@ export default function VisitDetailPage() {
                 {/* Multi-Stage Signoff Stamps */}
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
                   <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 text-center">
-                    <span className="text-[10px] font-extrabold text-purple-700 uppercase">Quality Control (QC) Manager</span>
+                    <span className="text-[11px] font-extrabold text-purple-700 uppercase">Quality Control (QC) Manager</span>
                     <p className="text-xs font-extrabold text-purple-900 mt-1">APPROVED &amp; SIGNED OFF</p>
                   </div>
                   <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 text-center">
-                    <span className="text-[10px] font-extrabold text-emerald-700 uppercase">Finance Manager</span>
+                    <span className="text-[11px] font-extrabold text-emerald-700 uppercase">Finance Manager</span>
                     <p className="text-xs font-extrabold text-emerald-900 mt-1">CLAIM APPROVED — NET-30 INVOICE ISSUED</p>
                   </div>
                 </div>

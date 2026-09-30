@@ -127,6 +127,29 @@ body {
   line-height: 1.25;
 }
 
+/* Scan-to-verify QR in the running header */
+.running-header-table td.header-qr-cell {
+  width: 0.72in;
+  padding-left: 8pt;
+  text-align: center;
+  vertical-align: top;
+}
+
+.header-qr {
+  width: 0.62in;
+  height: 0.62in;
+  display: block;
+  margin: 0 auto;
+}
+
+.header-qr-caption {
+  font-size: 5.5pt;
+  font-weight: bold;
+  color: #003752;
+  letter-spacing: 0.02em;
+  margin-top: 1pt;
+}
+
 /* Grid & KV Tables */
 table.report-table {
   width: 100%;

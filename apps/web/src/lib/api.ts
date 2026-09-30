@@ -1,11 +1,11 @@
 "use client";
+import { API_BASE } from "@/lib/config";
 import axios from "axios";
 
-const BASE = "";
 
 class API {
   private token: string | null = null;
-  client = axios.create({ baseURL: `${BASE}/api/v1` });
+  client = axios.create({ baseURL: `${API_BASE}/api/v1` });
 
   constructor() {
     if (typeof window !== "undefined") {

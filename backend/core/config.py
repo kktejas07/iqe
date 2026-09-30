@@ -22,19 +22,18 @@ class Settings(BaseSettings):
     sendgrid_api_key: Optional[str] = None
     sendgrid_from_email: str = "noreply@iqeapp.com"
     redis_url: str = "redis://localhost:6379/0"
+    # Public base URLs encoded in document QR codes (must be reachable from a phone).
+    # Unset = auto-detect this machine's LAN IP (dev on the same Wi-Fi).
+    public_web_url: Optional[str] = None
+    public_api_url: Optional[str] = None
     allowed_origins: list[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:3002",
-        "http://localhost:3005",
-        "http://localhost:3006",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         "http://127.0.0.1:3002",
-        "https://iqe.forgetechno.com",
-        "https://www.iqe.forgetechno.com",
-        "https://api-iqe.forgetechno.com",
         "*"
     ]
 

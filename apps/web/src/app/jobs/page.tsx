@@ -5,8 +5,9 @@ import Link from "next/link";
 import { 
   Briefcase, Search, Plus, MapPin, X, CheckCircle2, 
   MoreVertical, Edit3, Power, LayoutGrid, LayoutList, RefreshCw, User, UserCheck, Factory, Tag, Globe, Compass, ShieldAlert, ArrowRight, Clock, AlertTriangle, DollarSign, Calendar, CalendarCheck, FileText, Check, Award, Layers, ListChecks, FileSpreadsheet, History, GitCommit, UserX, Sparkles, BookOpen, Layers3, CheckSquare
-} from "lucide-react";
+} from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 const alphabet = ["ALL", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -178,7 +179,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (e) {
       console.error("Failed to create job", e);
-      alert("Failed to create inspection job.");
+      toast.error("Couldn't create the inspection job. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -208,7 +209,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (e) {
       console.error(e);
-      alert("Failed to assign inspector CV.");
+      toast.error("Couldn't submit the inspector CV. Please try again.");
     }
   };
 
@@ -234,7 +235,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (e) {
       console.error(e);
-      alert("Failed to process client approval.");
+      toast.error("Couldn't record the client decision. Please try again.");
     }
   };
 
@@ -266,7 +267,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (e) {
       console.error(e);
-      alert("Failed to update budget and schedule.");
+      toast.error("Couldn't update the budget and schedule. Please try again.");
     }
   };
 
@@ -288,18 +289,16 @@ export default function JobsPage() {
         append: true,
       });
       setSowItems(res.scope_of_work || []);
-      alert(`Applied Scenario Template: ${res.applied_template} (${res.applicable_codes.join(", ")})`);
+      toast.success(`Applied the ${res.applied_template} template (${(res.applicable_codes || []).join(", ")}).`);
       loadJobs();
     } catch (e) {
       console.error(e);
-      alert("Failed to apply pre-defined SOW template scenario.");
+      toast.error("Couldn't apply the scope of work template. Please try again.");
     }
   };
 
   const handleToggleSowItem = (idx: number) => {
-    const updated = [...sowItems];
-    updated[idx].completed = !updated[idx].completed;
-    setSowItems(updated);
+    setSowItems((prev) => prev.map((it, i) => (i === idx ? { ...it, completed: !it.completed } : it)));
   };
 
   const handleAddSowItem = () => {
@@ -323,7 +322,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (e) {
       console.error(e);
-      alert("Failed to save Scope of Work.");
+      toast.error("Couldn't save the scope of work. Please try again.");
     }
   };
 
@@ -348,9 +347,9 @@ export default function JobsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-extrabold text-slate-900 font-heading">Inspection Assignments &amp; Service Orders</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold font-mono">
+            <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 text-xs font-bold font-mono">
               Pre-defined Method Scenarios &amp; SOW Engine
             </span>
           </div>
@@ -365,6 +364,7 @@ export default function JobsPage() {
             disabled={loading}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
             title="Refresh Assignments"
+            aria-label="Refresh assignments"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -381,15 +381,15 @@ export default function JobsPage() {
 
       {/* Metric Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1 min-w-0">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Inspection Assignments</span>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-extrabold font-mono text-slate-900">{jobs.length}</span>
-            <Briefcase className="w-5 h-5 text-indigo-400" />
+            <Briefcase className="w-5 h-5 text-brand-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1 min-w-0">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pre-Defined Method Scenarios</span>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-extrabold font-mono text-purple-600">{sowTemplates.length}</span>
@@ -397,7 +397,7 @@ export default function JobsPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1 min-w-0">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Client CV Approval</span>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-extrabold font-mono text-amber-600">
@@ -407,10 +407,10 @@ export default function JobsPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-1 min-w-0">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Allocated Budget</span>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-extrabold font-mono text-blue-600">
+            <span className="text-xl sm:text-2xl font-extrabold font-mono text-blue-600 break-all">
               ₹{jobs.reduce((acc, j) => acc + (j.budget_total || j.budget || 0), 0).toLocaleString()}
             </span>
             <DollarSign className="w-5 h-5 text-blue-400" />
@@ -420,9 +420,9 @@ export default function JobsPage() {
 
       {/* Alphabetical A-Z Jump Bar */}
       <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Alphabetical Customer &amp; Title Index</span>
-          <span className="text-[11px] font-mono text-indigo-600 font-semibold">Filter by Job Title or Client initial</span>
+          <span className="text-[11px] font-mono text-brand-600 font-semibold">Filter by Job Title or Client initial</span>
         </div>
         <div className="flex flex-wrap items-center gap-1">
           {alphabet.map((letter) => {
@@ -433,8 +433,8 @@ export default function JobsPage() {
                 onClick={() => setSelectedAlpha(letter)}
                 className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-sm scale-105"
-                    : "bg-slate-50 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200/60"
+                    ? "bg-brand-600 text-white shadow-sm scale-105"
+                    : "bg-slate-50 text-slate-600 hover:bg-brand-50 hover:text-brand-600 border border-slate-200/60"
                 }`}
               >
                 {letter}
@@ -448,16 +448,17 @@ export default function JobsPage() {
       <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1">
           <input
+            aria-label="Search assignments"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Job ID (JOB-2026-001), Title, Client Name, PO Ref..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("all")}
               className={`px-3 py-1 rounded-lg transition-all ${
@@ -495,15 +496,19 @@ export default function JobsPage() {
           <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-slate-600">
             <button
               onClick={() => setViewMode("table")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-indigo-600 shadow-sm" : "hover:text-slate-900"}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white text-brand-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Table View"
+              aria-label="Table view"
+              aria-pressed={viewMode === "table"}
             >
               <LayoutList className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-indigo-600 shadow-sm" : "hover:text-slate-900"}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white text-brand-600 shadow-sm" : "hover:text-slate-900"}`}
               title="Card Grid View"
+              aria-label="Card grid view"
+              aria-pressed={viewMode === "grid"}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -539,10 +544,10 @@ export default function JobsPage() {
                 ) : (
                   jobs.map((j) => (
                     <tr key={j.job_id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-3 font-mono font-bold text-indigo-600">{j.job_id}</td>
+                      <td className="p-3 font-mono font-bold text-brand-600">{j.job_id}</td>
                       <td className="p-3 max-w-xs">
                         <p className="font-bold text-slate-900">{j.title}</p>
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">
                           {j.job_type_category || "PV-PIPE"}
                         </span>
                       </td>
@@ -558,7 +563,7 @@ export default function JobsPage() {
                         )}
                       </td>
                       <td className="p-3">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           j.client_approval_status === "approved_by_client" ? "bg-emerald-100 text-emerald-800" :
                           j.client_approval_status === "rejected_by_client" ? "bg-rose-100 text-rose-800 border border-rose-300 animate-pulse" :
                           j.client_approval_status === "pending_client_approval" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"
@@ -579,11 +584,16 @@ export default function JobsPage() {
                       </td>
                       <td className="p-3 font-mono text-xs">
                         <p className="font-bold text-slate-900">₹{(j.budget_total || j.budget || 0).toLocaleString()}</p>
-                        <p className="text-[10px] text-slate-500">{j.scheduled_start_date ? j.scheduled_start_date.split("T")[0] : "Dates TBD"}</p>
+                        <p className="text-[11px] text-slate-500">{j.scheduled_start_date ? j.scheduled_start_date.split("T")[0] : "Dates TBD"}</p>
                       </td>
                       <td className="p-3 text-right relative">
                         <button
+                          type="button"
                           onClick={() => setActiveDropdown(activeDropdown === j.job_id ? null : j.job_id)}
+                          aria-label={`Actions for ${j.job_id}`}
+                          title="More actions"
+                          aria-haspopup="menu"
+                          aria-expanded={activeDropdown === j.job_id}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
                         >
                           <MoreVertical className="w-4 h-4" />
@@ -627,9 +637,9 @@ export default function JobsPage() {
                             ) : (
                               <button
                                 onClick={() => handleOpenCvModal(j)}
-                                className="w-full px-3.5 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 flex items-center gap-2 font-bold"
+                                className="w-full px-3.5 py-2 hover:bg-brand-50 dark:hover:bg-brand-950/40 text-brand-700 dark:text-brand-400 flex items-center gap-2 font-bold"
                               >
-                                <UserCheck className="w-4 h-4 text-indigo-600" />
+                                <UserCheck className="w-4 h-4 text-brand-600" />
                                 <span>Submit Inspector CV to Client</span>
                               </button>
                             )}
@@ -668,11 +678,11 @@ export default function JobsPage() {
               className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition-all space-y-3 flex flex-col justify-between"
             >
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2.5 py-0.5 rounded-lg">
                     {j.job_id}
                   </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     j.client_approval_status === "approved_by_client" ? "bg-emerald-100 text-emerald-800" :
                     j.client_approval_status === "rejected_by_client" ? "bg-rose-100 text-rose-800" :
                     j.client_approval_status === "pending_client_approval" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"
@@ -694,7 +704,7 @@ export default function JobsPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <button
                   onClick={() => handleOpenSowModal(j)}
                   className="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs hover:bg-purple-100 transition-colors flex items-center gap-1 border border-purple-200"
@@ -705,7 +715,7 @@ export default function JobsPage() {
 
                 <button
                   onClick={() => handleOpenCvModal(j)}
-                  className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 transition-colors"
                 >
                   Submit CV
                 </button>
@@ -719,36 +729,36 @@ export default function JobsPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-indigo-600" />
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Briefcase className="w-5 h-5 text-brand-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   Create Assessment (Industry Category)
                 </h2>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowCreateModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveJob} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Assessment Title *</label>
-                <input
+                <label htmlFor="cj-title" className="block text-xs font-semibold text-slate-700 mb-1">Assessment Title *</label>
+                <input id="cj-title"
                   type="text"
                   required
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Industry Assessment Category *</label>
-                <select
+                <label htmlFor="cj-category" className="block text-xs font-semibold text-slate-700 mb-1">Industry Assessment Category *</label>
+                <select id="cj-category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold"
                 >
                   {jobCategories.map((cat) => (
                     <option key={cat.code} value={cat.code}>
@@ -758,14 +768,14 @@ export default function JobsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Corporate Client *</label>
-                  <select
+                  <label htmlFor="cj-client" className="block text-xs font-semibold text-slate-700 mb-1">Corporate Client *</label>
+                  <select id="cj-client"
                     required
                     value={selectedClientId}
                     onChange={(e) => setSelectedClientId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
                     <option value="">Select Client</option>
                     {clients.map((c) => (
@@ -777,12 +787,12 @@ export default function JobsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
-                  <select
+                  <label htmlFor="cj-mfr" className="block text-xs font-semibold text-slate-700 mb-1">Supplier / Manufacturer *</label>
+                  <select id="cj-mfr"
                     required
                     value={selectedMfrId}
                     onChange={(e) => setSelectedMfrId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
                     <option value="">Select Vendor</option>
                     {mfrs.map((m) => (
@@ -795,12 +805,12 @@ export default function JobsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Purchase Order Reference (Optional)</label>
-                <input
+                <label htmlFor="cj-po" className="block text-xs font-semibold text-slate-700 mb-1">Purchase Order Reference (Optional)</label>
+                <input id="cj-po"
                   type="text"
                   value={poNo}
                   onChange={(e) => setPoNo(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
                 />
               </div>
 
@@ -815,7 +825,7 @@ export default function JobsPage() {
                 <button
                   type="submit"
                   disabled={submitting || !jobTitle || !selectedClientId}
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 shadow-sm"
                 >
                   {submitting ? "Creating..." : "Create Assessment & Auto-Generate SOW"}
                 </button>
@@ -829,8 +839,8 @@ export default function JobsPage() {
       {showSowModal && selectedJobForSow && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 <Sparkles className="w-5 h-5 text-purple-600" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
@@ -839,17 +849,17 @@ export default function JobsPage() {
                   <p className="text-xs text-slate-500">Job Category: {selectedJobForSow.job_type_category || "PV-PIPE"}</p>
                 </div>
               </div>
-              <button onClick={() => setShowSowModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowSowModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* 1-Click Pre-Defined Method Scenario Selector */}
             <div className="p-4 bg-purple-50/80 rounded-2xl border border-purple-200 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-purple-900">
                   <BookOpen className="w-4 h-4 text-purple-600" />
-                  <span>Select Pre-Defined Inspection Method Scenario:</span>
+                  <label htmlFor="sow-template">Select Pre-Defined Inspection Method Scenario:</label>
                 </div>
                 <button
                   type="button"
@@ -862,6 +872,7 @@ export default function JobsPage() {
               </div>
 
               <select
+                id="sow-template"
                 value={selectedTemplateCode}
                 onChange={(e) => setSelectedTemplateCode(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-white border border-purple-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold"
@@ -897,20 +908,22 @@ export default function JobsPage() {
 
             {/* Checklist Items & Manual Custom Add */}
             <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Scope of Work Checklist ({sowItems.length} Criteria)</span>
                 <span className="text-[11px] text-slate-500">Click any item to toggle completion status</span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <input
                   type="text"
+                  aria-label="New scope of work item"
                   value={newSowText}
                   onChange={(e) => setNewSowText(e.target.value)}
                   placeholder="Add custom scope of work item description..."
-                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <button
+                  type="button"
                   onClick={handleAddSowItem}
                   className="px-3 py-2 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700"
                 >
@@ -920,26 +933,28 @@ export default function JobsPage() {
 
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {sowItems.map((item, idx) => (
-                  <div
+                  <button
+                    type="button"
                     key={idx}
                     onClick={() => handleToggleSowItem(idx)}
-                    className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                    aria-pressed={!!item.completed}
+                    className={`w-full text-left p-3 rounded-xl border flex items-center justify-between gap-2 cursor-pointer transition-all ${
                       item.completed ? "bg-emerald-50/60 border-emerald-200 text-emerald-900" : "bg-slate-50 border-slate-200 text-slate-800 hover:border-purple-300"
                     }`}
                   >
-                    <div className="flex items-center gap-2 max-w-xl">
+                    <div className="flex items-center gap-2 max-w-xl min-w-0">
                       <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${item.completed ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-300 bg-white"}`}>
                         {item.completed && <Check className="w-3 h-3" />}
                       </div>
                       <div>
                         <p className="font-medium">{item.description}</p>
-                        {item.notes && <p className="text-[10px] text-slate-500 font-mono mt-0.5">{item.notes}</p>}
+                        {item.notes && <p className="text-[11px] text-slate-500 font-mono mt-0.5">{item.notes}</p>}
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-500 shrink-0">
+                    <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-500 shrink-0">
                       {item.category || "General"}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -967,16 +982,16 @@ export default function JobsPage() {
       {showCvModal && selectedJobForCv && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-indigo-600" />
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <UserCheck className="w-5 h-5 text-brand-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   {selectedJobForCv.client_approval_status === "rejected_by_client"
                     ? `Re-Assign Alternative Inspector — ${selectedJobForCv.job_id}`
                     : `Submit Inspector CV to Client — ${selectedJobForCv.job_id}`}
                 </h2>
               </div>
-              <button onClick={() => setShowCvModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowCvModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -996,11 +1011,11 @@ export default function JobsPage() {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Select Inspection Officer *</label>
-                <select
+                <label htmlFor="cv-inspector" className="block text-xs font-semibold text-slate-700 mb-1">Select Inspection Officer *</label>
+                <select id="cv-inspector"
                   value={selectedInspectorId}
                   onChange={(e) => setSelectedInspectorId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold"
                 >
                   {sampleInspectors.map((i) => (
                     <option key={i.id} value={i.id}>
@@ -1019,7 +1034,7 @@ export default function JobsPage() {
                     <p><span className="text-slate-400">Total Industry Experience:</span> <span className="font-bold text-slate-800">{insp?.exp} Years</span></p>
                     <div className="flex flex-wrap gap-1 pt-1">
                       {insp?.certs.map((c, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold text-[10px]">
+                        <span key={idx} className="px-2 py-0.5 rounded-md bg-brand-100 text-brand-800 font-bold text-[11px]">
                           {c}
                         </span>
                       ))}
@@ -1042,7 +1057,7 @@ export default function JobsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-sm"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-600 text-white rounded-xl hover:bg-brand-700 shadow-sm"
                 >
                   {selectedJobForCv.client_approval_status === "rejected_by_client" ? "Re-Submit CV to Client" : "Submit CV to Client"}
                 </button>
@@ -1056,25 +1071,26 @@ export default function JobsPage() {
       {showApprovalModal && selectedJobForApproval && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   Simulate Client CV Response — {selectedJobForApproval.job_id}
                 </h2>
               </div>
-              <button onClick={() => setShowApprovalModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowApprovalModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveApprovalDecision} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Client Approval Decision *</label>
-                <div className="grid grid-cols-2 gap-2">
+                <p id="client-decision-label" className="block text-xs font-semibold text-slate-700 mb-1">Client Approval Decision *</p>
+                <div role="group" aria-labelledby="client-decision-label" className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setClientApproveDecision(true)}
+                    aria-pressed={clientApproveDecision}
                     className={`py-2 rounded-xl text-xs font-bold transition-all ${
                       clientApproveDecision ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 text-slate-700"
                     }`}
@@ -1084,6 +1100,7 @@ export default function JobsPage() {
                   <button
                     type="button"
                     onClick={() => setClientApproveDecision(false)}
+                    aria-pressed={!clientApproveDecision}
                     className={`py-2 rounded-xl text-xs font-bold transition-all ${
                       !clientApproveDecision ? "bg-rose-600 text-white shadow-sm" : "bg-slate-100 text-slate-700"
                     }`}
@@ -1094,8 +1111,8 @@ export default function JobsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Client Remarks *</label>
-                <input
+                <label htmlFor="ap-remarks" className="block text-xs font-semibold text-slate-700 mb-1">Client Remarks *</label>
+                <input id="ap-remarks"
                   type="text"
                   required
                   value={clientRemarks}
@@ -1130,9 +1147,9 @@ export default function JobsPage() {
       {showRoadmapModal && roadmapJob && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-indigo-600" />
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <History className="w-5 h-5 text-brand-600" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
                     Assignment Audit Roadmap &amp; Backflow — {roadmapJob.job_id}
@@ -1140,24 +1157,24 @@ export default function JobsPage() {
                   <p className="text-xs text-slate-500">Client: {roadmapJob.client_name}</p>
                 </div>
               </div>
-              <button onClick={() => setShowRoadmapModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowRoadmapModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {roadmapLoading ? (
               <div className="p-8 text-center text-slate-400 flex items-center justify-center gap-2">
-                <RefreshCw className="w-5 h-5 animate-spin text-indigo-600" />
+                <RefreshCw className="w-5 h-5 animate-spin text-brand-600" />
                 <span>Loading assignment timeline roadmap...</span>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex items-center justify-between">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="text-slate-400 font-medium">Active Inspector: </span>
                     <span className="font-bold text-slate-900">{roadmapJob.assigned_inspector_name || "Unassigned"}</span>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                     roadmapJob.client_approval_status === "approved_by_client" ? "bg-emerald-100 text-emerald-800" :
                     roadmapJob.client_approval_status === "rejected_by_client" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
                   }`}>
@@ -1176,7 +1193,7 @@ export default function JobsPage() {
                       const isApproved = attempt.status === "approved_by_client";
                       return (
                         <div key={idx} className="relative">
-                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-white ${
+                          <div className={`absolute -left-6 top-1 w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white border-2 border-white ${
                             isApproved ? "bg-emerald-600" : isRejected ? "bg-rose-600" : "bg-amber-500 animate-pulse"
                           }`}>
                             {idx + 1}
@@ -1186,11 +1203,11 @@ export default function JobsPage() {
                             isApproved ? "bg-emerald-50/50 border-emerald-200" :
                             isRejected ? "bg-rose-50/50 border-rose-200" : "bg-slate-50 border-slate-200"
                           }`}>
-                            <div className="flex items-center justify-between">
-                              <span className="font-mono text-xs font-bold text-indigo-700">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="font-mono text-xs font-bold text-brand-700">
                                 {attempt.entry_id || `ATTEMPT #${idx + 1}`}
                               </span>
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                              <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase ${
                                 isApproved ? "bg-emerald-100 text-emerald-800" :
                                 isRejected ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
                               }`}>
@@ -1205,7 +1222,7 @@ export default function JobsPage() {
 
                             <div className="flex flex-wrap gap-1">
                               {attempt.certifications?.map((c: string, cIdx: number) => (
-                                <span key={cIdx} className="px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-700">
+                                <span key={cIdx} className="px-2 py-0.5 bg-white border border-slate-200 rounded text-[11px] font-bold text-slate-700">
                                   {c}
                                 </span>
                               ))}
@@ -1218,7 +1235,7 @@ export default function JobsPage() {
                               </div>
                             )}
 
-                            <div className="text-[10px] text-slate-400 pt-1 flex items-center justify-between font-mono">
+                            <div className="text-[11px] text-slate-400 pt-1 flex flex-wrap items-center justify-between gap-x-3 font-mono">
                               <span>Submitted: {attempt.submitted_at ? attempt.submitted_at.replace("T", " ").substring(0, 19) : "N/A"}</span>
                               {attempt.decided_at && <span>Decided: {attempt.decided_at.replace("T", " ").substring(0, 19)}</span>}
                             </div>
@@ -1248,23 +1265,23 @@ export default function JobsPage() {
       {showBudgetModal && selectedJobForBudget && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 <DollarSign className="w-5 h-5 text-blue-600" />
                 <h2 className="text-base font-bold text-slate-900">
                   Allocate Budget &amp; Schedule Dates — {selectedJobForBudget.job_id}
                 </h2>
               </div>
-              <button onClick={() => setShowBudgetModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowBudgetModal(false)} aria-label="Close" title="Close" className="text-slate-400 hover:text-slate-600 shrink-0">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveBudgetSchedule} className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Contract Value (₹)</label>
-                  <input
+                  <label htmlFor="bg-contract" className="block text-xs font-semibold text-slate-700 mb-1">Contract Value (₹)</label>
+                  <input id="bg-contract"
                     type="number"
                     value={contractAmt}
                     onChange={(e) => setContractAmt(Number(e.target.value))}
@@ -1272,8 +1289,8 @@ export default function JobsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Inspector Fee (₹)</label>
-                  <input
+                  <label htmlFor="bg-inspector-fee" className="block text-xs font-semibold text-slate-700 mb-1">Inspector Fee (₹)</label>
+                  <input id="bg-inspector-fee"
                     type="number"
                     value={inspectorFee}
                     onChange={(e) => setInspectorFee(Number(e.target.value))}
@@ -1281,8 +1298,8 @@ export default function JobsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Travel Fee (₹)</label>
-                  <input
+                  <label htmlFor="bg-travel" className="block text-xs font-semibold text-slate-700 mb-1">Travel Fee (₹)</label>
+                  <input id="bg-travel"
                     type="number"
                     value={travelFee}
                     onChange={(e) => setTravelFee(Number(e.target.value))}
@@ -1291,10 +1308,10 @@ export default function JobsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Job Start Date *</label>
-                  <input
+                  <label htmlFor="bg-start" className="block text-xs font-semibold text-slate-700 mb-1">Job Start Date *</label>
+                  <input id="bg-start"
                     type="date"
                     required
                     value={startDate}
@@ -1303,8 +1320,8 @@ export default function JobsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Job End Date *</label>
-                  <input
+                  <label htmlFor="bg-end" className="block text-xs font-semibold text-slate-700 mb-1">Job End Date *</label>
+                  <input id="bg-end"
                     type="date"
                     required
                     value={endDate}

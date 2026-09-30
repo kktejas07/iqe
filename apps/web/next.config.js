@@ -1,18 +1,19 @@
 /** @type {import('next').NextConfig} */
-const backendTarget = (
-  process.env.BACKEND_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8000"
-).replace(/\/+$/, "");
+// Where the Next server reaches FastAPI; the browser only ever talks to /backend.
+const BACKEND_URL = (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const nextConfig = {
   output: "standalone",
   experimental: { optimizePackageImports: ["axios"] },
+  async redirects() {
+    // Old misspelled route kept working for bookmarks
+    return [{ source: "/pms-formates", destination: "/pms-formats", permanent: true }];
+  },
   async rewrites() {
     return [
-      { source: "/api/:path*", destination: `${backendTarget}/api/:path*` },
-      { source: "/media/:path*", destination: `${backendTarget}/media/:path*` },
-      { source: "/files/:path*", destination: `${backendTarget}/files/:path*` },
+      { source: "/backend/:path*", destination: `${BACKEND_URL}/:path*` },
+      // Short links printed as QR codes on reports
+      { source: "/v/:code", destination: `${BACKEND_URL}/v/:code` },
     ];
   },
 };

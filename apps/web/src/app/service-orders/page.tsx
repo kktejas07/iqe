@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, Search, Hash, DollarSign, Calendar } from "lucide-react";
+import { ClipboardList, Search, Hash, DollarSign, Calendar } from "@/components/icons";
 import { api } from "@/lib/api";
 
 export default function ServiceOrdersPage() {
@@ -63,13 +63,13 @@ export default function ServiceOrdersPage() {
               <tbody className="divide-y divide-slate-100">
                 {orders.map((so) => (
                   <tr key={so.so_id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 font-mono font-bold text-indigo-600">{so.so_number}</td>
+                    <td className="p-4 font-mono font-bold text-brand-600">{so.so_number}</td>
                     <td className="p-4 font-mono font-medium text-slate-700">{so.job_id}</td>
                     <td className="p-4 font-mono font-bold text-slate-900">
                       ₹{(so.amount || 0).toLocaleString()}
                     </td>
                     <td className="p-4">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase badge-emerald">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase badge-emerald">
                         {so.status || "active"}
                       </span>
                     </td>

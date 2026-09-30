@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck, Building2, HardHat } from "lucide-react";
+import { Sparkles, Lock, User as UserIcon, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2, ShieldCheck, Building2, HardHat } from "@/components/icons";
 import { api } from "@/lib/api";
 import { IQELogo } from "@/components/IQELogo";
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
                 <span className="font-heading text-lg font-extrabold tracking-tight text-white block leading-tight">
                   Ideal Quality Engineers
                 </span>
-                <span className="text-[10px] text-[#e35f14] font-bold block">
+                <span className="text-[11px] text-[#e35f14] font-bold block">
                   (I) Pvt Ltd — ISO 9001:2015
                 </span>
               </div>
@@ -83,7 +83,7 @@ export default function LoginPage() {
               <span>FastAPI & MongoDB Beanie engine</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0" />
               <span>Gemini AI Anomaly & Inspector matching</span>
             </div>
           </div>
@@ -107,11 +107,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label htmlFor="log-login-name-user-id" className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Login Name / User ID
               </label>
               <div className="relative">
-                <input
+                <input id="log-login-name-user-id"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -125,11 +125,11 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label htmlFor="log-password" className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <input
+                <input id="log-password"
                   type={showPassword ? "text" : "password"}
                   onKeyUp={(e) => setCapsLock(e.getModifierState("CapsLock"))}
                   value={password}
@@ -188,7 +188,7 @@ export default function LoginPage() {
                   <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
                   <span>Admin</span>
                 </div>
-                <span className="text-[9px] text-purple-400 font-normal">Super Admin</span>
+                <span className="text-[11px] text-purple-400 font-normal">Super Admin</span>
               </button>
               <button
                 type="button"
@@ -199,7 +199,7 @@ export default function LoginPage() {
                   <Building2 className="w-3.5 h-3.5 text-blue-400" />
                   <span>Tenant</span>
                 </div>
-                <span className="text-[9px] text-blue-400 font-normal">Client / PM</span>
+                <span className="text-[11px] text-blue-400 font-normal">Client / PM</span>
               </button>
               <button
                 type="button"
@@ -210,7 +210,7 @@ export default function LoginPage() {
                   <HardHat className="w-3.5 h-3.5 text-emerald-400" />
                   <span>User</span>
                 </div>
-                <span className="text-[9px] text-emerald-400 font-normal">TPI Engineer</span>
+                <span className="text-[11px] text-emerald-400 font-normal">TPI Engineer</span>
               </button>
             </div>
           </div>

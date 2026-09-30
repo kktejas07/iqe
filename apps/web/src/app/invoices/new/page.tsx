@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileText, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Plus } from "@/components/icons";
 import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
 
 function NewInvoiceForm() {
   const router = useRouter();
@@ -33,7 +34,7 @@ function NewInvoiceForm() {
       router.push("/invoices");
     } catch (err) {
       console.error(err);
-      alert("Failed to generate invoice");
+      toast.error("Couldn't generate the invoice. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -62,47 +63,47 @@ function NewInvoiceForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Job Reference ID</label>
-            <input
+            <label htmlFor="invnew-job-reference-id" className="block text-xs font-semibold text-slate-700 mb-1">Job Reference ID</label>
+            <input id="invnew-job-reference-id"
               type="text"
               value={jobId}
               onChange={(e) => setJobId(e.target.value)}
               placeholder="e.g. JOB-1001"
-              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Client Name *</label>
-            <input
+            <label htmlFor="invnew-client-name" className="block text-xs font-semibold text-slate-700 mb-1">Client Name *</label>
+            <input id="invnew-client-name"
               type="text"
               required
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="e.g. Reliance Petrochemical Industries"
-              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Grand Total Amount (₹) *</label>
-              <input
+              <label htmlFor="invnew-grand-total-amount" className="block text-xs font-semibold text-slate-700 mb-1">Grand Total Amount (₹) *</label>
+              <input id="invnew-grand-total-amount"
                 type="number"
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="e.g. 75000"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Billing Type</label>
-              <select
+              <label htmlFor="invnew-invoice-billing-type" className="block text-xs font-semibold text-slate-700 mb-1">Invoice Billing Type</label>
+              <select id="invnew-invoice-billing-type"
                 value={invoiceType}
                 onChange={(e) => setInvoiceType(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all"
               >
                 <option value="standard">Standard Inspection</option>
                 <option value="milestone">Milestone Billing</option>

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -23,7 +24,7 @@ import {
   Activity,
   Layers,
   ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 import { IQELoader } from "@/components/IQELoader";
 
 interface VendorAnalytics {
@@ -140,7 +141,7 @@ export default function AnalyticsPage() {
               <BarChart3 className="w-5 h-5 text-sky-300" />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-[#003366] font-heading tracking-tight">
+              <h1 className="text-xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight">
                 Predictive Analytics &amp; Auditor Intelligence Dashboard
               </h1>
               <p className="text-xs text-slate-600 font-semibold mt-0.5">
@@ -152,7 +153,7 @@ export default function AnalyticsPage() {
 
         <div className="flex items-center gap-3 shrink-0">
           <a
-            href="/api/v1/reports/pdf/tpi-billing"
+            href={`${API_BASE}/api/v1/reports/pdf/tpi-billing`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-2xl bg-[#003366] hover:bg-[#002244] text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-2"
@@ -168,10 +169,10 @@ export default function AnalyticsPage() {
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Total TPI Audits Logged</p>
-            <p className="text-2xl font-extrabold text-[#003366] font-mono mt-1">126 Audits</p>
-            <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Across 4 major industrial vendors</p>
+            <p className="text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-mono mt-1">126 Audits</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Across 4 major industrial vendors</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#003366] border border-blue-200 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#003366] dark:text-sky-300 border border-blue-200 flex items-center justify-center">
             <Activity className="w-5 h-5" />
           </div>
         </div>
@@ -180,7 +181,7 @@ export default function AnalyticsPage() {
           <div>
             <p className="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider">Recurring Audit Frequency</p>
             <p className="text-2xl font-extrabold text-emerald-700 font-mono mt-1">62.4%</p>
-            <p className="text-[10px] text-emerald-800 font-bold mt-0.5">Greenko &amp; L&amp;T Repeat Audits</p>
+            <p className="text-[11px] text-emerald-800 font-bold mt-0.5">Greenko &amp; L&amp;T Repeat Audits</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-white text-emerald-700 border border-emerald-200 flex items-center justify-center">
             <TrendingUp className="w-5 h-5" />
@@ -191,20 +192,20 @@ export default function AnalyticsPage() {
           <div>
             <p className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider">AI Auditor Match Precision</p>
             <p className="text-2xl font-extrabold text-amber-900 font-mono mt-1">98.5%</p>
-            <p className="text-[10px] text-amber-800 font-semibold mt-0.5">NDT Level III Qualification Match</p>
+            <p className="text-[11px] text-amber-800 font-semibold mt-0.5">NDT Level III Qualification Match</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-white text-amber-700 border border-amber-200 flex items-center justify-center">
             <Sparkles className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200 shadow-2xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-brand-50/60 border border-brand-200 shadow-2xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider">Avg Quality Compliance Score</p>
-            <p className="text-2xl font-extrabold text-indigo-900 font-mono mt-1">98.1%</p>
-            <p className="text-[10px] text-indigo-800 font-bold mt-0.5">ISO 17020 &amp; ASME Compliant</p>
+            <p className="text-[11px] font-extrabold text-brand-900 uppercase tracking-wider">Avg Quality Compliance Score</p>
+            <p className="text-2xl font-extrabold text-brand-900 font-mono mt-1">98.1%</p>
+            <p className="text-[11px] text-brand-800 font-bold mt-0.5">ISO 17020 &amp; ASME Compliant</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-white text-indigo-700 border border-indigo-200 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-white text-brand-700 border border-brand-200 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
@@ -216,7 +217,7 @@ export default function AnalyticsPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h2 className="text-base font-extrabold text-[#003366] font-heading flex items-center gap-2">
+              <h2 className="text-base font-extrabold text-[#003366] dark:text-sky-300 font-heading flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-blue-600" />
                 <span>Vendor Quality &amp; Audit History Analysis</span>
               </h2>
@@ -225,6 +226,7 @@ export default function AnalyticsPage() {
                 <div className="relative">
                   <input
                     type="text"
+                    aria-label="Search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search vendor name..."
@@ -240,7 +242,11 @@ export default function AnalyticsPage() {
               {filteredData.map((v) => (
                 <div
                   key={v.vendorId}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedVendorId === v.vendorId}
                   onClick={() => setSelectedVendorId(v.vendorId)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedVendorId(v.vendorId); } }}
                   className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-3 ${
                     selectedVendorId === v.vendorId
                       ? "bg-blue-50/80 border-[#003366] ring-2 ring-[#003366]/20 shadow-sm"
@@ -250,7 +256,7 @@ export default function AnalyticsPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-[#003366] text-white font-mono font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-[#003366] text-white font-mono font-bold text-[11px]">
                           {v.vendorId}
                         </span>
                         <h3 className="font-extrabold text-sm text-slate-900">{v.vendorName}</h3>
@@ -267,30 +273,30 @@ export default function AnalyticsPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-[10px] text-slate-500 font-bold block uppercase">Total Audits</span>
+                      <span className="text-[11px] text-slate-500 font-bold block uppercase">Total Audits</span>
                       <span className="font-extrabold font-mono text-slate-900 text-sm">{v.totalAudits} Times</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 font-bold block uppercase">Recurring Frequency</span>
+                      <span className="text-[11px] text-slate-500 font-bold block uppercase">Recurring Frequency</span>
                       <span className="font-extrabold font-mono text-blue-700 text-sm">{v.recurringAuditsCount} Repeat Audits</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 font-bold block uppercase">Benchmark Quote</span>
+                      <span className="text-[11px] text-slate-500 font-bold block uppercase">Benchmark Quote</span>
                       <span className="font-extrabold font-mono text-slate-900 text-xs">{v.avgAuditCost}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 font-bold block uppercase">Location</span>
+                      <span className="text-[11px] text-slate-500 font-bold block uppercase">Location</span>
                       <span className="font-semibold text-slate-700 text-xs truncate block">{v.location}</span>
                     </div>
                   </div>
 
                   {/* Top Audit Types Badges */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[10px] text-slate-400 font-bold">Top Audit Scope:</span>
+                    <span className="text-[11px] text-slate-400 font-bold">Top Audit Scope:</span>
                     {v.topAuditTypes.map((t) => (
                       <span
                         key={t}
-                        className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200"
+                        className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200"
                       >
                         {t}
                       </span>
@@ -306,11 +312,11 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
             <div className="border-b border-slate-100 pb-4">
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-mono font-extrabold tracking-wider uppercase border border-amber-300 flex items-center gap-1.5 w-max mb-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-extrabold tracking-wider uppercase border border-amber-300 flex items-center gap-1.5 w-max mb-2">
                 <Sparkles className="w-3 h-3 text-amber-600" />
                 <span>AI Auditor Matching Engine</span>
               </span>
-              <h2 className="text-base font-extrabold text-[#003366] font-heading">
+              <h2 className="text-base font-extrabold text-[#003366] dark:text-sky-300 font-heading">
                 Recommended Auditors for {selectedVendor.vendorName}
               </h2>
               <p className="text-xs text-slate-600 font-medium mt-1">
@@ -334,7 +340,7 @@ export default function AnalyticsPage() {
                     </div>
 
                     <div className="text-right">
-                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Match Score</span>
+                      <span className="text-[11px] font-bold text-slate-400 block uppercase">Match Score</span>
                       <span className="font-mono text-sm font-extrabold text-emerald-700">
                         {auditor.matchScore}%
                       </span>
@@ -358,7 +364,7 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2 text-xs">
-              <h4 className="font-extrabold text-[#003366] flex items-center gap-1.5">
+              <h4 className="font-extrabold text-[#003366] dark:text-sky-300 flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-blue-600" />
                 <span>Validation &amp; Quote Optimization</span>
               </h4>

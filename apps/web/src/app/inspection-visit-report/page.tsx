@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE } from "@/lib/config";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
@@ -49,8 +50,9 @@ import {
   ArrowLeft,
   Paperclip,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 import { PdfPreviewModal } from "@/components/PdfPreviewModal";
+import { confirmDialog } from "@/components/feedback";
 
 export interface InspectedItem {
   id: string;
@@ -73,8 +75,8 @@ export interface DocumentReview {
   docType: string;
   docNo: string;
   rev: string;
-  status: "Reviewed & Found in Order" | "Approved" | "Comments Offered" | "Under Revision";
-  approvalStatus: "Client Approved" | "Consultant Approved" | "Supplier Internal";
+  status: string;
+  approvalStatus: string;
   remarks: string;
 }
 
@@ -125,6 +127,13 @@ export interface AttachmentItem {
   description: string;
   referencePages: string;
   remarks: string;
+}
+
+export interface PhotoItem {
+  id: string;
+  title: string;
+  desc: string;
+  tag: string;
 }
 
 const CLIENT_OPTIONS = [
@@ -541,6 +550,17 @@ export default function InspectionVisitReportPage() {
 
   const [search, setSearch] = useState<string>("");
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
+  const [isInlineEditPunch, setIsInlineEditPunch] = useState<boolean>(false);
+  const [isInlineEditCalibrations, setIsInlineEditCalibrations] = useState<boolean>(false);
+  const [isInlineEditDocs, setIsInlineEditDocs] = useState<boolean>(false);
+  const [isInlineEditAttachments, setIsInlineEditAttachments] = useState<boolean>(false);
+  const [isInlineEditPhotos, setIsInlineEditPhotos] = useState<boolean>(false);
+  const [photos, setPhotos] = useState<PhotoItem[]>([
+    { id: "ph-1", title: "Photo 1", desc: "Hydrostatic Test at 9.0 Bar with Calibrated Master Gauge", tag: "HE-3101 Shell" },
+    { id: "ph-2", title: "Photo 2", desc: "Digital Surface Electropolish Ra Measurement Scan", tag: "Ra = 0.28 µm" },
+    { id: "ph-3", title: "Photo 3", desc: "Borescope Inspection Video Output of Orbital Weld W-14", tag: "Root Concavity Flagged" },
+    { id: "ph-4", title: "Photo 4", desc: "Material Heat Stamping & Nameplate Verification", tag: "Heat #H-8821 Riveted" },
+  ]);
   const [editingItem, setEditingItem] = useState<InspectedItem | null>(null);
   const [viewingItem, setViewingItem] = useState<InspectedItem | null>(null);
   const [isTabSwitching, setIsTabSwitching] = useState<boolean>(false);
@@ -552,6 +572,74 @@ export default function InspectionVisitReportPage() {
   const triggerSaveToast = () => {
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2800);
+  };
+
+  const handleAddDoc = () => {
+    const newDoc: DocumentReview = {
+      id: `doc-${Date.now()}`,
+      slNo: docs.length + 1,
+      docType: "Engineering Drawing / Fabrication Drawing",
+      docNo: `DWG-${Date.now().toString().slice(-4)}`,
+      rev: "R0",
+      status: "Approved",
+      approvalStatus: "Code 1 Approved by Client",
+      remarks: "Reviewed at site during inspection",
+    };
+    setDocs([...docs, newDoc]);
+    triggerSaveToast();
+  };
+
+  const handleAddAttachment = () => {
+    const newAtt: AttachmentItem = {
+      id: `att-${Date.now()}`,
+      slNo: attachments.length + 1,
+      description: "Inspection Certificate / Quality Record",
+      referencePages: `TC-IQE-${Date.now().toString().slice(-4)} (2 Pages)`,
+      remarks: "Verified and attached to dossier",
+    };
+    setAttachments([...attachments, newAtt]);
+    triggerSaveToast();
+  };
+
+  const handleAddPhoto = () => {
+    const newPh: PhotoItem = {
+      id: `ph-${Date.now()}`,
+      title: `Photo ${photos.length + 1}`,
+      desc: "Physical Inspection Verification Record",
+      tag: "Site Inspection Finding",
+    };
+    setPhotos([...photos, newPh]);
+    triggerSaveToast();
+  };
+
+  const handleAddPunch = () => {
+    const newP: PunchItem = {
+      id: `punch-${Date.now()}`,
+      slNo: punchList.length + 1,
+      observation: "New punch observation noted during physical walk-through",
+      reference: "Drawing GA-01 Note 4",
+      supplierAction: "Supplier to rectify prior to final punch clearance",
+      status: "Open",
+    };
+    setPunchList([...punchList, newP]);
+    triggerSaveToast();
+  };
+
+  const handleAddCalibration = () => {
+    const newC: CalibrationItem = {
+      id: `cal-${Date.now()}`,
+      equipment: "Digital Vernier Caliper (0-300mm)",
+      manufacturer: "Mitutoyo",
+      model: "CD-6 CSX",
+      serialNo: `VC-${Date.now().toString().slice(-4)}`,
+      range: "0 - 300 mm",
+      accuracy: "±0.02 mm",
+      certNo: "NABL/CAL/2026/102",
+      dueDate: "2027-04-30",
+      status: "Valid",
+    };
+    setCalibrations([...calibrations, newC]);
+    triggerSaveToast();
   };
 
   const handleToggleLockItem = (id: string) => {
@@ -645,25 +733,26 @@ export default function InspectionVisitReportPage() {
         {/* Header Strip & Document Title (Bill Verification Standard) */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-200">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] tracking-tight font-heading flex items-center gap-2">
-              <FileSpreadsheet className="w-6 h-6 text-[#003366]" />
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 tracking-tight font-heading flex items-center gap-2">
+              <FileSpreadsheet className="w-6 h-6 text-[#003366] dark:text-sky-300" />
               <span>Inspection Visit Report</span>
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300 flex items-center gap-1 font-mono">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300 flex items-center gap-1">
               IQE-TP-03 &bull; REV 00
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#003366] text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#003366] text-white">
               ISO 17020 TYPE-A INSPECTION
             </span>
 
             {/* Select Client Dropdown right in the top bar */}
-            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
-              <Users className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="text-slate-600 font-extrabold">Select Client:</span>
+            <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs min-w-0 max-w-full">
+              <Users className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <label htmlFor="report-client-select" className="text-slate-600 font-extrabold shrink-0">Select Client:</label>
               <select
+                id="report-client-select"
                 value={selectedClient}
                 onChange={(e) => setSelectedClient(e.target.value)}
-                className="bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="min-w-0 flex-1 sm:flex-none truncate bg-white text-slate-900 font-extrabold border border-slate-300 rounded-lg text-xs p-1 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 {CLIENT_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -675,7 +764,7 @@ export default function InspectionVisitReportPage() {
 
             <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
               <span className="text-slate-500 text-[11px] font-bold">Stage:</span>
-              <span className="text-[#003366] font-extrabold uppercase">{inspectionStage}</span>
+              <span className="text-[#003366] dark:text-sky-300 font-extrabold uppercase">{inspectionStage}</span>
               <span className="text-slate-300">|</span>
               <span className="text-slate-500 text-[11px] font-bold">Ref:</span>
               <span className="text-slate-800 font-mono font-bold">{clientMeta.rfiRef}</span>
@@ -701,7 +790,7 @@ export default function InspectionVisitReportPage() {
               <span>Preview Live PDF</span>
             </button>
 
-            <button
+            <button aria-label="Save Visit Report"
               onClick={triggerSaveToast}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-all shadow-sm cursor-pointer"
               title="Save Visit Report"
@@ -709,7 +798,7 @@ export default function InspectionVisitReportPage() {
               <Save className="w-4 h-4 text-sky-400" />
             </button>
 
-            <button
+            <button aria-label="Export CSV"
               onClick={handleExportCSV}
               className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
               title="Export CSV"
@@ -717,118 +806,13 @@ export default function InspectionVisitReportPage() {
               <Download className="w-4 h-4" />
             </button>
 
-            <button
+            <button aria-label="Print / PDF"
               onClick={handlePrint}
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-all shadow-sm cursor-pointer"
               title="Print / PDF"
             >
               <Printer className="w-4 h-4" />
             </button>
-          </div>
-        </div>
-
-        {/* 5-Card Project & Contract Metadata Strip */}
-        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-              <Building2 className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-blue-700 uppercase font-extrabold tracking-wider">Project &amp; Location</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.projectName}</p>
-              <p className="text-[10px] text-slate-500 truncate">{clientMeta.projectLocation}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-              <Users className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-emerald-700 uppercase font-extrabold tracking-wider">Customer / Client</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.customer}</p>
-              <p className="text-[10px] text-emerald-700 font-semibold truncate">RFI: {clientMeta.rfiRef}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-              <Factory className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-amber-800 uppercase font-extrabold tracking-wider">Vendor / Supplier</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.supplier}</p>
-              <p className="text-[10px] text-slate-500 truncate">Sub: {clientMeta.subSupplier}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
-              <FileText className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-purple-700 uppercase font-extrabold tracking-wider">PO Ref &amp; Date</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.poNumber}</p>
-              <p className="text-[10px] text-purple-700 font-mono truncate">Date: {clientMeta.poDate}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 flex items-center gap-3">
-            <div className="w-8.5 h-8.5 rounded-lg bg-teal-100 flex items-center justify-center text-teal-700 shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-teal-800 uppercase font-extrabold tracking-wider">Lead TPI Inspector</p>
-              <p className="font-extrabold text-slate-900 truncate text-xs">{clientMeta.inspector}</p>
-              <p className="text-[10px] text-teal-700 font-semibold truncate">Type-A ISO 17020 Lead</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4-Card Summary Metric Strip */}
-        <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider">Total Offered</p>
-              <p className="text-xl font-extrabold font-mono text-slate-900 mt-0.5 truncate">{kpis.totalOffered} Units</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 truncate">Across {items.length} items</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-extrabold text-sm shrink-0">
-              #
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-emerald-700 font-extrabold uppercase tracking-wider">Accepted for Release</p>
-              <p className="text-xl font-extrabold font-mono text-emerald-700 mt-0.5 truncate">{kpis.totalAccepted} Units</p>
-              <p className="text-[10px] text-emerald-700/80 mt-0.5 truncate">Inspected: {kpis.totalInspected} units</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-rose-700 font-extrabold uppercase tracking-wider">Rejected / Held</p>
-              <p className="text-xl font-extrabold font-mono text-rose-700 mt-0.5 truncate">{kpis.totalRejected} Units</p>
-              <p className="text-[10px] text-rose-700/80 mt-0.5 truncate">{kpis.openPunchCount} Open NCRs</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between shadow-2xs">
-            <div className="min-w-0 flex-1 pr-2">
-              <p className="text-[9px] text-indigo-700 uppercase font-extrabold tracking-wider">Conclusion Status</p>
-              <p className="text-xs font-extrabold font-mono text-indigo-800 mt-0.5 truncate uppercase">{inspectionStatus}</p>
-              <p className="text-[10px] text-indigo-700/80 mt-0.5 truncate font-semibold">QAP: {clientMeta.applicableQAP}</p>
-            </div>
-            <div className="w-8.5 h-8.5 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-              <Layers className="w-4 h-4" />
-            </div>
           </div>
         </div>
 
@@ -840,7 +824,7 @@ export default function InspectionVisitReportPage() {
               <span>Navigating to section...</span>
             </div>
           )}
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
+          <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Jump to:</span>
           {[
             { id: "sec-1", label: "1.0 Details" },
             { id: "sec-2", label: "2.0 Material Offered" },
@@ -870,7 +854,7 @@ export default function InspectionVisitReportPage() {
         </div>
 
         {/* Controlled Document Running Header (matches IQE-TP-03 PDF as is) */}
-        <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/60 space-y-3">
+        <div className="keep-light border border-slate-200 rounded-xl p-4 bg-slate-50 text-slate-900 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b border-slate-200 pb-3 gap-2">
             <div>
               <h2 className="font-extrabold text-sm sm:text-base text-slate-900 uppercase tracking-tight">
@@ -982,11 +966,11 @@ export default function InspectionVisitReportPage() {
                   <td className="p-2.5 font-medium text-slate-600 border-r border-slate-200 bg-slate-50/50">RFI Reference &amp; Date</td>
                   <td className="p-2.5 font-mono font-bold text-slate-900 border-r border-slate-200">{clientMeta.rfiRef} &bull; {clientMeta.rfiDate}</td>
                   <td className="p-2.5 font-medium text-slate-600 border-r border-slate-200 bg-slate-50/50">IQE Inspector</td>
-                  <td className="p-2.5 font-bold text-[#003366]">{clientMeta.inspector}</td>
+                  <td className="p-2.5 font-bold text-[#003366] dark:text-sky-300">{clientMeta.inspector}</td>
                 </tr>
                 <tr>
                   <td className="p-2.5 font-medium text-slate-600 border-r border-slate-200 bg-slate-50/50">Applicable QAP / ITP</td>
-                  <td className="p-2.5 font-mono font-bold text-[#003366] border-r border-slate-200">{clientMeta.applicableQAP}</td>
+                  <td className="p-2.5 font-mono font-bold text-[#003366] dark:text-sky-300 border-r border-slate-200">{clientMeta.applicableQAP}</td>
                   <td className="p-2.5 font-medium text-slate-600 border-r border-slate-200 bg-slate-50/50">Applicable Specification</td>
                   <td className="p-2.5 font-mono font-bold text-slate-900">{clientMeta.applicableSpec}</td>
                 </tr>
@@ -1002,7 +986,7 @@ export default function InspectionVisitReportPage() {
           <div className="bg-[#003366] text-white px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold">
             <div className="flex items-center gap-2">
               <span className="uppercase tracking-wider">2.0 MATERIAL / EQUIPMENT OFFERED FOR INSPECTION</span>
-              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[10px]">
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
                 {filteredItems.length} items
               </span>
             </div>
@@ -1020,7 +1004,7 @@ export default function InspectionVisitReportPage() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-2.5 py-1 bg-white text-[#003366] rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add Item</span>
@@ -1031,7 +1015,7 @@ export default function InspectionVisitReportPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-12 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Item Description</th>
                   <th className="py-2.5 px-3 w-32 font-mono">Tag / Serial No.</th>
@@ -1049,7 +1033,7 @@ export default function InspectionVisitReportPage() {
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-2 px-3 text-center font-mono font-bold text-slate-500">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Sl. No."
                           type="number"
                           value={item.slNo}
                           onChange={(e) => {
@@ -1064,7 +1048,7 @@ export default function InspectionVisitReportPage() {
                     </td>
                     <td className="py-2 px-3 font-medium text-slate-900">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Description"
                           type="text"
                           value={item.description}
                           onChange={(e) => {
@@ -1076,15 +1060,15 @@ export default function InspectionVisitReportPage() {
                         item.description
                       )}
                     </td>
-                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">
+                    <td className="py-2 px-3 font-mono font-bold text-[#003366] dark:text-sky-300">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Tag No."
                           type="text"
                           value={item.tagNo}
                           onChange={(e) => {
                             setItems(items.map((i) => (i.id === item.id ? { ...i, tagNo: e.target.value } : i)));
                           }}
-                          className="w-28 p-1 font-mono font-bold text-[#003366] bg-amber-50 border border-amber-300 rounded text-xs"
+                          className="w-28 p-1 font-mono font-bold text-[#003366] dark:text-sky-300 bg-amber-50 border border-amber-300 rounded text-xs"
                         />
                       ) : (
                         item.tagNo
@@ -1093,7 +1077,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-right font-mono text-slate-600">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="PO Qty"
                           type="number"
                           value={item.poQty}
                           onChange={(e) => {
@@ -1109,7 +1093,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-right font-mono text-slate-800 font-bold">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Offered Qty"
                           type="number"
                           value={item.offeredQty}
                           onChange={(e) => {
@@ -1125,7 +1109,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-right font-mono text-blue-700 font-bold">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Inspected Qty"
                           type="number"
                           value={item.inspectedQty}
                           onChange={(e) => {
@@ -1141,7 +1125,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-right font-mono text-emerald-700 font-extrabold">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Accepted Qty"
                           type="number"
                           value={item.acceptedQty}
                           onChange={(e) => {
@@ -1157,7 +1141,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-right font-mono text-rose-700 font-bold">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Rejected Qty"
                           type="number"
                           value={item.rejectedQty}
                           onChange={(e) => {
@@ -1173,7 +1157,7 @@ export default function InspectionVisitReportPage() {
 
                     <td className="py-2 px-3 text-slate-600 text-[11px]">
                       {isInlineEditMode ? (
-                        <input
+                        <input aria-label="Remarks"
                           type="text"
                           value={item.remarks}
                           onChange={(e) => {
@@ -1189,7 +1173,7 @@ export default function InspectionVisitReportPage() {
                     <td className="py-2 px-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         {/* 1. Lock/Unlock */}
-                        <button
+                        <button aria-label={item.isLocked ? "Locked — Click to Unlock Row" : "Unlocked — Click to Lock Row"}
                           onClick={() => handleToggleLockItem(item.id)}
                           className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                             item.isLocked
@@ -1202,16 +1186,16 @@ export default function InspectionVisitReportPage() {
                         </button>
 
                         {/* 2. View Details Modal */}
-                        <button
+                        <button aria-label="View Row Details"
                           onClick={() => setViewingItem(item)}
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-700 transition-colors cursor-pointer"
                           title="View Row Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
 
                         {/* 3. Edit Row */}
-                        <button
+                        <button aria-label={item.isLocked ? "Item Locked" : "Edit Row Values"}
                           onClick={() => !item.isLocked && setEditingItem(item)}
                           disabled={item.isLocked}
                           className={`p-1.5 rounded-lg transition-colors ${
@@ -1225,7 +1209,7 @@ export default function InspectionVisitReportPage() {
                         </button>
 
                         {/* 4. Single CSV */}
-                        <button
+                        <button aria-label="Download Single Row CSV"
                           onClick={() => handleExportSingleRowCSV(item)}
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer"
                           title="Download Single Row CSV"
@@ -1234,7 +1218,7 @@ export default function InspectionVisitReportPage() {
                         </button>
 
                         {/* 5. Live Preview Single Item PDF */}
-                        <button
+                        <button aria-label="Live Preview Single Item PDF Certificate"
                           onClick={() => setShowPdfPreview(true)}
                           className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#0084bf] transition-colors cursor-pointer border border-sky-200/60"
                           title="Live Preview Single Item PDF Certificate"
@@ -1243,8 +1227,8 @@ export default function InspectionVisitReportPage() {
                         </button>
 
                         {/* 6. Download Single Item PDF */}
-                        <button
-                          onClick={() => window.open("/api/v1/reports/pdf/inspection-visit-report", "_blank")}
+                        <button aria-label="Download Single PDF Report"
+                          onClick={() => window.open(`${API_BASE}/api/v1/reports/pdf/inspection-visit-report`, "_blank")}
                           className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200/60"
                           title="Download Single PDF Report"
                         >
@@ -1252,11 +1236,19 @@ export default function InspectionVisitReportPage() {
                         </button>
 
                         {/* 7. Delete */}
-                        <button
-                          onClick={() => {
-                            if (!item.isLocked && confirm(`Remove item ${item.tagNo}?`)) {
-                              setItems(items.filter((i) => i.id !== item.id));
-                            }
+                        <button aria-label="Delete Item"
+                          onClick={async () => {
+                            if (item.isLocked) return;
+                            if (
+                              !(await confirmDialog({
+                                title: `Remove item ${item.tagNo}?`,
+                                message: "This item will be removed from the report.",
+                                confirmLabel: "Remove",
+                                danger: true,
+                              }))
+                            )
+                              return;
+                            setItems((prev) => prev.filter((i) => i.id !== item.id));
                           }}
                           disabled={item.isLocked}
                           className={`p-1.5 rounded-lg transition-colors ${
@@ -1282,14 +1274,40 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-3" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">3.0 DOCUMENTS &amp; REFERENCES REVIEWED</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 3.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">3.0 DOCUMENTS &amp; REFERENCES REVIEWED</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
+                {docs.length} docs
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditDocs(!isInlineEditDocs)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditDocs ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditDocs ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddDoc}
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Document</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-14 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 w-48">Document / Reference</th>
                   <th className="py-2.5 px-3 w-48 font-mono">Document No.</th>
@@ -1297,22 +1315,99 @@ export default function InspectionVisitReportPage() {
                   <th className="py-2.5 px-3 w-36">Status</th>
                   <th className="py-2.5 px-3 w-36">Approval Status</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Remarks</th>
+                  {isInlineEditDocs && <th className="py-2.5 px-3 w-16 text-center">Action</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {docs.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/80">
                     <td className="py-2 px-3 text-center font-mono font-bold text-slate-500">{doc.slNo}</td>
-                    <td className="py-2 px-3 font-bold text-slate-800">{doc.docType}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">{doc.docNo}</td>
-                    <td className="py-2 px-3 text-center font-mono text-slate-600">{doc.rev}</td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        {doc.status}
-                      </span>
+                    <td className="py-2 px-3 font-bold text-slate-800">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Doc type"
+                          type="text"
+                          value={doc.docType}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, docType: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        doc.docType
+                      )}
                     </td>
-                    <td className="py-2 px-3 text-slate-700">{doc.approvalStatus}</td>
-                    <td className="py-2 px-3 text-slate-600 text-[11px]">{doc.remarks}</td>
+                    <td className="py-2 px-3 font-mono font-bold text-[#003366] dark:text-sky-300">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Doc No."
+                          type="text"
+                          value={doc.docNo}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, docNo: e.target.value } : d)))}
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold text-[#003366] dark:text-sky-300"
+                        />
+                      ) : (
+                        doc.docNo
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-center font-mono text-slate-600">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Rev."
+                          type="text"
+                          value={doc.rev}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, rev: e.target.value } : d)))}
+                          className="w-12 p-1 text-center font-mono bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.rev
+                      )}
+                    </td>
+                    <td className="py-2 px-3">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Status"
+                          type="text"
+                          value={doc.status}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, status: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {doc.status}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Approval status"
+                          type="text"
+                          value={doc.approvalStatus}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, approvalStatus: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.approvalStatus
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-[11px]">
+                      {isInlineEditDocs ? (
+                        <input aria-label="Remarks"
+                          type="text"
+                          value={doc.remarks}
+                          onChange={(e) => setDocs(docs.map((d) => (d.id === doc.id ? { ...d, remarks: e.target.value } : d)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        doc.remarks
+                      )}
+                    </td>
+                    {isInlineEditDocs && (
+                      <td className="py-2 px-3 text-center">
+                        <button aria-label="Delete Document"
+                          type="button"
+                          onClick={() => setDocs(docs.filter((d) => d.id !== doc.id))}
+                          className="p-1 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
+                          title="Delete Document"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1336,7 +1431,7 @@ export default function InspectionVisitReportPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-14 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 min-w-[240px]">Inspection Activity / Description</th>
                   <th className="py-2.5 px-3 w-56">Reference (QAP/Clause/Spec)</th>
@@ -1351,10 +1446,10 @@ export default function InspectionVisitReportPage() {
                     <td className="py-2 px-3 text-center font-mono font-bold text-slate-500">{act.slNo}</td>
                     <td className="py-2 px-3 font-medium text-slate-900">{act.activity}</td>
                     <td className="py-2 px-3 font-mono text-[11px] text-slate-600">{act.referenceClause}</td>
-                    <td className="py-2 px-3 text-center font-bold font-mono text-[#003366]">{act.tpiScope}</td>
+                    <td className="py-2 px-3 text-center font-bold font-mono text-[#003366] dark:text-sky-300">{act.tpiScope}</td>
                     <td className="py-2 px-3 text-center">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
                           act.result === "Satisfactory"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : "bg-rose-100 text-rose-800 border border-rose-200"
@@ -1383,7 +1478,7 @@ export default function InspectionVisitReportPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-14 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 min-w-[260px]">Finding / Observation</th>
                   <th className="py-2.5 px-3 w-48">Reference</th>
@@ -1399,7 +1494,7 @@ export default function InspectionVisitReportPage() {
                     <td className="py-2.5 px-3 text-slate-600 text-[11px]">{f.reference}</td>
                     <td className="py-2.5 px-3 font-mono font-bold text-slate-800">{f.evidenceDocNo}</td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         {f.status}
                       </span>
                     </td>
@@ -1414,15 +1509,39 @@ export default function InspectionVisitReportPage() {
         {/* SECTION 6.0 NON-CONFORMITIES / AREAS OF CONCERN (Word Document Table 6)   */}
         {/* ========================================================================= */}
         <div id="sec-6" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-          <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">6.0 NON-CONFORMITIES / AREAS OF CONCERN</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 6.0</span>
+          <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">6.0 NON-CONFORMITIES / AREAS OF CONCERN</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
+                {punchList.length} NCRs
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditPunch(!isInlineEditPunch)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditPunch ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditPunch ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddPunch}
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add NCR</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-14 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 min-w-[260px]">Observation / Non-Conformity</th>
                   <th className="py-2.5 px-3 w-48">Reference</th>
@@ -1434,19 +1553,71 @@ export default function InspectionVisitReportPage() {
                 {punchList.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/80">
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-500">{p.slNo}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900">{p.observation}</td>
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">{p.reference}</td>
-                    <td className="py-2.5 px-3 text-slate-700">{p.supplierAction}</td>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditPunch ? (
+                        <input aria-label="Observation"
+                          type="text"
+                          value={p.observation}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, observation: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.observation
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600">
+                      {isInlineEditPunch ? (
+                        <input aria-label="Reference"
+                          type="text"
+                          value={p.reference}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, reference: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.reference
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700">
+                      {isInlineEditPunch ? (
+                        <input aria-label="Supplier action"
+                          type="text"
+                          value={p.supplierAction}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, supplierAction: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        p.supplierAction
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.status === "Open"
-                            ? "bg-rose-100 text-rose-800 border border-rose-200"
-                            : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
+                      {isInlineEditPunch ? (
+                        <select aria-label="Status"
+                          value={p.status}
+                          onChange={(e) =>
+                            setPunchList(punchList.map((x) => (x.id === p.id ? { ...x, status: e.target.value as any } : x)))
+                          }
+                          className="p-1 font-bold text-[11px] bg-white border border-slate-300 rounded"
+                        >
+                          <option value="Open">Open</option>
+                          <option value="Closed">Closed</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                            p.status === "Open"
+                              ? "bg-rose-100 text-rose-800 border border-rose-200"
+                              : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1459,15 +1630,39 @@ export default function InspectionVisitReportPage() {
         {/* SECTION 7.0 INSTRUMENTS / CALIBRATION DETAILS (Word Document Table 7)      */}
         {/* ========================================================================= */}
         <div id="sec-7" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-          <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">7.0 INSTRUMENTS / CALIBRATION DETAILS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 7.0</span>
+          <div className="bg-[#003366] text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold">
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">7.0 INSTRUMENTS / CALIBRATION DETAILS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
+                {calibrations.length} instruments
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsInlineEditCalibrations(!isInlineEditCalibrations)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditCalibrations ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditCalibrations ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                onClick={handleAddCalibration}
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Equipment</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 min-w-[200px]">Instrument / Equipment</th>
                   <th className="py-2.5 px-3 w-32">Manufacturer</th>
                   <th className="py-2.5 px-3 w-28">Model</th>
@@ -1481,14 +1676,92 @@ export default function InspectionVisitReportPage() {
               <tbody className="divide-y divide-slate-200 bg-white">
                 {calibrations.map((cal) => (
                   <tr key={cal.id} className="hover:bg-slate-50/80">
-                    <td className="py-2 px-3 font-bold text-slate-900">{cal.equipment}</td>
-                    <td className="py-2 px-3 text-slate-700">{cal.manufacturer}</td>
-                    <td className="py-2 px-3 text-slate-700">{cal.model}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-[#003366]">{cal.serialNo}</td>
-                    <td className="py-2 px-3 text-slate-600">{cal.range}</td>
+                    <td className="py-2 px-3 font-bold text-slate-900">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Equipment"
+                          type="text"
+                          value={cal.equipment}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, equipment: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        cal.equipment
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Manufacturer"
+                          type="text"
+                          value={cal.manufacturer}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, manufacturer: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.manufacturer
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-700">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Model"
+                          type="text"
+                          value={cal.model}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, model: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.model
+                      )}
+                    </td>
+                    <td className="py-2 px-3 font-mono font-bold text-[#003366] dark:text-sky-300">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Serial No."
+                          type="text"
+                          value={cal.serialNo}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, serialNo: e.target.value } : x)))
+                          }
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs font-bold"
+                        />
+                      ) : (
+                        cal.serialNo
+                      )}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Range"
+                          type="text"
+                          value={cal.range}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, range: e.target.value } : x)))
+                          }
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        cal.range
+                      )}
+                    </td>
                     <td className="py-2 px-3 text-slate-600">{cal.accuracy}</td>
                     <td className="py-2 px-3 font-mono text-[11px] text-slate-700">{cal.certNo}</td>
-                    <td className="py-2 px-3 font-mono font-bold text-center text-emerald-700">{cal.dueDate}</td>
+                    <td className="py-2 px-3 font-mono font-bold text-center text-emerald-700">
+                      {isInlineEditCalibrations ? (
+                        <input aria-label="Due date"
+                          type="date"
+                          value={cal.dueDate}
+                          onChange={(e) =>
+                            setCalibrations(calibrations.map((x) => (x.id === cal.id ? { ...x, dueDate: e.target.value } : x)))
+                          }
+                          className="p-1 font-mono text-xs bg-amber-50 border border-amber-300 rounded"
+                        />
+                      ) : (
+                        cal.dueDate
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1507,7 +1780,7 @@ export default function InspectionVisitReportPage() {
 
           <div className="p-4 bg-white space-y-4 text-xs">
             <div>
-              <span className="text-slate-500 font-bold block mb-2 font-mono uppercase text-[11px]">
+              <span className="text-slate-500 font-bold block mb-2 uppercase text-[11px]">
                 INSPECTION STATUS:
               </span>
               <div className="flex flex-wrap items-center gap-2">
@@ -1524,7 +1797,7 @@ export default function InspectionVisitReportPage() {
                     key={st}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer font-bold transition-all ${
                       inspectionStatus === st
-                        ? "bg-sky-50 border-[#003366] text-[#003366]"
+                        ? "bg-sky-50 border-[#003366] text-[#003366] dark:text-sky-300"
                         : "border-slate-200 hover:bg-slate-50 text-slate-700"
                     }`}
                   >
@@ -1543,7 +1816,7 @@ export default function InspectionVisitReportPage() {
 
             <div>
               <span className="text-slate-500 font-bold block mb-1">Conclusion / summary of inspection:</span>
-              <textarea
+              <textarea aria-label="Conclusion summary"
                 rows={3}
                 value={conclusionSummary}
                 onChange={(e) => setConclusionSummary(e.target.value)}
@@ -1558,30 +1831,102 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-9" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">9.0 ATTACHMENTS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 9.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">9.0 ATTACHMENTS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
+                {attachments.length} items
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditAttachments(!isInlineEditAttachments)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditAttachments ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditAttachments ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddAttachment}
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Attachment</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                <tr className="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[11px] tracking-wider">
                   <th className="py-2.5 px-3 w-14 text-center">Sl. No.</th>
                   <th className="py-2.5 px-3 min-w-[260px]">Attachment Description</th>
                   <th className="py-2.5 px-3 w-56 font-mono">Reference / No. of Pages</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Remarks</th>
+                  {isInlineEditAttachments && <th className="py-2.5 px-3 w-16 text-center">Action</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {attachments.map((att) => (
                   <tr key={att.id} className="hover:bg-slate-50/80">
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-500">{att.slNo}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900 flex items-center gap-1.5">
-                      <Paperclip className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{att.description}</span>
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
+                      {isInlineEditAttachments ? (
+                        <input aria-label="Description"
+                          type="text"
+                          value={att.description}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, description: e.target.value } : a)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{att.description}</span>
+                        </div>
+                      )}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-700 font-bold">{att.referencePages}</td>
-                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">{att.remarks}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-700 font-bold">
+                      {isInlineEditAttachments ? (
+                        <input aria-label="Reference pages"
+                          type="text"
+                          value={att.referencePages}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, referencePages: e.target.value } : a)))}
+                          className="w-full p-1 font-mono bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        att.referencePages
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">
+                      {isInlineEditAttachments ? (
+                        <input aria-label="Remarks"
+                          type="text"
+                          value={att.remarks}
+                          onChange={(e) => setAttachments(attachments.map((a) => (a.id === att.id ? { ...a, remarks: e.target.value } : a)))}
+                          className="w-full p-1 bg-amber-50 border border-amber-300 rounded text-xs"
+                        />
+                      ) : (
+                        att.remarks
+                      )}
+                    </td>
+                    {isInlineEditAttachments && (
+                      <td className="py-2.5 px-3 text-center">
+                        <button aria-label="Delete Attachment"
+                          type="button"
+                          onClick={() => setAttachments(attachments.filter((a) => a.id !== att.id))}
+                          className="p-1 rounded text-rose-600 hover:bg-rose-50 cursor-pointer"
+                          title="Delete Attachment"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1594,8 +1939,34 @@ export default function InspectionVisitReportPage() {
         {/* ========================================================================= */}
         <div id="sec-10" className="scroll-mt-6 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <div className="bg-[#003366] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-            <span className="uppercase tracking-wider">10.0 PHOTOGRAPHS</span>
-            <span className="font-mono text-[11px] text-sky-200">IQE-TP-03 Clause 10.0</span>
+            <div className="flex items-center gap-2">
+              <span className="uppercase tracking-wider">10.0 PHOTOGRAPHS</span>
+              <span className="px-2 py-0.2 rounded-full bg-white/20 text-white font-mono text-[11px]">
+                {photos.length} photos
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInlineEditPhotos(!isInlineEditPhotos)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isInlineEditPhotos ? "bg-amber-400 text-slate-950 font-black" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{isInlineEditPhotos ? "Exit Inline Edit" : "Inline Edit"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddPhoto}
+                className="px-2.5 py-1 bg-white text-[#003366] dark:text-sky-300 rounded-lg text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Add Photo</span>
+              </button>
+            </div>
           </div>
 
           <div className="p-4 bg-white space-y-3 text-xs">
@@ -1604,21 +1975,54 @@ export default function InspectionVisitReportPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { title: "Photo 1", desc: "Hydrostatic Test at 9.0 Bar with Calibrated Master Gauge", tag: "HE-3101 Shell" },
-                { title: "Photo 2", desc: "Digital Surface Electropolish Ra Measurement Scan", tag: "Ra = 0.28 µm" },
-                { title: "Photo 3", desc: "Borescope Inspection Video Output of Orbital Weld W-14", tag: "Root Concavity Flagged" },
-                { title: "Photo 4", desc: "Material Heat Stamping & Nameplate Verification", tag: "Heat #H-8821 Riveted" },
-              ].map((ph, idx) => (
-                <div key={idx} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 flex flex-col justify-between">
+              {photos.map((ph, idx) => (
+                <div key={ph.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 flex flex-col justify-between relative group">
+                  {isInlineEditPhotos && (
+                    <button aria-label="Delete Photo"
+                      type="button"
+                      onClick={() => setPhotos(photos.filter((p) => p.id !== ph.id))}
+                      className="absolute top-2 right-2 p-1 rounded-md bg-rose-600 text-white hover:bg-rose-700 shadow-sm cursor-pointer z-10"
+                      title="Delete Photo"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                   <div className="h-28 rounded-lg bg-slate-200 border border-slate-300 flex flex-col items-center justify-center text-slate-400 gap-1">
                     <Camera className="w-6 h-6 text-slate-400" />
-                    <span className="text-[10px] font-mono">[Photograph {idx + 1}]</span>
+                    <span className="text-[11px] font-mono">[Photograph {idx + 1}]</span>
                   </div>
-                  <div>
-                    <span className="font-mono text-[10px] font-extrabold text-[#003366] block">{ph.title}</span>
-                    <p className="font-bold text-slate-800 text-[11px] mt-0.5">{ph.desc}</p>
-                    <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">{ph.tag}</span>
+                  <div className="space-y-1">
+                    {isInlineEditPhotos ? (
+                      <>
+                        <input aria-label="Photo title"
+                          type="text"
+                          value={ph.title}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, title: e.target.value } : p)))}
+                          className="w-full p-1 font-mono text-[11px] font-extrabold text-[#003366] dark:text-sky-300 bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Photo title"
+                        />
+                        <input aria-label="Photo description"
+                          type="text"
+                          value={ph.desc}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, desc: e.target.value } : p)))}
+                          className="w-full p-1 text-[11px] font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Description"
+                        />
+                        <input aria-label="Photo tag"
+                          type="text"
+                          value={ph.tag}
+                          onChange={(e) => setPhotos(photos.map((p) => (p.id === ph.id ? { ...p, tag: e.target.value } : p)))}
+                          className="w-full p-1 text-[11px] font-mono text-slate-500 bg-amber-50 border border-amber-300 rounded"
+                          placeholder="Tag / Finding"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-mono text-[11px] font-extrabold text-[#003366] dark:text-sky-300 block">{ph.title}</span>
+                        <p className="font-bold text-slate-800 text-[11px] mt-0.5">{ph.desc}</p>
+                        <span className="text-[11px] text-slate-500 font-mono mt-0.5 block">{ph.tag}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1638,7 +2042,7 @@ export default function InspectionVisitReportPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 bg-white p-5 gap-5 md:gap-0 text-xs">
             {/* Supplier / Manufacturer */}
             <div className="space-y-3 md:pr-5">
-              <span className="font-extrabold text-[#003366] uppercase font-mono block text-xs">
+              <span className="font-extrabold text-[#003366] dark:text-sky-300 uppercase block text-xs">
                 For Supplier / Manufacturer
               </span>
               <div className="space-y-1">
@@ -1657,7 +2061,7 @@ export default function InspectionVisitReportPage() {
 
             {/* Ideal Quality Engineers */}
             <div className="space-y-3 md:pl-5">
-              <span className="font-extrabold text-[#003366] uppercase font-mono block text-xs">
+              <span className="font-extrabold text-[#003366] dark:text-sky-300 uppercase block text-xs">
                 For Ideal Quality Engineers (I) Pvt. Ltd.
               </span>
               <div className="space-y-1">
@@ -1677,7 +2081,7 @@ export default function InspectionVisitReportPage() {
 
           <div className="p-4 border-t border-slate-200 bg-slate-50/50 text-xs space-y-1">
             <span className="text-slate-500 font-bold block">Supplier&apos;s Representative Comments (if any):</span>
-            <textarea
+            <textarea aria-label="Supplier comments"
               rows={2}
               value={supplierComments}
               onChange={(e) => setSupplierComments(e.target.value)}
@@ -1689,7 +2093,7 @@ export default function InspectionVisitReportPage() {
         {/* DISCLAIMER & FORMAL END OF REPORT */}
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-[11px] leading-relaxed">
           <strong className="text-slate-700 uppercase">DISCLAIMER:</strong> The inspection report is issued without prejudice to the contractual obligations of the supplier and does not relieve the supplier/manufacturer from the responsibilities and obligations set forth in the Purchase Order and other approved documents. This report reflects the observations made during the inspection at the time and location stated herein and is based on the documents, items and information made available to IQE during the inspection. The report does not relieve the manufacturer/supplier of its contractual, statutory or regulatory responsibilities.
-          <div className="text-center font-mono font-bold text-slate-400 mt-2 tracking-widest text-[10px]">
+          <div className="text-center font-mono font-bold text-slate-400 mt-2 tracking-widest text-[11px]">
             — END OF REPORT —
           </div>
         </div>
@@ -1707,53 +2111,53 @@ export default function InspectionVisitReportPage() {
                   Visit Inspection Item Dossier &bull; {viewingItem.tagNo}
                 </h3>
               </div>
-              <button onClick={() => setViewingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer">
+              <button aria-label="Close" title="Close" onClick={() => setViewingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-[10px] text-slate-500 uppercase font-bold">Scope / Description</span>
+                <span className="text-[11px] text-slate-500 uppercase font-bold">Scope / Description</span>
                 <p className="font-semibold text-slate-900">{viewingItem.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Tag / Serial No</span>
-                  <span className="font-mono font-bold text-[#003366]">{viewingItem.tagNo}</span>
+                  <span className="text-[11px] text-slate-500 uppercase font-bold block">Tag / Serial No</span>
+                  <span className="font-mono font-bold text-[#003366] dark:text-sky-300">{viewingItem.tagNo}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Sl No</span>
+                  <span className="text-[11px] text-slate-500 uppercase font-bold block">Sl No</span>
                   <span className="font-mono font-bold text-slate-800">#{viewingItem.slNo}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-5 gap-2 text-center">
                 <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
-                  <span className="text-[9px] text-blue-700 uppercase font-bold block">PO Qty</span>
+                  <span className="text-[11px] text-blue-700 uppercase font-bold block">PO Qty</span>
                   <span className="font-mono font-extrabold text-blue-900 text-sm">{viewingItem.poQty}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-amber-50 border border-amber-200">
-                  <span className="text-[9px] text-amber-700 uppercase font-bold block">Offered</span>
+                  <span className="text-[11px] text-amber-700 uppercase font-bold block">Offered</span>
                   <span className="font-mono font-extrabold text-amber-900 text-sm">{viewingItem.offeredQty}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-purple-50 border border-purple-200">
-                  <span className="text-[9px] text-purple-700 uppercase font-bold block">Inspected</span>
+                  <span className="text-[11px] text-purple-700 uppercase font-bold block">Inspected</span>
                   <span className="font-mono font-extrabold text-purple-900 text-sm">{viewingItem.inspectedQty}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <span className="text-[9px] text-emerald-700 uppercase font-bold block">Accepted</span>
+                  <span className="text-[11px] text-emerald-700 uppercase font-bold block">Accepted</span>
                   <span className="font-mono font-extrabold text-emerald-900 text-sm">{viewingItem.acceptedQty}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-rose-50 border border-rose-200">
-                  <span className="text-[9px] text-rose-700 uppercase font-bold block">Rejected</span>
+                  <span className="text-[11px] text-rose-700 uppercase font-bold block">Rejected</span>
                   <span className="font-mono font-extrabold text-rose-900 text-sm">{viewingItem.rejectedQty}</span>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-[10px] text-slate-500 uppercase font-bold">Inspector Observations &amp; Verification Remarks</span>
+                <span className="text-[11px] text-slate-500 uppercase font-bold">Inspector Observations &amp; Verification Remarks</span>
                 <p className="text-slate-700">{viewingItem.remarks || "Witnessed & verified conforming to purchase order specifications."}</p>
               </div>
             </div>
@@ -1779,7 +2183,7 @@ export default function InspectionVisitReportPage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Edit Item &bull; {editingItem.tagNo}
               </h3>
-              <button onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+              <button aria-label="Close" title="Close" onClick={() => setEditingItem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1795,7 +2199,7 @@ export default function InspectionVisitReportPage() {
             >
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Item Description</label>
-                <textarea
+                <textarea aria-label="Item Description"
                   rows={2}
                   value={editingItem.description}
                   onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
@@ -1806,7 +2210,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Tag / Serial No.</label>
-                  <input
+                  <input aria-label="Tag / Serial No."
                     type="text"
                     value={editingItem.tagNo}
                     onChange={(e) => setEditingItem({ ...editingItem, tagNo: e.target.value })}
@@ -1815,7 +2219,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">UOM</label>
-                  <input
+                  <input aria-label="UOM"
                     type="text"
                     value={editingItem.unit}
                     onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
@@ -1827,7 +2231,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-5 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">PO Qty</label>
-                  <input
+                  <input aria-label="PO Qty"
                     type="number"
                     value={editingItem.poQty}
                     onChange={(e) => setEditingItem({ ...editingItem, poQty: parseFloat(e.target.value) || 0 })}
@@ -1836,7 +2240,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Offered</label>
-                  <input
+                  <input aria-label="Offered"
                     type="number"
                     value={editingItem.offeredQty}
                     onChange={(e) => setEditingItem({ ...editingItem, offeredQty: parseFloat(e.target.value) || 0 })}
@@ -1845,7 +2249,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Inspected</label>
-                  <input
+                  <input aria-label="Inspected"
                     type="number"
                     value={editingItem.inspectedQty}
                     onChange={(e) => setEditingItem({ ...editingItem, inspectedQty: parseFloat(e.target.value) || 0 })}
@@ -1854,7 +2258,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Accepted</label>
-                  <input
+                  <input aria-label="Accepted"
                     type="number"
                     value={editingItem.acceptedQty}
                     onChange={(e) => setEditingItem({ ...editingItem, acceptedQty: parseFloat(e.target.value) || 0 })}
@@ -1863,7 +2267,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Rejected</label>
-                  <input
+                  <input aria-label="Rejected"
                     type="number"
                     value={editingItem.rejectedQty}
                     onChange={(e) => setEditingItem({ ...editingItem, rejectedQty: parseFloat(e.target.value) || 0 })}
@@ -1874,7 +2278,7 @@ export default function InspectionVisitReportPage() {
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Remarks</label>
-                <textarea
+                <textarea aria-label="Remarks"
                   rows={2}
                   value={editingItem.remarks}
                   onChange={(e) => setEditingItem({ ...editingItem, remarks: e.target.value })}
@@ -1910,7 +2314,7 @@ export default function InspectionVisitReportPage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Add Material / Equipment for Inspection
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+              <button aria-label="Close" title="Close" onClick={() => setShowAddModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1941,7 +2345,7 @@ export default function InspectionVisitReportPage() {
             >
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Item Description</label>
-                <input
+                <input aria-label="Item Description"
                   name="desc"
                   required
                   placeholder="e.g. Sanitary Pressure Relief Valve"
@@ -1952,7 +2356,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Tag / Serial No.</label>
-                  <input
+                  <input aria-label="Tag / Serial No."
                     name="tag"
                     required
                     placeholder="PRV-401"
@@ -1961,7 +2365,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">UOM</label>
-                  <input
+                  <input aria-label="UOM"
                     name="unit"
                     defaultValue="Nos"
                     className="w-full p-2 border border-slate-300 rounded-xl font-mono"
@@ -1972,7 +2376,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-5 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">PO Qty</label>
-                  <input
+                  <input aria-label="PO Qty"
                     name="poQty"
                     type="number"
                     defaultValue="1"
@@ -1981,7 +2385,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Offered</label>
-                  <input
+                  <input aria-label="Offered"
                     name="offeredQty"
                     type="number"
                     defaultValue="1"
@@ -1990,7 +2394,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Inspected</label>
-                  <input
+                  <input aria-label="Inspected"
                     name="inspectedQty"
                     type="number"
                     defaultValue="1"
@@ -1999,7 +2403,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Accepted</label>
-                  <input
+                  <input aria-label="Accepted"
                     name="acceptedQty"
                     type="number"
                     defaultValue="1"
@@ -2008,7 +2412,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Rejected</label>
-                  <input
+                  <input aria-label="Rejected"
                     name="rejectedQty"
                     type="number"
                     defaultValue="0"
@@ -2019,7 +2423,7 @@ export default function InspectionVisitReportPage() {
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Remarks</label>
-                <textarea
+                <textarea aria-label="Remarks"
                   name="remarks"
                   rows={2}
                   placeholder="Dimensional and hydrostatic test witnessed..."
@@ -2055,7 +2459,7 @@ export default function InspectionVisitReportPage() {
               <h3 className="text-base font-extrabold text-slate-900 font-heading">
                 Edit 1.0 Inspection &amp; Project Details
               </h3>
-              <button onClick={() => setShowMetaEditModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+              <button aria-label="Close" title="Close" onClick={() => setShowMetaEditModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2071,7 +2475,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Report No.</label>
-                  <input
+                  <input aria-label="Report No."
                     type="text"
                     value={reportNo}
                     onChange={(e) => setReportNo(e.target.value)}
@@ -2080,7 +2484,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Report Date</label>
-                  <input
+                  <input aria-label="Report Date"
                     type="date"
                     value={reportDate}
                     onChange={(e) => setReportDate(e.target.value)}
@@ -2092,7 +2496,7 @@ export default function InspectionVisitReportPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Inspection Date</label>
-                  <input
+                  <input aria-label="Inspection Date"
                     type="date"
                     value={inspectionDate}
                     onChange={(e) => setInspectionDate(e.target.value)}
@@ -2101,7 +2505,7 @@ export default function InspectionVisitReportPage() {
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Inspection Stage</label>
-                  <select
+                  <select aria-label="Inspection Stage"
                     value={inspectionStage}
                     onChange={(e) => setInspectionStage(e.target.value as any)}
                     className="w-full p-2 border border-slate-300 rounded-xl font-bold"
@@ -2214,7 +2618,7 @@ export default function InspectionVisitReportPage() {
           })),
           supplier_comments: supplierComments,
         }}
-        pdfUrl="/api/tpi/preview/TP03.pdf"
+        pdfUrl={`${API_BASE}/api/tpi/preview/TP03.pdf`}
         title="IQE-TP-03 Inspection Visit Report"
         reportNo={reportNo}
       />

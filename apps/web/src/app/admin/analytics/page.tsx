@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE, analyticsAppUrl } from "@/lib/config";
 import { useState, useEffect } from "react";
 import {
   BarChart3,
@@ -11,10 +12,13 @@ import {
   FileCheck,
   CheckCircle2,
   AlertCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import { trackPageView, trackButtonClick } from "@/lib/analytics";
 
 export default function AdminAnalyticsPage() {
+  // Resolved after mount so server and client render the same markup
+  const [analyticsUrl, setAnalyticsUrl] = useState("http://localhost:3001");
+  useEffect(() => setAnalyticsUrl(analyticsAppUrl()), []);
   const [loading, setLoading] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<any>(null);
   const [message, setMessage] = useState("");
@@ -27,7 +31,7 @@ export default function AdminAnalyticsPage() {
   const fetchMetrics = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/analytics/summary?site_id=SITE-01");
+      const res = await fetch(`${API_BASE}/api/v1/analytics/summary?site_id=SITE-01`);
       if (res.ok) {
         const data = await res.json();
         setMigrationStatus(data);
@@ -59,7 +63,7 @@ export default function AdminAnalyticsPage() {
     trackButtonClick("btn_run_legacy_migration", "migration_trigger", "Run Legacy Job Ingestion", "migration");
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/jobs/migrate-legacy", {
+      const res = await fetch(`${API_BASE}/api/v1/jobs/migrate-legacy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -83,7 +87,7 @@ export default function AdminAnalyticsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-200">
+            <div className="p-2.5 bg-brand-50 text-brand-600 rounded-xl border border-brand-200">
               <BarChart3 className="w-6 h-6" />
             </div>
             <div>
@@ -116,7 +120,7 @@ export default function AdminAnalyticsPage() {
           <button
             onClick={handleRunMigration}
             disabled={loading}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-extrabold shadow-md flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-extrabold shadow-md flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <Zap className="w-4 h-4" />
             Migrate Legacy UAT Data
@@ -171,10 +175,10 @@ export default function AdminAnalyticsPage() {
             <span className="h-3 w-3 rounded-full bg-red-400 inline-block"></span>
             <span className="h-3 w-3 rounded-full bg-amber-400 inline-block"></span>
             <span className="h-3 w-3 rounded-full bg-emerald-400 inline-block"></span>
-            <span className="text-xs font-mono text-slate-600 font-semibold ml-2">Vue 3 Engine: http://localhost:3001 (Admin Analytics Viewport)</span>
+            <span className="text-xs font-mono text-slate-600 font-semibold ml-2">Vue 3 Engine: {analyticsUrl} (Admin Analytics Viewport)</span>
           </div>
           <a
-            href="http://localhost:3001"
+            href={analyticsUrl}
             target="_blank"
             rel="noreferrer"
             className="text-xs text-blue-700 hover:text-blue-900 flex items-center gap-1 font-bold"
@@ -185,7 +189,7 @@ export default function AdminAnalyticsPage() {
 
         {/* Embedded Vue Dashboard iframe / view */}
         <iframe
-          src="http://localhost:3001"
+          src={analyticsUrl}
           className="w-full h-[720px] border-0 bg-white"
           title="Vue 3 Admin Analytics Dashboard"
         />

@@ -340,7 +340,7 @@ export default function VisitDetailPage() {
             Multi-Stage Operational Workflow Pipeline
           </p>
           <span className="text-xs font-bold text-[#0084bf]">
-            Protocol: {visit.protocol_standard || "ISO 9001:2015 Standard"}
+            Protocol: {visit.protocol_standard || "ISO 9001:2026 & ISO/IEC 17020:2026 Standard"}
           </span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -539,7 +539,17 @@ export default function VisitDetailPage() {
             <div className="space-y-2 text-xs divide-y divide-slate-100">
               <div className="py-2 flex justify-between">
                 <span className="text-slate-500">TPI Protocol Standard</span>
-                <span className="font-semibold text-slate-800">{visit.protocol_standard || "ISO 9001:2015 Standard"}</span>
+                <span className="font-semibold text-slate-800">{visit.protocol_standard || "ISO 9001:2026 & ISO/IEC 17020:2026 Standard"}</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-500">Environmental Site Safety</span>
+                <span className="font-semibold text-slate-800">{visit.environmental_condition || "Normal (ISO 9001:2026 Cl. 4.1)"}</span>
+              </div>
+              <div className="py-2 flex justify-between">
+                <span className="text-slate-500">ISO 17020 Impartiality</span>
+                <span className="font-semibold text-emerald-600">
+                  {visit.impartiality_declared !== false ? "✓ Declared (IQE-MS-10)" : "Pending"}
+                </span>
               </div>
               <div className="py-2 flex justify-between">
                 <span className="text-slate-500">Planned Site Date</span>
@@ -806,7 +816,7 @@ export default function VisitDetailPage() {
                   <tbody className="divide-y divide-slate-100">
                     <tr>
                       <td className="p-3 font-semibold text-slate-800">
-                        TPI Daily Field Inspection Rate ({visit.protocol_standard || "ISO 9001:2015 Protocol"})
+                        TPI Daily Field Inspection Rate ({visit.protocol_standard || "ISO 9001:2026 & ISO/IEC 17020:2026 Protocol"})
                       </td>
                       <td className="p-3 text-right font-mono font-bold">₹15,000.00</td>
                     </tr>

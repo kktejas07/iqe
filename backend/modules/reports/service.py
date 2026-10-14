@@ -532,10 +532,10 @@ class ReportService:
             canvas.saveState()
             canvas.setFont("Helvetica-Bold", 7.5)
             canvas.setFillColor(colors.HexColor("#0f172a"))
-            canvas.drawString(30, 22, "IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2012 Type A Inspection Body")
+            canvas.drawString(30, 22, "IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2026 Type A Inspection Body")
             canvas.setFont("Helvetica", 7)
             canvas.setFillColor(colors.HexColor("#64748b"))
-            canvas.drawString(30, 12, "Head Office: Plot No. 48, Phase-III, IDA Jeedimetla, Hyderabad - 500055 | Web: www.iqe.co.in")
+            canvas.drawString(30, 12, "Head Office: Flat No. 302, Plot No. 410, Matrusri Nagar, Miyapur, Hyderabad - 500049 | Web: www.iqe.co.in")
             canvas.drawRightString(565, 12, f"Page {doc.page} | Schedule M GMP Audit Certificate")
             canvas.restoreState()
 
@@ -601,7 +601,7 @@ class ReportService:
         r1.font.size = Pt(13)
         r1.font.color.rgb = RGBColor(0, 51, 102)
 
-        r2 = p_title.add_run("ISO/IEC 17020:2012 Type A Quality Bill Verification Certificate\n")
+        r2 = p_title.add_run("ISO/IEC 17020:2026 Type A Quality Bill Verification Certificate\n")
         r2.bold = True
         r2.font.size = Pt(10)
         r2.font.color.rgb = RGBColor(5, 150, 105)
@@ -624,7 +624,7 @@ class ReportService:
         meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
         meta_table.cell(0, 0).text = "Inspection Body: IQE Type A Third Party Inspection"
         meta_table.cell(0, 1).text = f"Audit Date: {datetime.now().strftime('%Y-%m-%d')}"
-        meta_table.cell(1, 0).text = "Standard Ref: ISO/IEC 17020:2012 & ISO 9001:2015"
+        meta_table.cell(1, 0).text = "Standard Ref: ISO/IEC 17020:2026 & ISO 9001:2026"
         meta_table.cell(1, 1).text = "Scope: Quality & Quantity Bill Verification"
 
         doc.add_paragraph().paragraph_format.space_after = Pt(10)
@@ -666,7 +666,7 @@ class ReportService:
 
         p_ftr = doc.add_paragraph()
         p_ftr.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r_f = p_ftr.add_run("IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2012 Accredited Inspection Body\nHead Office: Plot No. 48, Phase-III, IDA Jeedimetla, Hyderabad - 500055 | Web: www.iqe.co.in")
+        r_f = p_ftr.add_run("IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2026 Accredited Inspection Body\nHead Office: Flat No. 302, Plot No. 410, Matrusri Nagar, Miyapur, Hyderabad - 500049 | Web: www.iqe.co.in")
         r_f.font.size = Pt(8)
         r_f.font.color.rgb = RGBColor(100, 116, 139)
 
@@ -698,7 +698,7 @@ class ReportService:
         # Row 1-3: Header Info
         ws["A1"] = "IDEAL QUALITY ENGINEERS (I) PRIVATE LIMITED"
         ws["A1"].font = font_title
-        ws["A2"] = "ISO/IEC 17020:2012 Type A Quality Bill Verification Certificate & Inspection Audit"
+        ws["A2"] = "ISO/IEC 17020:2026 Type A Quality Bill Verification Certificate & Inspection Audit"
         ws["A2"].font = font_sub
         ws["A3"] = f"Report Date: {datetime.now().strftime('%Y-%m-%d')} | Report Ref: IQE/QVR/2026/084 | Site: {site_id}"
 
@@ -725,7 +725,7 @@ class ReportService:
         ws.cell(row=5, column=1).font = Font(bold=True)
 
         ws.append(["Inspection Body:", "IQE Type A Third Party Inspection", "Audit Date:", datetime.now().strftime('%Y-%m-%d')])
-        ws.append(["Standard Ref:", "ISO/IEC 17020:2012 & ISO 9001:2015", "Scope:", "Quality & Quantity Bill Verification"])
+        ws.append(["Standard Ref:", "ISO/IEC 17020:2026 & ISO 9001:2026", "Scope:", "Quality & Quantity Bill Verification"])
 
         ws.append([])
 
@@ -751,8 +751,8 @@ class ReportService:
 
         ws.append([])
         ws.append(["Mandatory Footer & Certification Notice:"])
-        ws.append(["IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2012 Accredited Type A Inspection Body"])
-        ws.append(["Head Office: Plot No. 48, Phase-III, IDA Jeedimetla, Hyderabad - 500055 | Web: www.iqe.co.in | Confidential Audit Report"])
+        ws.append(["IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2026 Accredited Type A Inspection Body"])
+        ws.append(["Head Office: Flat No. 302, Plot No. 410, Matrusri Nagar, Miyapur, Hyderabad - 500049 | Web: www.iqe.co.in | Confidential Audit Report"])
 
         # Auto-fit column widths
         for col in ws.columns:

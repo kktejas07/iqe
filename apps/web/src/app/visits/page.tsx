@@ -276,7 +276,7 @@ export default function VisitsPage() {
                   <tbody className="divide-y divide-slate-100">
                     <tr>
                       <td className="p-3 font-semibold text-slate-800">
-                        TPI Daily Field Inspection Rate &amp; Scope Verification (ISO 9001:2015 Protocol)
+                        TPI Daily Field Inspection Rate &amp; Scope Verification (ISO 9001:2026 &amp; ISO/IEC 17020:2026 Protocol)
                       </td>
                       <td className="p-3 text-right font-mono font-bold">₹{(invoiceData.subtotal || 43000).toLocaleString()}.00</td>
                     </tr>

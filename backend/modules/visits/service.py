@@ -74,7 +74,7 @@ class VisitService:
                     manufacturer_unit_id="M-001-U01",
                     manufacturer_unit_name="BHEL - Works 1 (Heavy Forging & Casting Shop)",
                     plant_location="HAZ - Hazira Industrial Zone (WST - Western Region)",
-                    protocol_standard="ISO 9001:2015 & ASME Section VIII Division 1 Code",
+                    protocol_standard="ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code",
                     inspector_id="INS-001",
                     inspector_name="Alok Gupta (Senior TPI Engineer)",
                     scheduled_start_date=datetime(2026, 8, 15),
@@ -152,7 +152,7 @@ class VisitService:
                 manufacturer_name="BHEL Trichy Boilers",
                 manufacturer_unit_name="BHEL Works 1",
                 plant_location="Hazira Industrial Zone, Surat",
-                protocol_standard="ISO 9001:2015 & ASME Section VIII Division 1 Code",
+                protocol_standard="ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code",
                 inspector_id="INS-001",
                 inspector_name="Alok Gupta (Senior TPI Engineer)",
                 planned_date=datetime.now(),
@@ -357,7 +357,7 @@ class VisitService:
             currency="INR",
             status="issued",
             due_date=due_date,
-            notes=f"Automated Net-30 Invoice generated from Visit {v.visit_id}. Standard Protocol: {v.protocol_standard or 'ISO 9001:2015'}",
+            notes=f"Automated Net-30 Invoice generated from Visit {v.visit_id}. Standard Protocol: {v.protocol_standard or 'ISO 9001:2026 & ISO/IEC 17020:2026'}",
             created_by=user_id,
         )
         await inv.insert()

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.EMMA;
 using IQEApp.Service.HomeService;
 using IQEApp.Service.VisitProcessing;
@@ -370,45 +370,42 @@ namespace IQEApp.Web.Controllers.VisitProcessing
         [Authorize]
         public ActionResult DownloadFile(string VisitSeqId, string FileName)
         {
-            if (SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.EnquiryEdit, CurrentUser.RoleId.FirstOrDefault()))
+            if (CurrentUser == null || CurrentUser.UserId <= 0)
             {
+                return View("UnAuthorized");
+            }
 
-                bool retVal = true;
-                //string fileContainerPath = ConfigurationManager.AppSettings["storagePath"];
-                ScheduleVisitModel fileInfo = new ScheduleVisitModel();
-                //ControlNumberBusinessModel objFiles = new ControlNumberBusinessModel();
-                fileInfo = objScheduleVisitBusinessModel.GetVisitEmpUploadFileDetailsByID(_visitProcessingService, VisitSeqId, FileName);
-                if (!string.IsNullOrEmpty(fileInfo.FileName))
+            int roleId = CurrentUser.RoleId.FirstOrDefault();
+            bool canDownload = CurrentUser.IsAdmin ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.Download, roleId) ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.ScheduleVisitEdit, roleId) ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.OperationsScheduleVisit, roleId) ||
+                roleId == (int)UserRoles.EmployeeRole;
+
+            if (canDownload)
+            {
+                ScheduleVisitModel fileInfo = objScheduleVisitBusinessModel.GetVisitEmpUploadFileDetailsByID(_visitProcessingService, VisitSeqId, FileName);
+                if (fileInfo != null && !string.IsNullOrEmpty(fileInfo.FilePath) && System.IO.File.Exists(fileInfo.FilePath))
                 {
-                    // var title = fileInfo.FileTitle.Trim() + Path.GetExtension(fileInfo.FileLink);
-                    //var title = fileInfo.FileName.Trim();  //+ Path.GetExtension(fileInfo.FileLink);
-                    //string contentLink = fileContainerPath + fileInfo.FilePath;
-                    ////  string contentLink = @"D:\IQEApp\IQEApp\IQEApp.Web\" +  fileInfo.FileLink;
-                    //WebClient client = new WebClient();
-                    //byte[] byteData = client.DownloadData(contentLink);
-                    //return File(byteData, "application/*", title);
+                    string downloadFileName = !string.IsNullOrEmpty(fileInfo.FileName)
+                        ? fileInfo.FileName
+                        : System.IO.Path.GetFileName(fileInfo.FilePath);
+                    var downloadFileData = System.IO.File.ReadAllBytes(fileInfo.FilePath);
 
-                    ////byte[] fileBytes = System.IO.File.ReadAllBytes(@"C:\Users\Dell\Desktop\1.pdf");
-                    ////string fileName = "1.pdf";
-                    ////return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-
-
-                    string DownloadFileName = System.IO.Path.GetFileName(fileInfo.FilePath);
-                    var DownloadFileData = System.IO.File.ReadAllBytes(fileInfo.FilePath);
-
-                    //System.IO.Path.GetFileName(fileInfo.FileName);
                     Response.Clear();
                     Response.Buffer = true;
                     Response.Charset = "";
                     Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                    Response.ContentType = "application/*";
-                    Response.AppendHeader("Content-Disposition", "attachment; filename=" + DownloadFileName);
-                    Response.BinaryWrite(DownloadFileData);
+                    Response.ContentType = "application/octet-stream";
+                    Response.AppendHeader("Content-Disposition", "attachment; filename=\"" + downloadFileName + "\"");
+                    Response.BinaryWrite(downloadFileData);
                     Response.Flush();
                     Response.End();
-
                 }
-
+                else
+                {
+                    return HttpNotFound("File not found");
+                }
             }
             else
             {

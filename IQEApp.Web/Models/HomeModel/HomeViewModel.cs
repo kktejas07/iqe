@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.EMMA;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -83,6 +83,10 @@ namespace IQEApp.Web.Models.HomeModel
         public string ReferenceVisitSeqId { get; set; }
 
         public int ProspectiveCount { get; set; }
+        // ISO 9001:2026 & ISO/IEC 17020:2026 Compliance Metadata
+        public string StandardReference { get; set; } = "ISO 9001:2026 & ISO/IEC 17020:2026";
+        public string EnvironmentalSiteCondition { get; set; }
+        public bool ImpartialityDeclared { get; set; } = true;
     }
 
     public class VisitsSummaryViewModel
@@ -124,6 +128,12 @@ namespace IQEApp.Web.Models.HomeModel
         [DisplayName("Visit No")]
         public string VisitSeqID { get; set; }
         public int ModifiedBy { get; set; }
+        public int CreatedBy { get; set; }
+
+        // ISO 9001:2026 & ISO/IEC 17020:2026 Compliance Metadata
+        public string StandardReference { get; set; } = "ISO 9001:2026 & ISO/IEC 17020:2026";
+        public string EnvironmentalSiteCondition { get; set; }
+        public bool ImpartialityDeclared { get; set; } = true;
 
         public List<POInspectionItem> LstPONumbers { get; set; }
     }
@@ -370,6 +380,13 @@ namespace IQEApp.Web.Models.HomeModel
         ));
             Mapper.CreateMap<InspectionReportViewModel, InspectionReportDomainModel>();
             InspectionReportDomainModel objInspectionReportDomainModel = Mapper.Map<InspectionReportViewModel, InspectionReportDomainModel>(obj);
+            if (objInspectionReportDomainModel.CreatedBy <= 0)
+                objInspectionReportDomainModel.CreatedBy = obj.CreatedBy > 0 ? obj.CreatedBy : (obj.ModifiedBy > 0 ? obj.ModifiedBy : obj.LoginUserId);
+            if (objInspectionReportDomainModel.ModifiedBy <= 0)
+                objInspectionReportDomainModel.ModifiedBy = obj.ModifiedBy > 0 ? obj.ModifiedBy : (obj.CreatedBy > 0 ? obj.CreatedBy : obj.LoginUserId);
+            if (objInspectionReportDomainModel.LoginUserId <= 0)
+                objInspectionReportDomainModel.LoginUserId = obj.LoginUserId;
+
             var isSuccess = homeService.UploadInspectionReportByVisitID(objInspectionReportDomainModel, flag);
             return isSuccess;
         }

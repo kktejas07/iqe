@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using IQEApp.Domain.EnquiryDomain;
 using IQEApp.Domain.HomeDomain;
 using IQEApp.Domain.VisitProcessing;
@@ -187,7 +187,9 @@ namespace IQEApp.Service.HomeService
             parameter.Add("@VisitedTo", objIRDM.VisitedTo == Convert.ToDateTime("01/01/0001") ? Convert.ToDateTime("01/01/1900") : objIRDM.VisitedTo);
             parameter.Add("@UploadInspReportFileName", objIRDM.FileName);
             parameter.Add("@UploadInspReportFilePath", objIRDM.FilePath);
-            parameter.Add("@CreatedBy", objIRDM.ModifiedBy);
+            int userId = objIRDM.CreatedBy > 0 ? objIRDM.CreatedBy : (objIRDM.ModifiedBy > 0 ? objIRDM.ModifiedBy : objIRDM.LoginUserId);
+            parameter.Add("@CreatedBy", userId);
+            parameter.Add("@ModifiedBy", userId);
             return _con.Query<bool>("UploadInspectionReportByVisitID1", parameter, null, true, 0, commandType: CommandType.StoredProcedure).SingleOrDefault();
         }
         public bool SubmitQualityCheckDateByVisitID(HomeDomainModel obj)

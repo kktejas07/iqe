@@ -1,4 +1,4 @@
-﻿using IQEApp.Core.Extensions;
+using IQEApp.Core.Extensions;
 using IQEApp.Service.LoginService;
 using IQEApp.Service.SecurityService;
 using IQEApp.Service.UserService;
@@ -212,12 +212,17 @@ namespace IQEApp.Web.Controllers.Login
                         objEmailViewModel.LoginUserId = loginStatus.FirstOrDefault().UserId;
                         objLoginBusinessModel.SaveProcessedEmails(objEmailViewModel, _loginService);
                         //update pwd in database and change status of firstime login
-                        objUserViewModel.NewPassword = hasher.HashPassword(objUserViewModel.NewPassword); ;
+                        objUserViewModel.NewPassword = hasher.HashPassword(objUserViewModel.NewPassword);
                         objUserViewModel.LoginUserId = CurrentUser?.UserId ?? loginStatus.FirstOrDefault().UserId;
                         objUserViewModel.UserGuid = loginStatus.FirstOrDefault().UserGuid;
                         objUserViewModel.IsPasswordUpdate = false;
                         objLoginBusinessModel.UpdatePassword(objUserViewModel, _loginService);
                         //IsPasswordUpdate marked as false since user need to change the pwd after receiving email.
+                        message = "Password reset instructions sent successfully.";
+                    }
+                    else
+                    {
+                        message = "Failed to send email. Password reset was not applied.";
                     }
                     return Json(new { status = isSuccess, message = message }, JsonRequestBehavior.AllowGet);
                 }

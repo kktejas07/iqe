@@ -19,7 +19,9 @@ function NewVisitForm() {
   const [inspectorName, setInspectorName] = useState("");
   const [plannedDate, setPlannedDate] = useState("");
   const [plantLocation, setPlantLocation] = useState("");
-  const [protocolStandard, setProtocolStandard] = useState("ISO 9001:2015 & ASME Section VIII Division 1 Code");
+  const [protocolStandard, setProtocolStandard] = useState("ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code");
+  const [environmentalCondition, setEnvironmentalCondition] = useState("Normal (Safety & Heat stress audited per ISO 9001:2026 Cl. 4.1)");
+  const [impartialityDeclared, setImpartialityDeclared] = useState(true);
   const [inspectionScope, setInspectionScope] = useState("");
   const [sowChecklists, setSowChecklists] = useState<any[]>([]);
   const [autoPopulated, setAutoPopulated] = useState(false);
@@ -77,6 +79,8 @@ function NewVisitForm() {
         planned_date: plannedDate || null,
         plant_location: plantLocation,
         protocol_standard: protocolStandard,
+        environmental_condition: environmentalCondition,
+        impartiality_declared: impartialityDeclared,
         inspection_scope: inspectionScope,
         status: "scheduled",
       });
@@ -206,7 +210,8 @@ function NewVisitForm() {
                 onChange={(e) => setProtocolStandard(e.target.value)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0084bf] font-semibold text-slate-900 dark:text-slate-100"
               >
-                <option value="ISO 9001:2015 & ASME Section VIII Division 1 Code">ISO 9001:2015 &amp; ASME Section VIII Div 1</option>
+                <option value="ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code">ISO 9001:2026 &amp; ISO/IEC 17020:2026 &amp; ASME Section VIII Div 1</option>
+                <option value="ISO 9001:2026 & ISO/IEC 17020:2026 Quality Inspection Protocol">ISO 9001:2026 &amp; ISO/IEC 17020:2026 Quality Inspection Protocol</option>
                 <option value="API 6D Valve & Flow Control Inspection Standard">API 6D Valve &amp; Flow Control Standard</option>
                 <option value="DIN EN 10204 3.1 Material Certificate Protocol">DIN EN 10204 3.1 Material Certification</option>
                 <option value="AWS D1.1 Structural Fabrication Code">AWS D1.1 Structural Fabrication Code</option>
@@ -225,6 +230,36 @@ function NewVisitForm() {
               placeholder="e.g. Plot 12, Hazira Industrial Zone, Surat, Gujarat"
               className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0084bf] font-medium text-slate-900 dark:text-slate-100"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="visit-environment" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
+                Environmental & Site Safety Condition (ISO 9001:2026 Cl. 4.1 / 7.1.4)
+              </label>
+              <input
+                id="visit-environment"
+                type="text"
+                value={environmentalCondition}
+                onChange={(e) => setEnvironmentalCondition(e.target.value)}
+                placeholder="e.g. Normal (Heat stress & ventilation audited)"
+                className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0084bf] font-medium text-slate-900 dark:text-slate-100"
+              />
+            </div>
+
+            <div className="flex flex-col justify-end">
+              <label className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={impartialityDeclared}
+                  onChange={(e) => setImpartialityDeclared(e.target.checked)}
+                  className="w-4 h-4 text-[#0084bf] rounded border-slate-300 focus:ring-[#0084bf]"
+                />
+                <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  <strong>Impartiality Declared:</strong> Conflict of interest cleared per ISO/IEC 17020:2026 &amp; IQE-MS-10
+                </span>
+              </label>
+            </div>
           </div>
 
           {/* SOW Checklist Preview */}

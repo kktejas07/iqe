@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -127,8 +127,14 @@ namespace IQEApp.Web.Models.VisitSchedule
                 string type;
                 VisitId = visitScheduleService.VisitScheduleSave(newVisitDetails, out type);
 
+                // Stop immediately on an unsuccessful visit result (prevent dependent saves)
+                if (VisitId <= 0)
+                {
+                    return VisitId;
+                }
+
                 // Save Manufacturer Visit Locations (if any)
-                if (VisitId > 0 && modelDetails.LstManufacturerVisitLocations.Any() == true)
+                if (modelDetails.LstManufacturerVisitLocations != null && modelDetails.LstManufacturerVisitLocations.Any())
                 {
                     foreach (var visitLoc in modelDetails.LstManufacturerVisitLocations)
                     {
@@ -138,23 +144,26 @@ namespace IQEApp.Web.Models.VisitSchedule
                 }
 
                 // Save PO Item Details
-                foreach (var item in modelDetails.LstPurchaseOrderItems)
+                if (modelDetails.LstPurchaseOrderItems != null)
                 {
-                    Mapper.CreateMap<PONumberItemsViewModel, PONumberItemsDomainModel>();
-                    var mapped = Mapper.Map<PONumberItemsViewModel, PONumberItemsDomainModel>(item);
-
-                    if (model.VisitDate.HasValue && model.VisitDate > DateTime.Today.AddDays(1))
+                    foreach (var item in modelDetails.LstPurchaseOrderItems)
                     {
-                        mapped.VisitPId = VisitId;
-                        mapped.VisitId = null;
-                    }
-                    else
-                    {
-                        mapped.VisitId = VisitId;
-                        mapped.VisitPId = null;
-                    }
+                        Mapper.CreateMap<PONumberItemsViewModel, PONumberItemsDomainModel>();
+                        var mapped = Mapper.Map<PONumberItemsViewModel, PONumberItemsDomainModel>(item);
 
-                    visitScheduleService.AddVisitScheduleSelectedPOItems(mapped);
+                        if (model.VisitDate.HasValue && model.VisitDate > DateTime.Today.AddDays(1))
+                        {
+                            mapped.VisitPId = VisitId;
+                            mapped.VisitId = null;
+                        }
+                        else
+                        {
+                            mapped.VisitId = VisitId;
+                            mapped.VisitPId = null;
+                        }
+
+                        visitScheduleService.AddVisitScheduleSelectedPOItems(mapped);
+                    }
                 }
             }
 

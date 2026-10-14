@@ -1,4 +1,4 @@
-﻿using IQEApp.Service.HomeService;
+using IQEApp.Service.HomeService;
 using IQEApp.Web.Controllers.Common;
 using IQEApp.Web.Models.CommonModels;
 using IQEApp.Web.Models.EnquiryModel;
@@ -315,114 +315,196 @@ namespace IQEApp.Web.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SubmitUploadInspectionReport(InspectionReportViewModel objIRV)
         {
-            if (objIRV == null)
+            // 0. Authentication and Authorization Check
+            if (CurrentUser == null || CurrentUser.UserId <= 0)
+                return Json(new { status = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+
+            int currentUserId = CurrentUser.UserId;
+            int roleId = CurrentUser.RoleId.FirstOrDefault();
+            bool hasPermission = CurrentUser.IsAdmin ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.ScheduleVisitEdit, roleId) ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.OperationsScheduleVisit, roleId) ||
+                roleId == (int)UserRoles.EmployeeRole;
+
+            if (!hasPermission)
+                return Json(new { status = false, message = "Unauthorized to modify or upload inspection reports" }, JsonRequestBehavior.AllowGet);
+
+            if (objIRV == null || objIRV.VisitId <= 0)
                 return Json(new { status = false, message = "Invalid input" }, JsonRequestBehavior.AllowGet);
 
-            bool dbUpdateSuccess = false;
+            // Correct user attribution from authenticated CurrentUser
+            objIRV.LoginUserId = currentUserId;
+            objIRV.ModifiedBy = currentUserId;
+            objIRV.CreatedBy = currentUserId;
 
-            // Holds BOTH existing + newly uploaded files
-            var savedFiles = new List<(string FilePath, InspectionReportViewModel PayloadCopy)>();
+            var poList = objIRV.LstPONumbers ?? new List<POInspectionItem>();
+
+            // 1. Validate every submitted item before moving files, updating records, or starting parallel uploads
+            foreach (var po in poList)
+            {
+                if (string.IsNullOrWhiteSpace(po.InspReportNo))
+                    continue;
+
+                if (objHomeBusinessModel.IsInspReportNumberExitsAlready(po.InspReportNo, _homeService))
+                {
+                    return Json(new
+                    {
+                        status = false,
+                        message = $"Report No {po.InspReportNo} Exists Already"
+                    }, JsonRequestBehavior.AllowGet);
+                }
+            }
 
             string filesRoot = ConfigurationManager.AppSettings["InspectionReportFilesPath"];
             string backupRoot = ConfigurationManager.AppSettings["InspectionReportFilesBackUpPath"];
 
-            try
+            // Maintain separate lists for newly created files and moved existing files
+            var newFilesToCleanup = new List<string>();
+            var movedExistingFiles = new List<(string OriginalPath, string BackupPath)>();
+            var recordsToSave = new List<InspectionReportViewModel>();
+
+            void CleanupAndRestore()
             {
-                /* =========================================================
-                   1) BACKUP EXISTING FILES (UNCHANGED)
-                ========================================================== */
-                var lstInspectionReportModel =
-                    objHomeBusinessModel.GetInspectionReportBackupFiles(objIRV.VisitId, _homeService);
-
-                if (lstInspectionReportModel != null && lstInspectionReportModel.Count > 0)
+                // Delete only newly created and partially written files
+                lock (newFilesToCleanup)
                 {
-                    if (!Directory.Exists(backupRoot))
-                        Directory.CreateDirectory(backupRoot);
-
-                    foreach (var backfile in lstInspectionReportModel)
+                    foreach (var path in newFilesToCleanup)
                     {
-                        if (!string.IsNullOrEmpty(backfile.FileName))
+                        try
                         {
-                            string oldPath = Path.Combine(filesRoot, backfile.FileName);
-                            if (System.IO.File.Exists(oldPath))
-                            {
-                                string newPath = Path.Combine(backupRoot, backfile.FileName);
-                                System.IO.File.Move(oldPath, newPath);
-                            }
+                            if (System.IO.File.Exists(path))
+                                System.IO.File.Delete(path);
                         }
+                        catch { /* best-effort cleanup */ }
                     }
                 }
 
-                /* =========================================================
-                   2) UPDATE HEADER DETAILS (UNCHANGED)
-                ========================================================== */
-                dbUpdateSuccess =
-                    objHomeBusinessModel.UpdateInspectionReportByVisitID(
-                        objIRV.VisitId,
-                        objIRV.InspReportDate,
-                        objIRV.LoginUserId,
-                        _homeService);
+                // Restore previously moved existing files back to their original physical paths
+                foreach (var moved in movedExistingFiles)
+                {
+                    try
+                    {
+                        if (System.IO.File.Exists(moved.BackupPath))
+                        {
+                            if (System.IO.File.Exists(moved.OriginalPath))
+                                System.IO.File.Delete(moved.OriginalPath);
+                            System.IO.File.Move(moved.BackupPath, moved.OriginalPath);
+                        }
+                    }
+                    catch { /* best-effort recovery */ }
+                }
+            }
 
-                if (!dbUpdateSuccess)
-                    return Json(new { status = false, message = "Failed to update inspection report" },
-                                JsonRequestBehavior.AllowGet);
+            try
+            {
+                // 2. Retrieve trusted file metadata for existing files
+                var existingDbFiles = objHomeBusinessModel.GetInspectionReportBackupFiles(objIRV.VisitId, _homeService)
+                    ?? new List<InspectionReportViewModel>();
 
-                /* =========================================================
-                   3) ADD EXISTING FILES BACK (⭐ FIX #1 ⭐)
-                ========================================================== */
-                foreach (var po in objIRV.LstPONumbers ?? new List<POInspectionItem>())
+                // Build set of retained files across all POs
+                // Retained files keep their display names separate from physical storage names
+                var retainedPhysicalPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var po in poList)
                 {
                     var existingFiles = po.ExistingFiles ?? new List<string>();
                     var removedFiles = string.IsNullOrEmpty(po.RemovedFiles)
                         ? new List<string>()
                         : po.RemovedFiles.Split(';').Select(x => x.Trim()).ToList();
 
-                    var finalExistingFiles = existingFiles.Except(removedFiles).ToList();
+                    var finalExistingFiles = existingFiles.Except(removedFiles, StringComparer.OrdinalIgnoreCase).ToList();
 
-                    foreach (var fileName in finalExistingFiles)
+                    foreach (var displayName in finalExistingFiles)
                     {
+                        // Match with trusted metadata from database
+                        var matchedDbFile = existingDbFiles.FirstOrDefault(f =>
+                            string.Equals(f.FileName, displayName, StringComparison.OrdinalIgnoreCase) &&
+                            (f.POItemId == po.POItemId || f.PONId == po.PONId));
+
+                        if (matchedDbFile == null)
+                        {
+                            matchedDbFile = existingDbFiles.FirstOrDefault(f =>
+                                string.Equals(f.FileName, displayName, StringComparison.OrdinalIgnoreCase));
+                        }
+
+                        string actualStoredPath = null;
+                        if (matchedDbFile != null && !string.IsNullOrWhiteSpace(matchedDbFile.FilePath))
+                        {
+                            actualStoredPath = matchedDbFile.FilePath;
+                            if (!Path.IsPathRooted(actualStoredPath))
+                                actualStoredPath = Path.Combine(filesRoot, actualStoredPath);
+                        }
+                        else
+                        {
+                            actualStoredPath = Path.Combine(filesRoot, displayName);
+                        }
+
+                        retainedPhysicalPaths.Add(actualStoredPath);
+
                         var payload = new InspectionReportViewModel
                         {
                             VisitId = objIRV.VisitId,
-                            FileName = fileName,
-                            FilePath = Path.Combine(filesRoot, fileName),
+                            FileName = displayName, // Keep original display name
+                            FilePath = actualStoredPath, // Use actual stored physical path
                             InspReportNo = po.InspReportNo,
                             PONId = po.PONId,
                             POItemId = po.POItemId,
                             VisitedFrom = po.VisitedFrom,
                             VisitedTo = po.VisitedTo,
-                            LoginUserId = objIRV.LoginUserId
+                            LoginUserId = currentUserId,
+                            ModifiedBy = currentUserId,
+                            CreatedBy = currentUserId
                         };
 
-                        savedFiles.Add((payload.FilePath, payload));
+                        recordsToSave.Add(payload);
                     }
                 }
 
-                /* =========================================================
-                   4) SAVE NEWLY UPLOADED FILES (UNCHANGED LOGIC)
-                ========================================================== */
+                // Move only non-retained existing files to backup
+                if (existingDbFiles.Count > 0)
+                {
+                    if (!Directory.Exists(backupRoot))
+                        Directory.CreateDirectory(backupRoot);
+
+                    foreach (var backfile in existingDbFiles)
+                    {
+                        string originalPath = null;
+                        if (!string.IsNullOrWhiteSpace(backfile.FilePath))
+                        {
+                            originalPath = backfile.FilePath;
+                            if (!Path.IsPathRooted(originalPath))
+                                originalPath = Path.Combine(filesRoot, originalPath);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(backfile.FileName))
+                        {
+                            originalPath = Path.Combine(filesRoot, backfile.FileName);
+                        }
+
+                        if (!string.IsNullOrEmpty(originalPath) &&
+                            !retainedPhysicalPaths.Contains(originalPath) &&
+                            System.IO.File.Exists(originalPath))
+                        {
+                            string physicalFileName = Path.GetFileName(originalPath);
+                            string backupPath = Path.Combine(backupRoot, physicalFileName);
+
+                            System.IO.File.Move(originalPath, backupPath);
+                            movedExistingFiles.Add((OriginalPath: originalPath, BackupPath: backupPath));
+                        }
+                    }
+                }
+
+                // 3. Save newly uploaded files with concurrency throttling and partial-file tracking
                 var saveTasks = new List<Task>();
                 int maxParallelWrites = Math.Max(2, Environment.ProcessorCount);
 
                 using (var throttle = new System.Threading.SemaphoreSlim(maxParallelWrites))
                 {
-                    foreach (var po in objIRV.LstPONumbers ?? new List<POInspectionItem>())
+                    foreach (var po in poList)
                     {
-                        if (string.IsNullOrEmpty(po.InspReportNo))
-                            continue;
-
-                        if (objHomeBusinessModel.IsInspReportNumberExitsAlready(po.InspReportNo, _homeService))
-                        {
-                            return Json(new
-                            {
-                                status = false,
-                                message = $"Report No {po.InspReportNo} Exists Already"
-                            }, JsonRequestBehavior.AllowGet);
-                        }
-
                         foreach (var file in po.UploadFiles ?? new List<HttpPostedFileBase>())
                         {
                             if (file == null || file.ContentLength <= 0)
@@ -433,14 +515,20 @@ namespace IQEApp.Web.Controllers
                             var capturedPo = po;
                             var capturedFile = file;
 
+                            string originalFileName = Path.GetFileName(capturedFile.FileName);
+                            string uniqueFileName = $"{Guid.NewGuid():N}_{originalFileName}";
+                            string savePath = Path.Combine(filesRoot, uniqueFileName);
+
+                            // Track new path before writing so partial files cannot escape cleanup
+                            lock (newFilesToCleanup)
+                            {
+                                newFilesToCleanup.Add(savePath);
+                            }
+
                             var task = Task.Run(async () =>
                             {
                                 try
                                 {
-                                    string originalFileName = Path.GetFileName(capturedFile.FileName);
-                                    string uniqueFileName = $"{Guid.NewGuid():N}_{originalFileName}";
-                                    string savePath = Path.Combine(filesRoot, uniqueFileName);
-
                                     if (!Directory.Exists(filesRoot))
                                         Directory.CreateDirectory(filesRoot);
 
@@ -455,27 +543,39 @@ namespace IQEApp.Web.Controllers
                                         if (capturedFile.InputStream.CanSeek)
                                             capturedFile.InputStream.Position = 0;
 
-                                        await capturedFile.InputStream.CopyToAsync(fs)
-                                            .ConfigureAwait(false);
+                                        await capturedFile.InputStream.CopyToAsync(fs).ConfigureAwait(false);
                                     }
 
                                     var payload = new InspectionReportViewModel
                                     {
                                         VisitId = objIRV.VisitId,
-                                        FileName = originalFileName,
-                                        FilePath = savePath,
+                                        FileName = originalFileName, // Display name
+                                        FilePath = savePath,         // Physical storage path
                                         InspReportNo = capturedPo.InspReportNo,
                                         PONId = capturedPo.PONId,
                                         POItemId = capturedPo.POItemId,
                                         VisitedFrom = capturedPo.VisitedFrom,
                                         VisitedTo = capturedPo.VisitedTo,
-                                        LoginUserId = objIRV.LoginUserId
+                                        LoginUserId = currentUserId,
+                                        ModifiedBy = currentUserId,
+                                        CreatedBy = currentUserId
                                     };
 
-                                    lock (savedFiles)
+                                    lock (recordsToSave)
                                     {
-                                        savedFiles.Add((savePath, payload));
+                                        recordsToSave.Add(payload);
                                     }
+                                }
+                                catch (Exception)
+                                {
+                                    // Delete partial file inside write task failure handler
+                                    try
+                                    {
+                                        if (System.IO.File.Exists(savePath))
+                                            System.IO.File.Delete(savePath);
+                                    }
+                                    catch { }
+                                    throw;
                                 }
                                 finally
                                 {
@@ -487,21 +587,25 @@ namespace IQEApp.Web.Controllers
                         }
                     }
 
+                    // Ensure all started write tasks complete before proceeding or cleaning up
                     await Task.WhenAll(saveTasks).ConfigureAwait(false);
                 }
 
-                /* =========================================================
-                   5) DB INSERT (UNCHANGED – WORKS NOW)
-                ========================================================== */
-                using (var scope =
-                    new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                // 4. Include header update AND file records inside the same TransactionScope
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
+                    bool headerUpdated = objHomeBusinessModel.UpdateInspectionReportByVisitID(
+                        objIRV.VisitId,
+                        objIRV.InspReportDate,
+                        currentUserId,
+                        _homeService);
+
+                    if (!headerUpdated)
+                        throw new Exception("Failed to update inspection report header details");
+
                     bool flag = false;
-
-                    foreach (var saved in savedFiles)
+                    foreach (var p in recordsToSave)
                     {
-                        var p = saved.PayloadCopy;
-
                         objIRV.FileName = p.FileName;
                         objIRV.FilePath = p.FilePath;
                         objIRV.InspReportNo = p.InspReportNo;
@@ -509,10 +613,12 @@ namespace IQEApp.Web.Controllers
                         objIRV.POItemId = p.POItemId;
                         objIRV.VisitedFrom = p.VisitedFrom;
                         objIRV.VisitedTo = p.VisitedTo;
+                        objIRV.LoginUserId = currentUserId;
+                        objIRV.ModifiedBy = currentUserId;
+                        objIRV.CreatedBy = currentUserId;
 
-                        bool uploaded =
-                            objHomeBusinessModel.UploadInspectionReportByVisitID(
-                                objIRV, flag, _homeService);
+                        bool uploaded = objHomeBusinessModel.UploadInspectionReportByVisitID(
+                            objIRV, flag, _homeService);
 
                         if (!uploaded)
                             throw new Exception($"DB insert failed for {p.FileName}");
@@ -528,12 +634,8 @@ namespace IQEApp.Web.Controllers
             }
             catch (Exception ex)
             {
-                // Cleanup newly saved files
-                foreach (var f in savedFiles)
-                {
-                    if (System.IO.File.Exists(f.FilePath))
-                        System.IO.File.Delete(f.FilePath);
-                }
+                // Single unified recovery path: delete only new files and restore moved files
+                CleanupAndRestore();
 
                 return Json(new { status = false, message = ex.Message },
                             JsonRequestBehavior.AllowGet);
@@ -597,27 +699,42 @@ namespace IQEApp.Web.Controllers
         [Authorize]
         public ActionResult DownloadFile(int VisitId, string FileName)
         {
-            if (SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.EnquiryEdit, CurrentUser.RoleId.FirstOrDefault()))
+            if (CurrentUser == null || CurrentUser.UserId <= 0)
             {
-                HomeViewModel fileInfo = new HomeViewModel();
-                fileInfo = objHomeBusinessModel.GetFileDetailsByVisitId(VisitId, FileName, _homeService);
-                if (!string.IsNullOrEmpty(fileInfo.FileName))
+                return View("UnAuthorized");
+            }
+
+            int roleId = CurrentUser.RoleId.FirstOrDefault();
+            bool canDownload = CurrentUser.IsAdmin ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.Download, roleId) ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.ScheduleVisitEdit, roleId) ||
+                SingletonScreenFeatureMapping.CanPerformOperation((int)ScnFetMapId.OperationsScheduleVisit, roleId) ||
+                roleId == (int)UserRoles.EmployeeRole;
+
+            if (canDownload)
+            {
+                HomeViewModel fileInfo = objHomeBusinessModel.GetFileDetailsByVisitId(VisitId, FileName, _homeService);
+                if (fileInfo != null && !string.IsNullOrEmpty(fileInfo.FilePath) && System.IO.File.Exists(fileInfo.FilePath))
                 {
-                    string DownloadFileName = System.IO.Path.GetFileName(fileInfo.FilePath);
-                    var DownloadFileData = System.IO.File.ReadAllBytes(fileInfo.FilePath);
+                    string downloadFileName = !string.IsNullOrEmpty(fileInfo.FileName)
+                        ? fileInfo.FileName
+                        : System.IO.Path.GetFileName(fileInfo.FilePath);
+                    var downloadFileData = System.IO.File.ReadAllBytes(fileInfo.FilePath);
 
                     Response.Clear();
                     Response.Buffer = true;
                     Response.Charset = "";
                     Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                    Response.ContentType = "application/*";
-                    Response.AppendHeader("Content-Disposition", "attachment; filename=" + DownloadFileName);
-                    Response.BinaryWrite(DownloadFileData);
+                    Response.ContentType = "application/octet-stream";
+                    Response.AppendHeader("Content-Disposition", "attachment; filename=\"" + downloadFileName + "\"");
+                    Response.BinaryWrite(downloadFileData);
                     Response.Flush();
                     Response.End();
-
                 }
-
+                else
+                {
+                    return HttpNotFound("File not found");
+                }
             }
             else
             {

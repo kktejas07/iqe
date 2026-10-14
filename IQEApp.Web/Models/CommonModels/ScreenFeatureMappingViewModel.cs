@@ -1,6 +1,7 @@
-﻿using IQEApp.Service.SecurityService;
+using IQEApp.Service.SecurityService;
 using IQEApp.Web.Models.Security;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,57 +15,68 @@ namespace IQEApp.Web.Models.CommonModels
     }
     public static class SingletonScreenFeatureMapping
     {
-        private static List<ScreenFeatureMappingViewModel> LstScrnFeatMap;
+        private static readonly ConcurrentDictionary<int, HashSet<int>> _rolePermissions = new ConcurrentDictionary<int, HashSet<int>>();
 
         public static void ClearScreenFeatureMapping()
         {
-            LstScrnFeatMap = null;
+            _rolePermissions.Clear();
         }
+
+        public static void ClearScreenFeatureMapping(int roleId)
+        {
+            _rolePermissions.TryRemove(roleId, out _);
+        }
+
         public static void SetScreenFeatureMapping(int RoleId)
         {
-            if (LstScrnFeatMap == null)
+            if (RoleId <= 0)
+                return;
+
+            try
             {
-                try
+                ISecurityService _securityService = new SecurityService();
+                SecurityBusinessModel objSecurityBusinessModel = new SecurityBusinessModel();
+                var objSecFetMapId = objSecurityBusinessModel.FetchRoleBasedScreenFeatureMappingByRoleId(RoleId, _securityService);
+
+                var permissionSet = new HashSet<int>();
+                if (objSecFetMapId != null)
                 {
-                    ISecurityService _securityService = new SecurityService();
-                    //need to fetch data from backend into the list
-                    List<ScreenFeatureMappingViewModel> lst = new List<ScreenFeatureMappingViewModel>();
-                    SecurityBusinessModel objSecurityBusinessModel = new SecurityBusinessModel();
-
-                    var objSecFetMapId = objSecurityBusinessModel.FetchRoleBasedScreenFeatureMappingByRoleId(RoleId, _securityService);
-
-                    foreach (var varSec in objSecFetMapId)
+                    foreach (var item in objSecFetMapId)
                     {
-                        ScreenFeatureMappingViewModel objSFMVM1 = new ScreenFeatureMappingViewModel();
-                        objSFMVM1.ScnFetMapId = varSec.ScnFetMapId;
-                        lst.Add(objSFMVM1);
+                        permissionSet.Add(item.ScnFetMapId);
                     }
-                    LstScrnFeatMap = lst;
                 }
-                catch (Exception ex)
-                {
-                    //  errorLogObj.LogError("GetMastersDetails", ex);
-                }
+                _rolePermissions[RoleId] = permissionSet;
             }
-
+            catch (Exception)
+            {
+                // Fail safely; do not throw unhandled exception
+            }
         }
+
         public static bool CanPerformOperation(int SecFetMapId, int RoleId)
         {
-            
-          //  (RoleId);
-            if (LstScrnFeatMap.Any())
+            if (RoleId <= 0 || SecFetMapId <= 0)
+                return false;
+
+            try
             {
-                List<ScreenFeatureMappingViewModel> sfmvm = new List<ScreenFeatureMappingViewModel>();
-                sfmvm = LstScrnFeatMap.Where(m => m.ScnFetMapId.Equals(SecFetMapId)).ToList();
-                if (sfmvm.Any())
+                if (!_rolePermissions.TryGetValue(RoleId, out var permissions) || permissions == null)
+                {
+                    SetScreenFeatureMapping(RoleId);
+                    _rolePermissions.TryGetValue(RoleId, out permissions);
+                }
+
+                if (permissions != null && permissions.Contains(SecFetMapId))
                 {
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
             }
+            catch (Exception)
+            {
+                return false;
+            }
+
             return false;
         }
     }

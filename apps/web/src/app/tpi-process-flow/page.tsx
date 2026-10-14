@@ -498,7 +498,7 @@ export default function TPIProcessFlowPage() {
               Official IQE Inspection Formats &amp; Report Templates (Format No: IQE-TP-01)
             </h3>
             <p className="text-xs text-slate-500">
-              Generate standardized ISO 9001:2015 inspection reports with digital sign-off table (Prepared by / Approved by).
+              Generate standardized ISO 9001:2026 &amp; ISO/IEC 17020:2026 inspection reports with digital sign-off table (Prepared by / Approved by).
             </p>
           </div>
 
@@ -580,7 +580,7 @@ export default function TPIProcessFlowPage() {
                 <span className="font-mono text-slate-500">Doc. No: IQE-PFC-03</span>
               </div>
               <p className="text-slate-600 leading-relaxed">
-                Official ISO 9001:2015 Third Party Inspection Template format with signature sign-off blocks.
+                Official ISO 9001:2026 &amp; ISO/IEC 17020:2026 Third Party Inspection Template format with signature sign-off blocks.
               </p>
               <div className="grid grid-cols-2 gap-4 pt-2 border-t text-[11px]">
                 <div className="p-3 bg-white rounded-xl border">

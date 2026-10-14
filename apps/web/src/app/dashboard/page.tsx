@@ -131,7 +131,7 @@ export default function Dashboard() {
             Ideal Quality Engineers <span className="text-gradient-iqe">Portal</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-200 mt-1 line-clamp-2">
-            Third Party Inspection (TPI), ISO 9001:2015 Compliance, Plant Pressure Vessel Audits &amp; BOQ Verification.
+            Third Party Inspection (TPI), ISO 9001:2026 &amp; ISO/IEC 17020:2026 Compliance, Plant Pressure Vessel Audits &amp; BOQ Verification.
           </p>
         </div>
 

@@ -68,7 +68,9 @@ class Visit(Document):
     manufacturer_unit_name: Optional[str] = None
     
     plant_location: Optional[str] = None
-    protocol_standard: str = "ISO 9001:2015 Quality Inspection Standard Protocol"  # Standard TPI Inspection Protocol
+    protocol_standard: str = "ISO 9001:2026 & ISO/IEC 17020:2026 Quality Inspection Protocol"  # Standard TPI Inspection Protocol
+    environmental_condition: Optional[str] = "Normal (Safety & Heat stress audited per ISO 9001:2026 Cl. 4.1)"
+    impartiality_declared: bool = True  # Conflict of interest declaration per ISO/IEC 17020:2026 Cl. 4.1 / IQE-MS-10
     
     # Inspector Assignment & Dates
     inspector_id: Optional[str] = None

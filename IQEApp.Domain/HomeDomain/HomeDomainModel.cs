@@ -1,4 +1,4 @@
-﻿using IQEApp.Domain.CommonDomain;
+using IQEApp.Domain.CommonDomain;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -68,6 +68,11 @@ namespace IQEApp.Domain.HomeDomain
 
         public int ProspectiveCount { get; set; }
         public string PONIds { get; set; }
+
+        // ISO 9001:2026 & ISO/IEC 17020:2026 Compliance Metadata
+        public string StandardReference { get; set; } = "ISO 9001:2026 & ISO/IEC 17020:2026";
+        public string EnvironmentalSiteCondition { get; set; }
+        public bool ImpartialityDeclared { get; set; } = true;
     }
     public class VisitsSummaryDomainModel
     {
@@ -91,6 +96,11 @@ namespace IQEApp.Domain.HomeDomain
         public DateTime VisitedFrom { get; set; }
         public DateTime VisitedTo { get; set; }
         public int ModifiedBy { get; set; }
+        public int CreatedBy { get; set; }
+        public int LoginUserId { get; set; }
+        public string StandardReference { get; set; } = "ISO 9001:2026 & ISO/IEC 17020:2026";
+        public string EnvironmentalSiteCondition { get; set; }
+        public bool ImpartialityDeclared { get; set; } = true;
         public List<POInspectionDomainItem> LstPONumbers { get; set; }
     }
 

@@ -1,4 +1,4 @@
-﻿using IQEApp.Web.Models.CommonModels;
+using IQEApp.Web.Models.CommonModels;
 using System;
 using System.Configuration;
 using System.IO;
@@ -36,23 +36,29 @@ namespace IQEApp.Web.Services
 
                 receiverEmailIds.ToList().ForEach(email =>
                 {
-                    mailMessage.To.Add(new MailAddress(email));
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        mailMessage.To.Add(new MailAddress(email.Trim()));
+                    }
                 });
                 mailMessage.From = new MailAddress(objEmailViewModel.SenderEmailId);
                 mailMessage.Subject = objEmailViewModel.Subject;
                 mailMessage.Body = objEmailViewModel.Body;
                 mailMessage.IsBodyHtml = true;
-                SmtpClient smtpServer = new SmtpClient("smtp.sendgrid.net");
-                smtpServer.Port = Convert.ToInt32(ConfigurationManager.AppSettings["AzureSMTPPort"]);
-                smtpServer.UseDefaultCredentials = false;
-                smtpServer.Credentials = new NetworkCredential(azureSMTPLogin, azureSMTPPassword);
-                smtpServer.EnableSsl = true;
-                //smtpServer.Send(mailMessage);
+
+                using (SmtpClient smtpServer = new SmtpClient("smtp.sendgrid.net"))
+                {
+                    smtpServer.Port = Convert.ToInt32(ConfigurationManager.AppSettings["AzureSMTPPort"]);
+                    smtpServer.UseDefaultCredentials = false;
+                    smtpServer.Credentials = new NetworkCredential(azureSMTPLogin, azureSMTPPassword);
+                    smtpServer.EnableSsl = true;
+                    smtpServer.Send(mailMessage);
+                }
                 isSuccess = true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw (ex);
+                isSuccess = false;
             }
             return isSuccess;
         }

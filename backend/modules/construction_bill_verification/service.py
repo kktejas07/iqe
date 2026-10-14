@@ -366,7 +366,7 @@ class ConstructionBillVerificationService:
             canvas.saveState()
             canvas.setFont("Helvetica-Bold", 7.5)
             canvas.setFillColor(colors.HexColor("#0f172a"))
-            canvas.drawString(25, 18, "IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2012 Type A Inspection Body")
+            canvas.drawString(25, 18, "IDEAL QUALITY ENGINEERS (I) PVT LTD | ISO/IEC 17020:2026 Type A Inspection Body")
             canvas.setFont("Helvetica", 7)
             canvas.setFillColor(colors.HexColor("#64748b"))
             canvas.drawString(25, 10, "Mudigonda CHC Site Construction Bill Verification | Web: www.iqe.co.in")

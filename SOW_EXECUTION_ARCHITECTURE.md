@@ -127,8 +127,8 @@ billing off. It needs to become a document in its own right: a **work package**.
 
 ```mermaid
 flowchart TD
-    SO[Service Order<br/>SO-YYYY-NNNN] --> SOW[SOW / Work Package<br/>WP-YYYY-NNNN<br/>carries work_type_code]
-    SOW --> ASG[Assignment<br/>ASG-YYYY-NNNN<br/>inspection officer + role]
+    SO[Service Order<br/>SO-YYYY-XXXX] --> SOW[SOW / Work Package<br/>WP-YYYY-XXXX<br/>carries work_type_code]
+    SOW --> ASG[Assignment<br/>ASG-YYYY-XXXX<br/>inspection officer + role]
     ASG --> EXE[Execution record<br/>visit / measurement sheet / bill review]
     EXE --> CERT[Certification<br/>certified qty + certified value]
     CERT --> BILL[Billing line<br/>rate basis applied]
@@ -142,7 +142,7 @@ flowchart TD
 
 ```python
 class WorkPackage(Document):
-    work_package_id: str                 # WP-YYYY-NNNN
+    work_package_id: str                 # WP-YYYY-XXXX
     site_id: str
     job_id: str
     so_id: Optional[str] = None
@@ -197,7 +197,7 @@ not a field on the package.
 
 ```python
 class Assignment(Document):
-    assignment_id: str                   # ASG-YYYY-NNNN
+    assignment_id: str                   # ASG-YYYY-XXXX
     site_id: str
     work_package_id: str
     job_id: str
@@ -268,7 +268,7 @@ the work type.
 
 ```python
 class Certification(Document):
-    certification_id: str                # CERT-YYYY-NNNN
+    certification_id: str                # CERT-YYYY-XXXX
     work_package_id: str
     job_id: str; site_id: str
     certified_by_person_id: str

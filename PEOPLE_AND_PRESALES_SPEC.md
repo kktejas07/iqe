@@ -130,7 +130,7 @@ touching the competence model.
 ```mermaid
 flowchart TD
     subgraph PRE["PRE-SALES — new"]
-        ENQ[Enquiry received<br/>ENQ-YYYY-NNNN] --> QUAL[Qualify:<br/>client, scope, site, dates]
+        ENQ[Enquiry received<br/>ENQ-YYYY-XXXX] --> QUAL[Qualify:<br/>client, scope, site, dates]
         QUAL --> SCORE[Go/No-Go scorecard<br/>auto-score via AI + human override]
         SCORE --> GATE1{Gate 1}
         GATE1 -- NO-GO --> NOGO[Record NoGoDecision<br/>+ reason code]
@@ -139,7 +139,7 @@ flowchart TD
         NOGO -- park --> CLOSED([Closed - No Bid])
 
         GATE1 -- GO --> EST[Estimate: mandays,<br/>inspector cost, travel]
-        EST --> PROP[Proposal QTN-YYYY-NNNN Rev 0]
+        EST --> PROP[Proposal QTN-YYYY-XXXX Rev 0]
         PROP --> SUBMIT[Submit to client]
         SUBMIT --> GATE2{Gate 2 - client}
         GATE2 -- Clarification --> REV[New Revision Rev n+1]
@@ -150,23 +150,23 @@ flowchart TD
     end
 
     GATE2 -- WON --> AWARD[LOI / PO received]
-    AWARD --> JOB[Generate Work Order<br/>JOB-YYYY-NNNN]
+    AWARD --> JOB[Generate Work Order<br/>JOB-YYYY-XXXX]
 
     subgraph EXIST["EXISTING FLOW"]
-        JOB --> SO[Service Order SO-YYYY-NNNN]
-        SO --> CN[Control Numbers CN-YYYY-NNNN]
+        JOB --> SO[Service Order SO-YYYY-XXXX]
+        SO --> CN[Control Numbers CN-YYYY-XXXX]
         CN --> VISIT[Visits, QC, Invoice, Payment]
     end
 
     JOB -.manpower demand.-> REQ
     subgraph PEOPLE["PEOPLE MANAGEMENT — new"]
-        REQ[Manpower Requisition<br/>REQ-YYYY-NNNN] --> SOURCE{Source}
+        REQ[Manpower Requisition<br/>REQ-YYYY-XXXX] --> SOURCE{Source}
         SOURCE -- internal --> POOL[Deploy from pool]
         SOURCE -- associate --> ASSOC[Engage associate]
-        SOURCE -- hire --> PIPE[Candidate pipeline<br/>CND-YYYY-NNNN]
+        SOURCE -- hire --> PIPE[Candidate pipeline<br/>CND-YYYY-XXXX]
         PIPE --> OFFER[Offer and acceptance]
         OFFER --> ONB[Onboarding checklist]
-        ONB --> EMP[Person record EMP-NNNNN]
+        ONB --> EMP[Person record EMP-XXXXX]
         ASSOC --> EMP
         EMP --> AUTH{Authorization gate<br/>ISO/IEC 17020}
         AUTH -- not yet --> TRAIN[Training / supervised<br/>and witnessed inspections]
@@ -234,7 +234,7 @@ class ScorecardCriterion(BaseModel):
 
 
 class GoNoGoDecision(Document):
-    decision_id: str               # GNG-YYYY-NNNN
+    decision_id: str               # GNG-YYYY-XXXX
     enquiry_id: str
     site_id: str
     sequence: int = 1              # 2nd+ decision = post-remediation re-run
@@ -254,7 +254,7 @@ class GoNoGoDecision(Document):
 
 
 class ProposalRevision(Document):
-    proposal_id: str               # QTN-YYYY-NNNN
+    proposal_id: str               # QTN-YYYY-XXXX
     revision_no: int               # 0, 1, 2 …  (immutable once issued)
     enquiry_id: str
     site_id: str
@@ -304,13 +304,13 @@ Extend the table in `ARCHITECTURE_AND_E2E_FLOW.md` §3.2:
 
 | Entity | ID Schema | Parent |
 | :--- | :--- | :--- |
-| Enquiry | `ENQ-YYYY-NNNN` | Client |
-| Go/No-Go Decision | `GNG-YYYY-NNNN` | Enquiry |
-| Proposal | `QTN-YYYY-NNNN` (+ `Rev n`) | Enquiry |
-| Manpower Requisition | `REQ-YYYY-NNNN` | Job *or* standalone |
-| Candidate | `CND-YYYY-NNNN` | Requisition |
-| Person / Employee | `EMP-NNNNN` | Site |
-| Authorization | `ATH-YYYY-NNNN` | Person |
+| Enquiry | `ENQ-YYYY-XXXX` | Client |
+| Go/No-Go Decision | `GNG-YYYY-XXXX` | Enquiry |
+| Proposal | `QTN-YYYY-XXXX` (+ `Rev n`) | Enquiry |
+| Manpower Requisition | `REQ-YYYY-XXXX` | Job *or* standalone |
+| Candidate | `CND-YYYY-XXXX` | Requisition |
+| Person / Employee | `EMP-XXXXX` | Site |
+| Authorization | `ATH-YYYY-XXXX` | Person |
 
 ### 5.5 API surface
 
@@ -418,7 +418,7 @@ mess of types and matches how payroll and compliance actually differ.
 # modules/people/models.py  — new module
 
 class Person(Document):
-    person_id: str                 # EMP-NNNNN
+    person_id: str                 # EMP-XXXXX
     site_id: str
     user_id: Optional[str] = None  # link to auth.UserLogin if they log in
     employee_code: Optional[str] = None
@@ -519,7 +519,7 @@ class CompetenceProfile(Document):
 
 class Authorization(Document):
     """ISO/IEC 17020 authorization: the gate between onboarded and deployable."""
-    authorization_id: str          # ATH-YYYY-NNNN
+    authorization_id: str          # ATH-YYYY-XXXX
     person_id: str
     site_id: str
     inspection_types: list[str]    # what they may sign off, specifically
@@ -561,7 +561,7 @@ class ImpartialityDeclaration(Document):
 
 ```python
 class ManpowerRequisition(Document):
-    requisition_id: str            # REQ-YYYY-NNNN
+    requisition_id: str            # REQ-YYYY-XXXX
     site_id: str
     raised_by: str
     raised_on: datetime
@@ -590,7 +590,7 @@ class ManpowerRequisition(Document):
 
 
 class Candidate(Document):
-    candidate_id: str              # CND-YYYY-NNNN
+    candidate_id: str              # CND-YYYY-XXXX
     requisition_id: str
     site_id: str
     full_name: str

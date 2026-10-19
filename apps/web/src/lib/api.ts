@@ -391,6 +391,69 @@ class API {
       return null;
     }
   }
+
+  // ---- Work Types ----
+  async getWorkTypes(params?: { search?: string; is_active?: boolean }) {
+    return (await this.client.get("/work-types/", { params })).data;
+  }
+
+  async getWorkType(code: string) {
+    return (await this.client.get(`/work-types/${code}`)).data;
+  }
+
+  async getWorkTypeEnums() {
+    return (await this.client.get("/work-types/enums")).data;
+  }
+
+  async seedWorkTypes() {
+    return (await this.client.post("/work-types/seed")).data;
+  }
+
+  async createWorkType(data: any) {
+    return (await this.client.post("/work-types/", data)).data;
+  }
+
+  async updateWorkType(code: string, data: any) {
+    return (await this.client.put(`/work-types/${code}`, data)).data;
+  }
+
+  async setWorkTypeStatus(code: string, is_active: boolean) {
+    return (await this.client.patch(`/work-types/${code}/status`, null, { params: { is_active } })).data;
+  }
+
+  // ---- Work Packages ----
+  async getWorkPackages(params?: {
+    job_id?: string; work_type_code?: string; status?: string; search?: string;
+    page?: number; per_page?: number;
+  }) {
+    return (await this.client.get("/work-packages/", { params })).data;
+  }
+
+  async getWorkPackage(id: string) {
+    return (await this.client.get(`/work-packages/${id}`)).data;
+  }
+
+  async getWorkPackageSummary(job_id?: string) {
+    return (await this.client.get("/work-packages/summary", { params: { job_id } })).data;
+  }
+
+  async createWorkPackage(data: any) {
+    return (await this.client.post("/work-packages/", data)).data;
+  }
+
+  async updateWorkPackage(id: string, data: any) {
+    return (await this.client.put(`/work-packages/${id}`, data)).data;
+  }
+
+  async transitionWorkPackage(id: string, to_status: string, reason?: string) {
+    return (await this.client.patch(`/work-packages/${id}/status`, null, { params: { to_status, reason } })).data;
+  }
+
+  async migrateJobScopeToPackages(jobId: string, work_type_code: string, dry_run = true) {
+    return (await this.client.post(`/work-packages/migrate-from-job/${jobId}`, null, {
+      params: { work_type_code, dry_run },
+    })).data;
+  }
 }
 
 export const api = new API();

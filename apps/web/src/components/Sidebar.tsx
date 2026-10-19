@@ -31,7 +31,7 @@ import {
   HardHat,
   Receipt,
   CreditCard,
-  Table,
+  Table, Boxes
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -122,6 +122,20 @@ const formatsSubModules: SubModuleItem[] = [
 ];
 
 const operationsSubModules: SubModuleItem[] = [
+  {
+    name: "Work Packages",
+    subtitle: "Scope, assignment & certification",
+    href: "/work-packages",
+    icon: Layers,
+    color: "text-[#0084bf] bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
+  },
+  {
+    name: "Work Types",
+    subtitle: "How each kind of work is run",
+    href: "/work-types",
+    icon: Boxes,
+    color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40",
+  },
   {
     name: "Visit Schedule",
     subtitle: "Inspection Calendar & Timeline",

@@ -14,7 +14,7 @@ things are missing at either end of it:
 | Gap | Today | Consequence |
 | :--- | :--- | :--- |
 | **Pre-sales** | `Enquiry` model exists (`modules/enquiries/`) but is an island: `status` is a free string defaulted to `"pending"`, there is no decision record, no proposal, no revision loop, and no path from enquiry into `Job`. | Won and lost work is invisible. Nobody can answer "why did we lose that one" or "what is in the pipeline". |
-| **People** | `modules/users/` holds `Competency`, `InspectorRate`, `Associate` — all inspector-centric. There is no person master, no non-technical staff, no hiring/requisition, no onboarding, no authorization record. | Staff exist only as login rows. Manpower demand created by won jobs has nowhere to go. ISO/IEC 17020 personnel evidence lives outside the system. |
+| **People** | A rich person master **exists in the legacy ASP.NET app** (`IQEApp.Web/Controllers/User/`, 121-property `UserViewModel`) but the FastAPI rewrite ported only `Competency`, `InspectorRate` and `Associate`. `auth.UserLogin` carries eight fields. | The migration silently dropped most of the people model — statutory, banking, qualification, secondment and empanelment data have no home in the new stack. Hiring, onboarding and authorization were never modelled in either stack. |
 
 These two gaps are the same business loop seen from two ends: **work comes in → do we have
 the people → if not, procure them**. They are specified together for that reason.
@@ -340,6 +340,45 @@ sets `Enquiry.status = CONVERTED` with `won_job_id`.
 
 ## 6. Part B — People Management data model
 
+### 6.0 What the legacy system already does
+
+Source of truth for this section: `IQEApp.Web/Controllers/User/UserController.cs`,
+`IQEApp.Web/Models/UserModel/UserViewModel.cs`, `IQEApp.Web/Views/User/*`. This is the
+screen live at `/IQEIMSUAT/User/Index`.
+
+**The `User/Index` screen today.** Admin-gated (`ScnFetMapId.MenuAdmin`), scoped to
+`CurrentUser.SiteId`, renders `UserDetails.cshtml` → `_UserDirectory.cshtml` with columns:
+Employee ID · Employee Name · Email · Contact No · Credentials · Discipline · Inspector
+Code · City · Country · Cost/Hr · Mileage/Km · All Inclusive. Tabs: **Active · InActive ·
+Secondment · Payroll**. Filters: user type, active flag, secondment flag, alpha search,
+free search, country, sort order, paging.
+
+**Concepts already present — do not reinvent these:**
+
+| Legacy concept | Where | Maps to this spec |
+| :--- | :--- | :--- |
+| `UserTypeId` / `EmployeeTypeModel` master | `UserViewModel`, `UserDetailsModel` | `Person.category` (needs widening, see §6.1) |
+| `IsSecondment` + its own directory tab | `UserController.UserList` | Deputation/assignment state |
+| Empanelment (`IsEmpannlementflag`, `AddEmpannelment`) — Currency, Cost/Hr, Mileage/Km, All Inclusive | `_AddEmpannelment.cshtml` | `InspectorRate` / rate card |
+| `CompentenceActive` + `UpdateCompetanceStatus(employeeCode, status, remarks)` | `UserController:970` | **Primitive authorization gate** — see §6.4 |
+| CV documents with per-file validity dates | `CVDocumentViewModel`, `CVValidity`, `FileNameWithValidity` | Certificate expiry tracking |
+| Statutory: ESI, PF, PA, Medical | `UserViewModel` | Must be carried forward |
+| Banking: Bank A/c, IFSC, Branch, PAN, Aadhaar | `UserViewModel` | Must be carried forward |
+| Master-linked Title / Country / State / Designation / SkillSet / Currency | `UserDetailsModel` lists | Keep as masters, not free text |
+| `InspectorCode` ("Inspector Stamp No") distinct from `EmployeeCode` | `UserViewModel` | Two separate identifiers |
+| Roles: SuperAdmin, Admin, Employee, Coordinator, QualityCheck, Finance | `CustomPrincipal.UserRoles` | Matches RBAC in `ARCHITECTURE_AND_E2E_FLOW.md` §6.2 |
+
+**What is genuinely absent in both stacks:** manpower requisition, candidate/hiring
+pipeline, onboarding checklist, impartiality declaration, supervised/witnessed inspection
+log, structured employment lifecycle beyond an active boolean, and any non-inspector shape
+to the record.
+
+**The structural problem to fix.** `UserViewModel` is one class with 121 properties.
+Inspector-specific fields — `InspectorCode`, `ProfQualification` (Discipline),
+`CostPerHour`, `MilageInKm`, `AllInclusive`, `AssociateId` — sit on *every* user, including
+an office boy. That is the concrete justification for the category-plus-profile split in
+§6.1: it is not a preference, it is the existing model's failure mode.
+
 ### 6.1 Taxonomy: one person master, typed profiles
 
 Krishna's list — *software developer, HR, office boy, technician, construction guy* — spans
@@ -356,10 +395,18 @@ Person (core: identity, contact, employment, documents, status)
    └── category: CORPORATE_FUNCTION     → + (core only)
 ```
 
+This is not a new axis — it is the existing `EmployeeTypeModel` master widened. Today its
+values are inspector-shaped; the migration should extend the master rather than replace it,
+and map every existing `UserTypeId` to a category during backfill.
+
 Cross-cut this with **engagement type**, which is independent of category:
 
-`PERMANENT` · `CONTRACT` · `ASSOCIATE` (subcontracted — the existing `Associate` model)
-· `DAILY_WAGE` · `TRAINEE` · `CONSULTANT`
+`PERMANENT` · `CONTRACT` · `ASSOCIATE` (subcontracted — the existing `Associate` model and
+`AssociateId` link) · `SECONDMENT` (the existing `IsSecondment` flag, promoted from boolean
+to a first-class value) · `DAILY_WAGE` · `TRAINEE` · `CONSULTANT`
+
+Promoting `IsSecondment` matters: as a boolean it cannot express *to whom* and *for how
+long* someone is seconded, which is precisely what a deputation needs to carry.
 
 A construction worker is `SITE_LABOUR` + `DAILY_WAGE`; a retired NDT specialist is
 `TECHNICAL_INSPECTION` + `ASSOCIATE`. Keeping the two axes separate avoids a combinatorial
@@ -376,18 +423,44 @@ class Person(Document):
     user_id: Optional[str] = None  # link to auth.UserLogin if they log in
     employee_code: Optional[str] = None
 
+    title_id: Optional[int] = None            # legacy UserTitle master
     full_name: str
+    first_name: str
+    last_name: Optional[str] = None
     date_of_birth: Optional[datetime] = None
     gender: Optional[str] = None
-    phone: Optional[str] = None
+    phone: Optional[str] = None               # legacy EmpContactNumber
     email: Optional[str] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
     address: Optional[str] = None
+    country_id: Optional[int] = None          # keep master-linked, not free text
+    state_id: Optional[int] = None
+    city_name: Optional[str] = None
     base_location: Optional[str] = None       # drives geography matching
     willing_to_travel: bool = True
     passport_no: Optional[str] = None         # overseas deputation
     passport_expiry: Optional[datetime] = None
+    photo_document_id: Optional[str] = None
+
+    # --- carried forward from legacy UserViewModel; do not drop in migration ---
+    inspector_code: Optional[str] = None      # "Inspector Stamp No", distinct from employee_code
+    designation_id: Optional[int] = None
+    skill_set_ids: list[int] = []
+    bank_account: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    bank_branch: Optional[str] = None
+    pan: Optional[str] = None
+    aadhaar: Optional[str] = None
+    esi_no: Optional[str] = None
+    pf_no: Optional[str] = None
+    pa_no: Optional[str] = None
+    medical_ref: Optional[str] = None
+    # --------------------------------------------------------------------------
+
+    seconded_to_client_id: Optional[str] = None     # was IsSecondment (boolean)
+    seconded_from: Optional[datetime] = None
+    seconded_until: Optional[datetime] = None
 
     category: str                  # TECHNICAL_INSPECTION | TECHNICAL_ENGINEERING |
                                    # SITE_LABOUR | ADMIN_SUPPORT | CORPORATE_FUNCTION
@@ -560,6 +633,18 @@ a deploy.
 
 ### 6.4 The authorization gate
 
+**This formalises something that already exists.** The legacy app has
+`UserController.UpdateCompetanceStatus(employeeCode, status, remarks)` writing a
+`CompentenceActive` flag — someone already approves a person's competence, with remarks,
+and the UI already has a Competence Details screen. What it lacks is: scope (authorized for
+*which* inspection types), evidence (what was checked), expiry, surveillance, and any link
+to whether the person can actually be assigned.
+
+So this is not a new concept to sell internally — it is `CompentenceActive` given scope,
+evidence and teeth. Migration should map existing `CompentenceActive = true` records to an
+`Authorization` with `status = "authorized"` and a flag marking them **unverified legacy
+grants**, to be re-evidenced at the next review rather than trusted silently.
+
 The one piece of business logic worth stating explicitly:
 
 ```python
@@ -659,8 +744,8 @@ Each phase is independently shippable and useful on its own.
 
 | Phase | Scope | Why this order |
 | :--- | :--- | :--- |
-| **1** | `Person` master + category/engagement taxonomy + directory UI. Backfill from `auth.UserLogin` (`employee_code`, `inspector_code` already exist). | Everything else references a person. No dependencies. |
-| **2** | `CompetenceProfile` + `Authorization` + deployability derivation + expiry alerts. Migrate existing `users.Competency` in. | Delivers the accreditation evidence; standalone value even before hiring exists. |
+| **1** | `Person` master + category/engagement taxonomy + directory UI. **Migrate from the legacy SQL user tables, not from `auth.UserLogin`** — the legacy model holds the statutory, banking, qualification, secondment and empanelment data the FastAPI rewrite dropped. Reproduce the four existing directory tabs (Active / InActive / Secondment / Payroll) so the screen is not a regression for current users. | Everything else references a person. No dependencies. |
+| **2** | `CompetenceProfile` + `Authorization` + deployability derivation + expiry alerts. Migrate `users.Competency`, legacy `CompentenceActive` (flagged as unverified legacy grants, §6.4), and CV validity dates. | Delivers the accreditation evidence; standalone value even before hiring exists. |
 | **3** | Rewire assignment (`jobs`, `visits`, `proposed-assignments`) to the deployable pool. | Converts phase 2 from records into control. Small change, large effect. |
 | **4** | Enquiry state machine + `GoNoGoDecision` + reason-code master + pipeline dashboard. | Pure addition; the enquiry model already exists and is barely used. |
 | **5** | `ProposalRevision` + revision loop + `convert` → Job. | Completes pre-sales; needs phase 4's states. |
@@ -692,10 +777,28 @@ meet at phase 6.
    changes the associate onboarding effort.
 6. **Site labour in scope?** `SITE_LABOUR`/`DAILY_WAGE` implies attendance and wage
    computation, which is a different build from salaried staff. Include now or defer?
+7. **What is the "Payroll" tab on `User/Index` today?** It appears alongside Active /
+   InActive / Secondment but its behaviour was not traced in this pass. If it drives actual
+   payroll output, that changes Open Decision 1 materially — IQE would already own payroll
+   data rather than being free to delegate it.
+8. **Legacy data quality.** `UserController` carries `CreateUser1`, `UpdateUser1`,
+   `UpdateUser12`, `_EditUser - Copy.cshtml`, `_UserDirectory - Copy (2).cshtml` and similar
+   duplicates. Before migrating, someone should confirm which write path production
+   actually uses, or the backfill will replicate whichever variant was abandoned.
 
 ---
 
-## 10. Verification note
+## 10. Sources and verification note
+
+§6.0 was derived by reading the legacy ASP.NET source in this repository, **not** by
+viewing the running UAT site at `/IQEIMSUAT/User/Index` — that was not reachable during
+this pass. Rendered behaviour (JS-driven fields, conditional sections, actual master
+values in the `EmployeeType` and `Designation` tables) should be confirmed against the live
+screen before migration mapping is finalised. Anything in §6.0 marked as a column or tab
+comes from the `.cshtml` markup and is reliable; anything about *data* is inference from
+model shape.
+
+
 
 The ISO/IEC 17020:2026 points in §2.4 come from accreditation-body summaries, not the
 standard text, and clause numbering changed between editions. Before phase 2 is built,

@@ -222,7 +222,7 @@ export default function JobDetailPage() {
             </Link>
 
             <Link
-              href={`/visits/VIS-001`}
+              href={`/visits/VST-2026-001`}
               className="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 font-extrabold hover:bg-purple-200 border border-purple-300 dark:border-purple-800 transition-all inline-flex items-center gap-1.5"
             >
               <Zap className="w-3.5 h-3.5 text-purple-600" />
@@ -338,8 +338,8 @@ export default function JobDetailPage() {
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {(job.visits && job.visits.length > 0 ? job.visits : [
-            { visit_id: "VIS-001", inspector_name: "Er. V. Sharma (NDT Level III)", schedule_date: "2026-02-15", status: "SCHEDULED", scope: "100% Joint Hydrotest & Thickness Check" },
-            { visit_id: "VIS-002", inspector_name: "Er. K. Patel (ASME Inspector)", schedule_date: "2026-02-18", status: "IN_PROGRESS", scope: "Radiographic Film Sign-off & PMI Audit" }
+            { visit_id: "VST-2026-001", inspector_name: "Er. V. Sharma (NDT Level III)", schedule_date: "2026-02-15", status: "SCHEDULED", scope: "100% Joint Hydrotest & Thickness Check" },
+            { visit_id: "VST-2026-002", inspector_name: "Er. K. Patel (ASME Inspector)", schedule_date: "2026-02-18", status: "IN_PROGRESS", scope: "Radiographic Film Sign-off & PMI Audit" }
           ]).map((v: any) => (
             <div
               key={v.visit_id}

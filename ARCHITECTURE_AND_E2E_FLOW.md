@@ -232,7 +232,7 @@ erDiagram
 | **Service Order** | `SO-YYYY-XXXX` | Job | Scope of inspection work contract |
 | **Control Number** | `CN-YYYY-XXXX` | Job / SO | Individual tag/batch allocated for inspection |
 | **Purchase Order** | `PO-YYYY-XXXX` | Job | Client PO billing reference |
-| **Visit** | `VIS-YYYY-XXXX` | Job / CN / Work Package | Scheduled field inspection event |
+| **Visit** | `VST-YYYY-XXXX` | Job / CN / Work Package | Scheduled field inspection event |
 | **Inspection Photo** | `PHO-XXXX` | Visit | Photo evidence taken on site |
 | **Visit Expense** | `EXP-XXXX` | Visit | Inspector travel, lodging, or meal claim |
 | **Invoice** | `INV-YYYY-XXXX` | Job / Visit | Financial invoice issued to client |
@@ -253,12 +253,20 @@ erDiagram
 | **Manpower Requisition** | `REQ-YYYY-XXXX` | Job / standalone | People & Pre-Sales §5.4 |
 | **Candidate** | `CND-YYYY-XXXX` | Requisition | People & Pre-Sales §5.4 |
 
-> ⚠️ **Known inconsistency — resolve before the ID scheme is treated as authoritative.**
-> The visit prefix is not applied consistently in code: `backend/modules/jobs/migration.py`
-> generates `VIS-…`, while `backend/modules/visits/models.py` and
-> `backend/modules/invoices/service.py` use `VST-…`. This table and
-> `rn-fastapi-migration-plan.md` both say `VIS-`. One prefix must win, and existing data
-> migrated to it.
+> **Visit prefix — resolved to `VST-`.** The runtime generator
+> (`backend/modules/visits/service.py`) emits `VST-YYYY-NNN`, the model documents `VST-`, and
+> the web app (`visit-schedule`, `logsheet`, `visits/new`) uses it throughout, so `VST-` is the
+> live format. The docs, `seed_full_pipeline.py` and the job-detail mock data previously said
+> `VIS-` and have been corrected.
+>
+> Two namespaces are deliberately left as-is:
+> - `LEG-VIS-###` — legacy source-system visit references, a distinct namespace by design.
+> - `VIS-MIG-###-#` in `backend/modules/jobs/migration.py` — the migration generator. It is
+>   idempotent on `visit_id`, so changing the prefix would make a re-run insert duplicates of
+>   already-migrated visits rather than skip them. **Action required:** if that migration has
+>   run against any live database, rename existing `VIS-MIG-*` records to `VST-MIG-*` and
+>   change the generator in the same release. If it has not run anywhere, the generator can be
+>   changed on its own.
 
 ---
 
@@ -430,13 +438,13 @@ sequenceDiagram
 
     Coordinator->>Web: Schedule Visit & Assign Inspector
     Web->>API: POST /api/v1/visits/schedule
-    API->>DB: Save Visit (VIS-2026-0123) & Assignment
+    API->>DB: Save Visit (VST-2026-0123) & Assignment
     API->>Ext: Trigger Notification Email/Push
     Ext-->>Inspector: Send Visit Notification
 
     Inspector->>Web: Accept & Execute Field Visit
     Inspector->>Web: Upload Photos & Expenses (Offline Sync)
-    Web->>API: POST /api/v1/visits/VIS-2026-0123/submit
+    Web->>API: POST /api/v1/visits/VST-2026-0123/submit
     API->>Storage: Upload Photo Files & Receipts
     API->>DB: Update Visit Status -> UNDER_QC
     DB-->>API: Updated
@@ -446,7 +454,7 @@ sequenceDiagram
     API->>DB: Fetch Visit Data & Photos
     DB-->>API: Return Data
     QC->>Web: Approve Visit
-    Web->>API: POST /api/v1/visits/VIS-2026-0123/approve-qc
+    Web->>API: POST /api/v1/visits/VST-2026-0123/approve-qc
     API->>DB: Update Status -> QC_APPROVED
 
     Finance->>Web: Generate Invoice for Job
@@ -551,7 +559,7 @@ $$\text{Filter} = (\text{Tenant Site ID} == \text{User Site ID}) \land (\text{En
 
 ### Known gaps to resolve
 
-1. **Visit ID prefix** — `VIS-` vs `VST-` used inconsistently in code (see §3.2).
+1. ~~**Visit ID prefix** — `VIS-` vs `VST-` inconsistent.~~ Resolved to `VST-` (see §3.2); one migration-generator change still pending a decision on live data.
 2. **Three parallel verticals** — `tpi`, `schedule_m_pharma_epc` and
    `construction_bill_verification` re-implement work items, measurements and certified
    values independently; unification is specified in `SOW_EXECUTION_ARCHITECTURE.md` §1–§4.

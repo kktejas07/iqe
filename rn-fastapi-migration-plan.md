@@ -37,7 +37,7 @@ Job ID Created ──▶ Client / Client ID ──▶ Service Order ──▶ Co
 | **Control Number** | `control_number_id` | `CN-2026-0033` | Job |
 | **Purchase Order** | `po_id` | `PO-2026-0042` | Job |
 | **PO Item** | `po_item_id` | `POI-001` | Purchase Order |
-| **Visit** | `visit_id` | `VIS-2026-0123` | Job |
+| **Visit** | `visit_id` | `VST-2026-0123` | Job |
 | **Visit Expense** | `expense_id` | `EXP-001` | Visit |
 | **Visit Photo** | `photo_id` | `PHO-001` | Visit |
 | **Inspector Assignment** | `assignment_id` | `ASN-001` | Visit |
@@ -641,7 +641,7 @@ Site: "SITE-01"
   │             │     ├── Linked PO Items (refs)
   │             │     └── Reassignment History (embedded)
   │             │
-  │             ├── Visit: "VIS-2026-0123"
+  │             ├── Visit: "VST-2026-0123"
   │             │     ├── Inspector: User "USR-042"
   │             │     ├── Expenses (embedded — travel/food/hotel/mileage)
   │             │     ├── Photos (embedded — visual/defect/measurement)
@@ -791,7 +791,7 @@ POST /api/v1/jobs/JOB-2026-0001/visits
 MongoDB: visits collection
 {
   _id: ObjectId,
-  visit_id: "VIS-2026-0123",
+  visit_id: "VST-2026-0123",
   job_id: "JOB-2026-0001",
   control_number_id: "CN-2026-0033",
   so_id: "SO-2026-0044",
@@ -810,7 +810,7 @@ MongoDB: visits collection
 ### Step 5: Inspector Accepts
 
 ```
-PATCH /api/v1/visits/VIS-2026-0123/accept
+PATCH /api/v1/visits/VST-2026-0123/accept
 
 → status changes to "initiated"
 ```
@@ -819,19 +819,19 @@ PATCH /api/v1/visits/VIS-2026-0123/accept
 
 ```
 # Time log
-POST /api/v1/visits/VIS-2026-0123/time
+POST /api/v1/visits/VST-2026-0123/time
 { "start": "2026-07-22T09:00", "end": "2026-07-22T17:00" }
 
 # Expense
-POST /api/v1/visits/VIS-2026-0123/expenses
+POST /api/v1/visits/VST-2026-0123/expenses
 { "type": "travel", "km": 120, "amount": 2400 }
 
 # Photo
-POST /api/v1/visits/VIS-2026-0123/photos
+POST /api/v1/visits/VST-2026-0123/photos
 (file upload → Azure Blob → metadata saved)
 
 # Submit
-POST /api/v1/visits/VIS-2026-0123/submit
+POST /api/v1/visits/VST-2026-0123/submit
 {
   "inspection_report_no": "IR-2026-088",
   "comments": "All welds inspected. 2 minor defects found."
@@ -844,14 +844,14 @@ POST /api/v1/visits/VIS-2026-0123/submit
 
 ```
 # Quality check
-POST /api/v1/visits/VIS-2026-0123/quality-check
+POST /api/v1/visits/VST-2026-0123/quality-check
 { "status": "approved", "comments": "All docs verified" }
 
 → Visit.quality_check = { status: "approved", by: "USR-005", on: "...", comments: "..." }
 → status changes to "quality_check_completed"
 
 # Finance approval
-POST /api/v1/visits/VIS-2026-0123/finance-approval
+POST /api/v1/visits/VST-2026-0123/finance-approval
 { "status": "approved", "comments": "Expenses within budget" }
 
 → Visit.finance_approval = { status: "approved", by: "USR-008", on: "...", comments: "..." }
@@ -864,7 +864,7 @@ POST /api/v1/visits/VIS-2026-0123/finance-approval
 POST /api/v1/invoices
 {
   "job_id": "JOB-2026-0001",
-  "visit_ids": ["VIS-2026-0123"],
+  "visit_ids": ["VST-2026-0123"],
   "invoice_type": "customer",
   "consolidated_charges": [
     { "description": "Inspection Charges", "amount": 100000 },

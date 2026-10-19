@@ -147,14 +147,14 @@ async def seed():
     await ControlNumber.insert_many(cn_list)
     print("Successfully seeded 50 Control Numbers!")
 
-    # 3. Seed 100 Visits (VIS-001 to VIS-100)
+    # 3. Seed 100 Visits (VST-2026-001 to VST-2026-100)
     print("Seeding 100 Inspection Visits...")
     await Visit.find_all().delete()
     visit_list = []
     statuses = ["scheduled", "in_progress", "submitted", "qc_approved", "finance_approved", "invoiced"]
 
     for i in range(1, 101):
-        vis_id = f"VIS-{i:03d}"
+        vis_id = f"VST-2026-{i:03d}"
         cn_obj = cn_list[(i - 1) % len(cn_list)]
         inspector = inspectors[(i - 1) % len(inspectors)]
         status = statuses[i % len(statuses)]
@@ -242,7 +242,7 @@ async def seed():
         inv_num = f"INV/2026/{200 + i}"
         client_obj = clients[(i - 1) % len(clients)]
         matching_visits = [v for v in visit_list if v.status == "invoiced"][(i - 1) * 2 : i * 2]
-        vis_ids = [v.visit_id for v in matching_visits] if matching_visits else [f"VIS-{i:03d}"]
+        vis_ids = [v.visit_id for v in matching_visits] if matching_visits else [f"VST-2026-{i:03d}"]
 
         subtotal = float(random.randint(150000, 450000))
         gst = round(subtotal * 0.18, 2)

@@ -31,7 +31,7 @@ import {
   HardHat,
   Receipt,
   CreditCard,
-  Table, Boxes
+  Table, Boxes, FileCheck
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -135,6 +135,13 @@ const operationsSubModules: SubModuleItem[] = [
     href: "/work-types",
     icon: Boxes,
     color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40",
+  },
+  {
+    name: "Certifications",
+    subtitle: "Claimed vs certified value",
+    href: "/certifications",
+    icon: FileCheck,
+    color: "text-[#e35f14] bg-orange-100 dark:bg-orange-950/80 dark:text-orange-300 border-orange-200 dark:border-orange-800/40",
   },
   {
     name: "Visit Schedule",

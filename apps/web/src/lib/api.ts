@@ -454,6 +454,58 @@ class API {
       params: { work_type_code, dry_run },
     })).data;
   }
+
+  // ---- Certifications ----
+  async getCertifications(params?: {
+    work_package_id?: string; job_id?: string; status?: string;
+    unbilled_only?: boolean; page?: number; per_page?: number;
+  }) {
+    return (await this.client.get("/certifications/", { params })).data;
+  }
+
+  async getCertification(id: string) {
+    return (await this.client.get(`/certifications/${id}`)).data;
+  }
+
+  async getCertificationSummary(job_id?: string) {
+    return (await this.client.get("/certifications/summary", { params: { job_id } })).data;
+  }
+
+  async getDeductionReasons() {
+    return (await this.client.get("/certifications/deduction-reasons")).data;
+  }
+
+  async getBillingEligibility(workPackageId: string) {
+    return (await this.client.get(`/certifications/eligibility/${workPackageId}`)).data;
+  }
+
+  async createCertification(data: any) {
+    return (await this.client.post("/certifications/", data)).data;
+  }
+
+  async updateCertification(id: string, data: any) {
+    return (await this.client.put(`/certifications/${id}`, data)).data;
+  }
+
+  async issueCertification(id: string, certified_by_person_id: string) {
+    return (await this.client.post(`/certifications/${id}/issue`, null, {
+      params: { certified_by_person_id },
+    })).data;
+  }
+
+  async reviseCertification(id: string, data: any) {
+    return (await this.client.post(`/certifications/${id}/revise`, data)).data;
+  }
+
+  async disputeCertification(id: string, note: string) {
+    return (await this.client.post(`/certifications/${id}/dispute`, null, { params: { note } })).data;
+  }
+
+  async markCertificationBilled(id: string, invoice_id: string) {
+    return (await this.client.post(`/certifications/${id}/mark-billed`, null, {
+      params: { invoice_id },
+    })).data;
+  }
 }
 
 export const api = new API();

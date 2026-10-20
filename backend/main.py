@@ -60,6 +60,8 @@ from modules.work_types.models import WorkTypeDefinition
 from modules.work_types.routes import router as work_types_router
 from modules.work_packages.models import WorkPackage
 from modules.work_packages.routes import router as work_packages_router
+from modules.certifications.models import Certification
+from modules.certifications.routes import router as certifications_router
 
 
 @asynccontextmanager
@@ -73,7 +75,8 @@ async def lifespan(app: FastAPI):
             ControlNumber, Visit, ManufacturerVisitLocation, Invoice,
             PurchaseOrder, Payment, Enquiry, CustomerComplaint, DocModel,
             AnalyticsEvent, AccountReceivable, AccountPayable, ConstructionBillVerificationRecord,
-            ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage
+            ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
+            Certification
         ],
     )
     yield
@@ -137,6 +140,7 @@ app.include_router(construction_bill_verification_router, prefix="/api/v1")
 app.include_router(schedule_m_pharma_epc_router, prefix="/api/v1")
 app.include_router(work_types_router, prefix="/api/v1")
 app.include_router(work_packages_router, prefix="/api/v1")
+app.include_router(certifications_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

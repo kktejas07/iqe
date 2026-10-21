@@ -68,6 +68,7 @@ from modules.people.models import Person, CompetenceProfile, Authorization, Impa
 from modules.people.routes import router as people_router
 from modules.assignments.models import Assignment
 from modules.assignments.routes import router as assignments_router
+from modules.dashboards.routes import router as dashboards_router
 
 
 @asynccontextmanager
@@ -152,6 +153,7 @@ app.include_router(certifications_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
 app.include_router(people_router, prefix="/api/v1")
 app.include_router(assignments_router, prefix="/api/v1")
+app.include_router(dashboards_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

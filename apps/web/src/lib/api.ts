@@ -621,6 +621,15 @@ class API {
       params: { to_status, reason },
     })).data;
   }
+
+  // ---- Role dashboards ----
+  async getDashboardRoles() {
+    return (await this.client.get("/dashboards/roles")).data;
+  }
+
+  async getRoleDashboard(role: string, person_id?: string) {
+    return (await this.client.get(`/dashboards/${role}`, { params: { person_id } })).data;
+  }
 }
 
 export const api = new API();

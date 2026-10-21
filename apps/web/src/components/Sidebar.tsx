@@ -31,7 +31,7 @@ import {
   HardHat,
   Receipt,
   CreditCard,
-  Table, Boxes, FileCheck, Users, UserCheck
+  Table, Boxes, FileCheck, Users, UserCheck, Gauge
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -122,6 +122,13 @@ const formatsSubModules: SubModuleItem[] = [
 ];
 
 const operationsSubModules: SubModuleItem[] = [
+  {
+    name: "Console",
+    subtitle: "Your role's open items",
+    href: "/console",
+    icon: Gauge,
+    color: "text-[#0084bf] bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
+  },
   {
     name: "People",
     subtitle: "Competence & authorization",

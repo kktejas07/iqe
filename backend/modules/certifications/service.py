@@ -237,16 +237,36 @@ class CertificationService:
         """Issue the certification and move its work package to certified.
 
         Separating who prepared from who certified keeps the two-person control
-        the RBAC matrix assumes. Whether the performing inspector may certify
-        their own measurement is open decision 3 in the architecture; until that
-        is settled this only records both identities rather than enforcing a
-        split.
+        the RBAC matrix assumes, and it is enforced here: the preparer cannot
+        certify their own measurement unless the work type sets
+        allow_self_certification. That flag is open decision 3 in the
+        architecture, so it is configuration rather than a code change - the
+        default is the stricter ISO/IEC 17020 reading.
         """
         cert = await CertificationService.get(certification_id, site_id)
         if cert.status != CertificationStatus.DRAFT.value:
             raise HTTPException(409, f"Only a draft can be issued; this one is {cert.status}")
         if not cert.line_items:
             raise HTTPException(400, "Cannot issue a certification with no line items")
+
+        # Separation of duties, unless the work type explicitly allows otherwise.
+        if cert.prepared_by and cert.prepared_by == certified_by_person_id:
+            wp = await WorkPackage.find_one(
+                WorkPackage.work_package_id == cert.work_package_id,
+                WorkPackage.site_id == site_id,
+            )
+            wt = await WorkTypeDefinition.find_one(
+                WorkTypeDefinition.work_type_code == wp.work_type_code,
+                WorkTypeDefinition.site_id == site_id,
+            ) if wp else None
+            if not (wt and wt.allow_self_certification):
+                raise HTTPException(
+                    409,
+                    "The person who prepared this certification cannot also certify it. "
+                    "Have a separate reviewer certify, or enable self-certification on "
+                    f"work type '{wp.work_type_code if wp else 'unknown'}' if that is "
+                    "your accredited practice.",
+                )
 
         cert.status = CertificationStatus.ISSUED.value
         cert.certified_by_person_id = certified_by_person_id

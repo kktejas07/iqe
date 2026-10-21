@@ -69,6 +69,8 @@ from modules.people.routes import router as people_router
 from modules.assignments.models import Assignment
 from modules.assignments.routes import router as assignments_router
 from modules.dashboards.routes import router as dashboards_router
+from modules.reporting.models import ReportFormat
+from modules.reporting.routes import router as reporting_router
 
 
 @asynccontextmanager
@@ -85,7 +87,7 @@ async def lifespan(app: FastAPI):
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
             Certification, BillingTerms,
             Person, CompetenceProfile, Authorization, ImpartialityDeclaration,
-            Assignment
+            Assignment, ReportFormat
         ],
     )
     yield
@@ -154,6 +156,7 @@ app.include_router(billing_router, prefix="/api/v1")
 app.include_router(people_router, prefix="/api/v1")
 app.include_router(assignments_router, prefix="/api/v1")
 app.include_router(dashboards_router, prefix="/api/v1")
+app.include_router(reporting_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

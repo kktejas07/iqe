@@ -68,6 +68,13 @@ class WorkTypeDefinition(Document):
     default_rate_basis: str = RateBasis.PER_VISIT.value
     certification_required_before_billing: bool = True
 
+    #: Whether the person who performed the work may also certify it.
+    #: Defaults to False: under ISO/IEC 17020 the safer position is that
+    #: certification is a separate act from execution. Sites where the
+    #: performing inspector is the competent certifying authority can set this
+    #: True per work type. See SOW_EXECUTION_ARCHITECTURE.md open decision 3.
+    allow_self_certification: bool = False
+
     # --- what comes out ---
     report_format_code: Optional[str] = None
     annexure_format_codes: list[str] = []

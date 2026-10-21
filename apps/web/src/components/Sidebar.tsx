@@ -172,6 +172,13 @@ const operationsSubModules: SubModuleItem[] = [
     color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
   },
   {
+    name: "Reports",
+    subtitle: "Formats & end-to-end project report",
+    href: "/reports",
+    icon: FileText,
+    color: "text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+  },
+  {
     name: "Visit Schedule",
     subtitle: "Inspection Calendar & Timeline",
     href: "/visit-schedule",

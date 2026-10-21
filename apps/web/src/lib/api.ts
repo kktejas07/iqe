@@ -630,6 +630,27 @@ class API {
   async getRoleDashboard(role: string, person_id?: string) {
     return (await this.client.get(`/dashboards/${role}`, { params: { person_id } })).data;
   }
+
+  // ---- Reporting ----
+  async getReportFormats(params?: { work_type_code?: string; kind?: string }) {
+    return (await this.client.get("/reporting/formats", { params })).data;
+  }
+
+  async getReportFormat(formatCode: string) {
+    return (await this.client.get(`/reporting/formats/${formatCode}`)).data;
+  }
+
+  async seedReportFormats() {
+    return (await this.client.post("/reporting/formats/seed")).data;
+  }
+
+  async getFormatsForWorkType(workTypeCode: string) {
+    return (await this.client.get(`/reporting/formats/for-work-type/${workTypeCode}`)).data;
+  }
+
+  async getProjectReport(jobId: string) {
+    return (await this.client.get(`/reporting/project-report/${jobId}`)).data;
+  }
 }
 
 export const api = new API();

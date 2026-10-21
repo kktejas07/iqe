@@ -417,6 +417,22 @@ and values vs BOQ → NCRs open/closed by severity → punch list status → ins
 consumed → photographic annexure → billing and payment position. Generated per job, exportable
 to PDF, and driven entirely by the spine above.
 
+### Built (phase 6)
+
+`backend/modules/reporting/` implements the registry and the composed report:
+`GET /reporting/formats`, `POST /reporting/formats/seed` (idempotent per site),
+`GET /reporting/formats/for-work-type/{code}`, `GET /reporting/project-report/{job_id}`.
+Twelve formats ship in `DEFAULT_FORMATS`, covering every work type in the catalogue — a test
+asserts that, so a new work type without a report format fails the suite rather than reaching
+a client with nothing to hand over. `/reports` in the web app browses the registry and composes
+the project report on demand.
+
+**What was deliberately not done:** the nine existing report screens were *not* collapsed into
+the single renderer described above. They work today, and rewriting them without being able to
+render them against real data would risk breaking live deliverables to gain structure. The
+registry is the home for new formats and for the composed report, which had none; folding the
+nine in is a follow-up to do screen by screen with a visible comparison each time.
+
 ---
 
 ## 7. AI capability map
@@ -541,8 +557,13 @@ them.
 2. **Is "inspection officer" a distinct role, or the primary assignment role?** Specced as a
    role value in `Assignment.role`. If it is a *designation* in the HR sense, it also belongs
    in the designation master — confirm which.
-3. **Who certifies?** Can the performing inspector certify their own measurement, or must a
-   separate QC reviewer sign? Affects both the model and the impartiality position.
+3. ~~**Who certifies?**~~ **Settled as configuration, pending your confirmation of the
+   default.** `CertificationService.issue()` now refuses to issue when `prepared_by` equals
+   `certified_by_person_id`, unless the work type sets `allow_self_certification`. The default
+   is `False` — the stricter ISO/IEC 17020 reading, where certification is a separate act from
+   execution. If a scope in your accreditation does place certifying authority with the
+   performing inspector, turn the flag on for that work type rather than changing code. What
+   still needs your answer is *which* work types, if any, should have it on.
 4. **Retention and advance** — confirm these exist in IQE's contracts. If yes they are phase 5,
    not optional.
 5. **Auto-assign appetite.** Full auto (TÜV's stated direction), recommend-only, or auto above

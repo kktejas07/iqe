@@ -1,0 +1,175 @@
+"""Report format registry.
+
+Each of the three verticals owns its own report path today, and the web app has
+nine separate report screens. A format registry keyed by work type replaces that
+with one renderer: the work type names its format, the format names its template
+and sections.
+
+This does not rewrite the nine existing screens. It gives new formats one home
+and provides the composed project report, which had no home at all.
+
+See SOW_EXECUTION_ARCHITECTURE.md section 6.
+"""
+from __future__ import annotations
+
+from datetime import datetime
+from enum import Enum
+from typing import Optional
+
+from beanie import Document
+from pydantic import Field
+
+
+class ReportKind(str, Enum):
+    VISIT = "VISIT"                 # one inspection event
+    CERTIFICATE = "CERTIFICATE"     # a signed assurance
+    MEASUREMENT = "MEASUREMENT"     # quantities
+    REGISTER = "REGISTER"           # a running list (NCR, punch, calibration)
+    COMPOSED = "COMPOSED"           # built from other records, e.g. project report
+
+
+class ReportFormat(Document):
+    format_code: str                        # IVR, FIR, IRN, EVR, LOGSHEET, …
+    site_id: str = "SITE-01"
+    name: str
+    kind: str = ReportKind.VISIT.value
+    description: Optional[str] = None
+
+    work_type_codes: list[str] = []         # which work types produce this
+    template_path: Optional[str] = None     # app/pdf/templates/…
+    sections: list[str] = []
+    requires_signatures: list[str] = []     # inspector, qc_reviewer, client_witness
+    annexures: list[str] = []
+
+    #: Clients routinely mandate their own layouts.
+    is_client_specific: bool = False
+    client_id: Optional[str] = None
+
+    revision: str = "Rev 0"
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    class Settings:
+        name = "report_formats"
+        indexes = ["site_id", "format_code", "is_active"]
+
+
+#: Seeded from the report screens that already exist in apps/web, plus the
+#: formats the new modules produce. Template paths point at app/pdf/templates
+#: where one already exists; the rest render from sections until a template is
+#: authored.
+DEFAULT_FORMATS: list[dict] = [
+    {
+        "format_code": "IVR", "name": "Inspection Visit Report",
+        "kind": ReportKind.VISIT.value,
+        "description": "Record of a single inspection visit, its findings and evidence.",
+        "work_type_codes": ["CODE_INSP"],
+        "sections": ["header", "scope", "checklist", "findings", "photographs", "conclusion"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+        "annexures": ["PHOTO_ANNEX"],
+    },
+    {
+        "format_code": "FIR", "name": "Flash Inspection Report",
+        "kind": ReportKind.VISIT.value,
+        "description": "Short-form report issued immediately after a visit.",
+        "work_type_codes": ["CODE_INSP", "EXPEDITING"],
+        "template_path": "tp02.html",
+        "sections": ["header", "observation", "action_required"],
+        "requires_signatures": ["inspector"],
+    },
+    {
+        "format_code": "IRN", "name": "Inspection Release Note",
+        "kind": ReportKind.CERTIFICATE.value,
+        "description": "Releases inspected material for despatch.",
+        "work_type_codes": ["CODE_INSP"],
+        "sections": ["header", "material", "basis_of_release", "limitations"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+    },
+    {
+        "format_code": "EVR", "name": "Expediting Visit Report",
+        "kind": ReportKind.VISIT.value,
+        "description": "Progress against delivery milestones, with constraints raised.",
+        "work_type_codes": ["EXPEDITING"],
+        "sections": ["header", "progress", "constraints", "recovery_plan"],
+        "requires_signatures": ["inspector"],
+    },
+    {
+        "format_code": "LOGSHEET", "name": "Site Daily Logsheet",
+        "kind": ReportKind.REGISTER.value,
+        "description": "Daily record of a deputed engineer's activity.",
+        "work_type_codes": ["STAFF_DEPUT"],
+        "sections": ["header", "activity", "hours", "remarks"],
+        "requires_signatures": ["inspector", "client_witness"],
+    },
+    {
+        "format_code": "MEASUREMENT_SHEET", "name": "Measurement Sheet",
+        "kind": ReportKind.MEASUREMENT.value,
+        "description": "Joint measurement backing a certified quantity.",
+        "work_type_codes": ["BOQ_RECON", "BILL_VERIF"],
+        "sections": ["header", "measured_items", "summary"],
+        "requires_signatures": ["inspector", "client_witness"],
+    },
+    {
+        "format_code": "BOQ_RECON", "name": "BOQ Reconciliation",
+        "kind": ReportKind.MEASUREMENT.value,
+        "description": "Contract quantity against measured and certified quantity.",
+        "work_type_codes": ["BOQ_RECON"],
+        "template_path": "fboq01.html",
+        "sections": ["header", "reconciliation", "variation", "summary"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+        "annexures": ["MEASUREMENT_SHEET"],
+    },
+    {
+        "format_code": "RA_BILL_CERT", "name": "RA Bill Verification Certificate",
+        "kind": ReportKind.CERTIFICATE.value,
+        "description": "Claimed against certified value, with itemised deductions.",
+        "work_type_codes": ["BILL_VERIF"],
+        "template_path": "fbill01.html",
+        "sections": ["header", "claimed_vs_certified", "deductions", "recommendation"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+        "annexures": ["MEASUREMENT_SHEET", "MATERIAL_LEDGER"],
+    },
+    {
+        "format_code": "GMP_COMPLIANCE", "name": "Schedule M Compliance Report",
+        "kind": ReportKind.REGISTER.value,
+        "description": "Compliance position against Schedule M and WHO-GMP.",
+        "work_type_codes": ["GMP_SCHEDM"],
+        "template_path": "fqual01.html",
+        "sections": ["header", "requirements", "findings", "ncr_summary", "conclusion"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+        "annexures": ["NCR", "PUNCH_LIST"],
+    },
+    {
+        "format_code": "SAT_CERT", "name": "Site Acceptance Test Certificate",
+        "kind": ReportKind.CERTIFICATE.value,
+        "description": "Equipment acceptance against the approved SAT protocol.",
+        "work_type_codes": ["SAT_COMM"],
+        "sections": ["header", "equipment", "tests_performed", "results", "acceptance"],
+        "requires_signatures": ["inspector", "client_witness"],
+    },
+    {
+        "format_code": "VENDOR_AUDIT", "name": "Vendor Assessment Report",
+        "kind": ReportKind.REGISTER.value,
+        "description": "Vendor capability against client approval criteria.",
+        "work_type_codes": ["VENDOR_AUDIT"],
+        "sections": ["header", "capability", "quality_system", "findings", "recommendation"],
+        "requires_signatures": ["inspector"],
+        "annexures": ["NCR"],
+    },
+    {
+        "format_code": "PROJECT_REPORT", "name": "End-to-End Project Report",
+        "kind": ReportKind.COMPOSED.value,
+        "description": (
+            "Composed per job: work packages by discipline and status, certified "
+            "quantities and values against BOQ, NCRs, inspector man-days, and the "
+            "billing and payment position."
+        ),
+        "work_type_codes": [],          # spans every work type
+        "sections": [
+            "project_header", "work_packages", "certified_position",
+            "deductions", "people_deployed", "billing_position", "photographs",
+        ],
+        "requires_signatures": ["qc_reviewer"],
+    },
+]

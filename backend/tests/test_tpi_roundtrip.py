@@ -9,16 +9,41 @@ from modules.tpi.service import (
     issue_report,
     get_report,
 )
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
+from pymongo.errors import PyMongoError
 from beanie import init_beanie
 from core.config import settings
 from modules.tpi.models import TpiReport
 
 
+def _mongodb_reachable() -> bool:
+    """This test writes to a real database. Without one it has nothing to say,
+    so it skips rather than failing and masking real regressions."""
+    async def ping():
+        client = AsyncMongoClient(settings.mongodb_url, serverSelectionTimeoutMS=1500)
+        try:
+            await client.admin.command("ping")
+            return True
+        except PyMongoError:
+            return False
+        finally:
+            await client.close()
+
+    try:
+        return asyncio.run(ping())
+    except Exception:
+        return False
+
+
+@pytest.mark.skipif(
+    not _mongodb_reachable(),
+    reason="needs a live MongoDB at settings.mongodb_url",
+)
 def test_tpi_lifecycle_roundtrip():
     """Verify complete roundtrip lifecycle: create -> edit -> submit -> sign (both) -> issue."""
     async def run_lifecycle():
-        client = AsyncIOMotorClient(settings.mongodb_url)
+        # Matches main.py: beanie 2.2 drives pymongo's AsyncMongoClient, not motor.
+        client = AsyncMongoClient(settings.mongodb_url)
         await init_beanie(
             database=client[settings.mongodb_db_name],
             document_models=[TpiReport],

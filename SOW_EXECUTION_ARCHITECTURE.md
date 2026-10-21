@@ -550,10 +550,22 @@ them.
 
 ## 11. Open decisions
 
-1. **Do the three existing verticals get migrated, or frozen and replaced?** Migration
-   preserves live data (`schedule_m_pharma_epc` appears to hold a real project); freezing is
-   faster but splits reporting. Recommend migrate, with the old routes kept read-only for one
-   release.
+1. ~~**Do the three existing verticals get migrated, or frozen and replaced?**~~ **Built as
+   migration, not yet run.** `backend/modules/migration/` reads each vertical and writes the
+   equivalent spine records; `scripts/migrate_verticals.py` drives it from a shell, and
+   `POST /migration/{tpi,schedule-m,construction-bill-verification,all}` from the API. Three
+   properties make it safe to run against live data: dry run by default, idempotent on
+   `migrated_from_ref` (so an interrupted run is fixed by re-running), and read-only against the
+   legacy collections, which means the old routes keep working and the cut-over is reversible by
+   deleting the spine records. **It has never been executed** — there is no database reachable
+   from where it was written, so the mapping is verified against seeded fixtures only. Run
+   `--only tpi` first, without `--apply`, and read the plan.
+
+   Two mapping judgements worth your review before the first real run. Migrated packages stop at
+   `under_qc`, never `certified`: the verticals recorded no separate certifying act, and carrying
+   work to `certified` would assert a control that was never exercised. And Schedule M RA bill
+   reviews are *reported* rather than written, because which discipline's package a bill attaches
+   to is a judgement the legacy data does not hold.
 2. **Is "inspection officer" a distinct role, or the primary assignment role?** Specced as a
    role value in `Assignment.role`. If it is a *designation* in the HR sense, it also belongs
    in the designation master — confirm which.

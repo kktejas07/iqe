@@ -95,6 +95,11 @@ class WorkPackage(Document):
     # provenance for packages migrated out of Job.scope_of_work
     migrated_from_sow_item_id: Optional[str] = None
 
+    #: Provenance for records promoted out of a legacy vertical collection,
+    #: formatted "<collection>:<record key>". Migration is idempotent on this,
+    #: so a half-finished run can simply be re-run.
+    migrated_from_ref: Optional[str] = None
+
     is_active: bool = True
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
@@ -109,4 +114,5 @@ class WorkPackage(Document):
             "status",
             "planned_start",
             "work_package_id",
+            "migrated_from_ref",
         ]

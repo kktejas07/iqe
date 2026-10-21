@@ -69,6 +69,7 @@ from modules.people.routes import router as people_router
 from modules.assignments.models import Assignment
 from modules.assignments.routes import router as assignments_router
 from modules.dashboards.routes import router as dashboards_router
+from modules.migration.routes import router as migration_router
 from modules.reporting.models import ReportFormat
 from modules.reporting.routes import router as reporting_router
 
@@ -157,6 +158,7 @@ app.include_router(people_router, prefix="/api/v1")
 app.include_router(assignments_router, prefix="/api/v1")
 app.include_router(dashboards_router, prefix="/api/v1")
 app.include_router(reporting_router, prefix="/api/v1")
+app.include_router(migration_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

@@ -117,6 +117,9 @@ class Certification(Document):
 
     status: str = CertificationStatus.DRAFT.value
     prepared_by: Optional[str] = None
+
+    #: See WorkPackage.migrated_from_ref - "<collection>:<record key>".
+    migrated_from_ref: Optional[str] = None
     certified_by_person_id: Optional[str] = None
     certified_at: Optional[datetime] = None
     dispute_note: Optional[str] = None
@@ -139,4 +142,5 @@ class Certification(Document):
             "status",
             "certification_id",
             "billed_invoice_id",
+            "migrated_from_ref",
         ]

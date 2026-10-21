@@ -506,6 +506,33 @@ class API {
       params: { invoice_id },
     })).data;
   }
+
+  // ---- Billing ----
+  async getBillingQueue(job_id?: string) {
+    return (await this.client.get("/billing/queue", { params: { job_id } })).data;
+  }
+
+  async getReceivables() {
+    return (await this.client.get("/billing/receivables")).data;
+  }
+
+  async getBillingTermOptions() {
+    return (await this.client.get("/billing/term-options")).data;
+  }
+
+  async getBillingTerms(soId: string) {
+    return (await this.client.get(`/billing/terms/${soId}`)).data;
+  }
+
+  async setBillingTerms(soId: string, data: any) {
+    return (await this.client.put(`/billing/terms/${soId}`, data)).data;
+  }
+
+  async raiseInvoiceFromCertifications(certification_ids: string[], so_id?: string, intra_state = true) {
+    return (await this.client.post("/billing/invoices/from-certifications", {
+      certification_ids, so_id, intra_state,
+    })).data;
+  }
 }
 
 export const api = new API();

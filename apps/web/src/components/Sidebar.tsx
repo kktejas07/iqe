@@ -144,6 +144,13 @@ const operationsSubModules: SubModuleItem[] = [
     color: "text-[#e35f14] bg-orange-100 dark:bg-orange-950/80 dark:text-orange-300 border-orange-200 dark:border-orange-800/40",
   },
   {
+    name: "Billing",
+    subtitle: "Certified work ready to invoice",
+    href: "/billing",
+    icon: Receipt,
+    color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
+  },
+  {
     name: "Visit Schedule",
     subtitle: "Inspection Calendar & Timeline",
     href: "/visit-schedule",

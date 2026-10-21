@@ -585,6 +585,42 @@ class API {
       params: { status, reason },
     })).data;
   }
+
+  // ---- Assignments ----
+  async getAssignments(params?: {
+    work_package_id?: string; person_id?: string; status?: string;
+    page?: number; per_page?: number;
+  }) {
+    return (await this.client.get("/assignments/", { params })).data;
+  }
+
+  async getRoster(person_id?: string) {
+    return (await this.client.get("/assignments/roster", { params: { person_id } })).data;
+  }
+
+  async recommendOfficers(workPackageId: string, top_n = 5) {
+    return (await this.client.get(`/assignments/recommend/${workPackageId}`, {
+      params: { top_n },
+    })).data;
+  }
+
+  async assignOfficer(data: {
+    work_package_id: string; person_id: string; role?: string;
+    method?: string; client_approval_required?: boolean;
+    supervised_by_person_id?: string;
+  }) {
+    return (await this.client.post("/assignments/assign", data)).data;
+  }
+
+  async autoAssign(workPackageId: string) {
+    return (await this.client.post(`/assignments/auto-assign/${workPackageId}`)).data;
+  }
+
+  async transitionAssignment(id: string, to_status: string, reason?: string) {
+    return (await this.client.patch(`/assignments/${id}/status`, null, {
+      params: { to_status, reason },
+    })).data;
+  }
 }
 
 export const api = new API();

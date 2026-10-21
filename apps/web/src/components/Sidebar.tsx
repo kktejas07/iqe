@@ -31,7 +31,7 @@ import {
   HardHat,
   Receipt,
   CreditCard,
-  Table, Boxes, FileCheck, Users
+  Table, Boxes, FileCheck, Users, UserCheck
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -135,6 +135,13 @@ const operationsSubModules: SubModuleItem[] = [
     href: "/work-packages",
     icon: Layers,
     color: "text-[#0084bf] bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
+  },
+  {
+    name: "Assignments",
+    subtitle: "Who is qualified to take the work",
+    href: "/assignments",
+    icon: UserCheck,
+    color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
   },
   {
     name: "Work Types",

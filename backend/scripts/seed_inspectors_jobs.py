@@ -1,7 +1,7 @@
 import asyncio
 import random
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 from core.auth import hash_password
@@ -52,7 +52,7 @@ DISCIPLINES = [
 
 async def seed():
     print("Connecting to MongoDB for Inspector & Job seeding...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(database=client[settings.mongodb_db_name], document_models=[UserLogin, Competency, InspectorRate, Job, Client])
 
     site_id = "SITE-01"

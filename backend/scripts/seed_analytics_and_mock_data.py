@@ -2,7 +2,7 @@ import asyncio
 import random
 import uuid
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 
@@ -61,7 +61,7 @@ USER_ROLES = ["admin", "coordinator", "inspector", "qc_auditor", "finance"]
 
 async def seed_analytics_and_mock_data():
     print("Connecting to MongoDB for Seeding Mock Analytics & Job Data...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[

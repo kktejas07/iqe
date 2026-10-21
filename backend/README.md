@@ -49,6 +49,40 @@ PYTHONPATH=. python seed_tpi_samples.py
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+#### Demo data for the execution spine
+
+The people, work-package, assignment, certification, billing and reporting
+screens start empty. `seed_spine_demo.py` fills them with a coherent set — 4
+jobs, 13 people across every category (inspectors, surveyors, site labour,
+admin, HR, IT), 14 work packages spread deliberately across the lifecycle, 4
+certifications, 2 invoices, and the exception rows each screen needs (one
+package running late, one certification disputed, one invoice 27 days overdue,
+one authorization awaiting the Technical Manager's decision, two credentials
+inside the 60-day lapse horizon).
+
+```bash
+cd backend
+PYTHONPATH=. python scripts/seed_spine_demo.py          # seed
+PYTHONPATH=. python scripts/seed_spine_demo.py --wipe   # remove only what it seeded
+```
+
+Idempotent — running it twice changes nothing. `--wipe` deletes only the
+records it created, so it is safe on a database you are also using by hand. It
+refuses to run against a database whose name looks like production unless you
+pass `--force`. `tests/test_seed_spine_demo.py` executes the script itself
+against an in-memory MongoDB, so the seeder is covered by the suite rather than
+trusted.
+
+#### Migrating the legacy verticals
+
+```bash
+PYTHONPATH=. python scripts/migrate_verticals.py --only tpi   # dry run, writes nothing
+PYTHONPATH=. python scripts/migrate_verticals.py --only tpi --apply
+```
+
+Dry run by default, idempotent, and read-only against the legacy collections —
+see `SOW_EXECUTION_ARCHITECTURE.md` open decision 1 before the first real run.
+
 ### Frontend (Next.js)
 ```bash
 cd apps/web

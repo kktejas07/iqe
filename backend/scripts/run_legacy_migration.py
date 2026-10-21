@@ -1,5 +1,5 @@
 import asyncio
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 
@@ -14,7 +14,7 @@ from modules.analytics.service import AnalyticsService
 
 async def main():
     print("Initializing MongoDB Connection for Legacy Migration Execution...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[Job, ServiceOrder, Visit, Invoice, AnalyticsEvent],

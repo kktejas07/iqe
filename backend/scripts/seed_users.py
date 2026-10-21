@@ -1,5 +1,5 @@
 import asyncio
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 from core.auth import hash_password
@@ -8,7 +8,7 @@ from modules.auth.models import UserLogin
 
 async def seed_users():
     print("Connecting to MongoDB to seed standard login users...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(database=client[settings.mongodb_db_name], document_models=[UserLogin])
 
     site_id = "SITE-01"

@@ -1,7 +1,7 @@
 import asyncio
 import random
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 from modules.finance.models import AccountReceivable, AccountPayable
@@ -49,7 +49,7 @@ STATUSES = ["settled", "overdue", "pending", "partially_paid"]
 
 async def seed_finance_data():
     print("Connecting to MongoDB for Seeding 100+ Finance Invoices & Ledger Records...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[AccountReceivable, AccountPayable, Invoice],

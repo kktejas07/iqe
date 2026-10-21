@@ -1,6 +1,6 @@
 import asyncio
 import random
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 from modules.clients.models import Client, ClientUnit
@@ -64,7 +64,7 @@ LAST_NAMES = ["Sharma", "Patel", "Verma", "Rao", "Nair", "Deshmukh", "Gupta", "J
 
 async def seed():
     print("Connecting to MongoDB for seeding...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(database=client[settings.mongodb_db_name], document_models=[Client, ClientUnit, Manufacturer, ManufacturerUnit])
 
     print("Clearing existing clients & manufacturers for fresh 200 seed dataset...")

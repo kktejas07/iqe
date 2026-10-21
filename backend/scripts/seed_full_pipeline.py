@@ -1,7 +1,7 @@
 import asyncio
 import random
 from datetime import datetime, timedelta
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 from core.config import settings
 
@@ -44,7 +44,7 @@ FINDING_SEVERITIES = ["observation", "minor_nc", "major_nc", "critical"]
 
 async def seed():
     print("Connecting to MongoDB for Full Pipeline Seeding...")
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[

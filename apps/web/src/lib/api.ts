@@ -533,6 +533,58 @@ class API {
       certification_ids, so_id, intra_state,
     })).data;
   }
+
+  // ---- People ----
+  async getPeople(params?: {
+    category?: string; employment_status?: string; deployable?: boolean;
+    discipline?: string; search?: string; page?: number; per_page?: number;
+  }) {
+    return (await this.client.get("/people/", { params })).data;
+  }
+
+  async getPerson(id: string) {
+    return (await this.client.get(`/people/${id}`)).data;
+  }
+
+  async getPeopleSummary() {
+    return (await this.client.get("/people/summary")).data;
+  }
+
+  async getPeopleOptions() {
+    return (await this.client.get("/people/options")).data;
+  }
+
+  async getDeployablePool(inspection_type?: string, discipline?: string) {
+    return (await this.client.get("/people/deployable", {
+      params: { inspection_type, discipline },
+    })).data;
+  }
+
+  async getExpiringCredentials(days = 60) {
+    return (await this.client.get("/people/expiring", { params: { days } })).data;
+  }
+
+  async createPerson(data: any) {
+    return (await this.client.post("/people/", data)).data;
+  }
+
+  async updatePerson(id: string, data: any) {
+    return (await this.client.put(`/people/${id}`, data)).data;
+  }
+
+  async getPersonAuthorizations(id: string) {
+    return (await this.client.get(`/people/${id}/authorizations`)).data;
+  }
+
+  async createAuthorization(personId: string, data: any) {
+    return (await this.client.post(`/people/${personId}/authorizations`, data)).data;
+  }
+
+  async decideAuthorization(authorizationId: string, status: string, reason?: string) {
+    return (await this.client.patch(`/people/authorizations/${authorizationId}`, null, {
+      params: { status, reason },
+    })).data;
+  }
 }
 
 export const api = new API();

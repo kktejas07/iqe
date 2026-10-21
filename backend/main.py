@@ -64,6 +64,8 @@ from modules.certifications.models import Certification
 from modules.certifications.routes import router as certifications_router
 from modules.billing.models import BillingTerms
 from modules.billing.routes import router as billing_router
+from modules.people.models import Person, CompetenceProfile, Authorization, ImpartialityDeclaration
+from modules.people.routes import router as people_router
 
 
 @asynccontextmanager
@@ -78,7 +80,8 @@ async def lifespan(app: FastAPI):
             PurchaseOrder, Payment, Enquiry, CustomerComplaint, DocModel,
             AnalyticsEvent, AccountReceivable, AccountPayable, ConstructionBillVerificationRecord,
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
-            Certification, BillingTerms
+            Certification, BillingTerms,
+            Person, CompetenceProfile, Authorization, ImpartialityDeclaration
         ],
     )
     yield
@@ -144,6 +147,7 @@ app.include_router(work_types_router, prefix="/api/v1")
 app.include_router(work_packages_router, prefix="/api/v1")
 app.include_router(certifications_router, prefix="/api/v1")
 app.include_router(billing_router, prefix="/api/v1")
+app.include_router(people_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

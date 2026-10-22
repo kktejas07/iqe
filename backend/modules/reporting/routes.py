@@ -76,6 +76,8 @@ async def format_pdf(
     format_code: str,
     client_id: str = "",
     blank: bool = True,
+    entity_type: str = "",
+    entity_id: str = "",
     user: dict = Depends(get_current_user),
 ):
     """The format rendered as a PDF - blank by default, which is the pro forma
@@ -84,8 +86,18 @@ async def format_pdf(
 
     site_id = user.get("site_id", "SITE-01")
     await ReportingService.sync_renderer(site_id)
+
+    payload: dict = {}
+    # A format rendered against a real record carries that record's evidence.
+    if not blank and entity_type and entity_id:
+        from modules.evidence.service import EvidenceService
+
+        payload["photos"] = await EvidenceService.photos_for_report(
+            entity_type, entity_id, site_id
+        )
+
     try:
-        pdf = render_pdf(format_code, payload={}, is_blank=blank,
+        pdf = render_pdf(format_code, payload=payload, is_blank=blank,
                          client_id=client_id or None)
     except ValueError as e:
         raise HTTPException(404, str(e))
@@ -110,6 +122,12 @@ async def project_report_pdf(
     site_id = user.get("site_id", "SITE-01")
     report = await ReportingService.project_report(job_id, site_id)
     await ReportingService.sync_renderer(site_id)
+
+    # Photographs the inspectors actually captured, so the annexure is the
+    # evidence rather than an empty grid.
+    from modules.evidence.service import EvidenceService
+
+    report["photos"] = await EvidenceService.photos_for_report("job", job_id, site_id)
     pdf = render_pdf("PROJECT_REPORT", payload=report, client_id=client_id or None)
 
     return Response(

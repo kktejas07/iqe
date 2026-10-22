@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from pathlib import Path
 from fastapi import HTTPException, UploadFile
@@ -12,14 +13,27 @@ class FileUploadService:
             raise HTTPException(400, "No file provided")
         ext = os.path.splitext(file.filename)[1]
         file_guid = str(uuid.uuid4())
-        upload_dir = Path("uploads") / str(section_id)
+
+        # section_id used to be joined straight onto the path, so a caller
+        # passing "../../etc" wrote outside the uploads directory. It is now
+        # validated as a single safe segment and the resolved path is checked
+        # against the root as well. For inspection evidence prefer
+        # modules/evidence, which also records what was uploaded and to what.
+        safe_section = str(section_id or "0").strip()
+        if not re.fullmatch(r"[A-Za-z0-9._-]+", safe_section) or safe_section in {".", ".."}:
+            raise HTTPException(400, f"Invalid section_id: {section_id!r}")
+
+        root = Path("uploads").resolve()
+        upload_dir = (root / safe_section).resolve()
+        if upload_dir != root and root not in upload_dir.parents:
+            raise HTTPException(400, "Resolved path escapes the uploads directory")
         upload_dir.mkdir(parents=True, exist_ok=True)
         file_path = upload_dir / f"{file_guid}{ext}"
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
         # Using posix path format ensures cross-platform consistency (no Windows backslashes in URL)
-        posix_rel_path = file_path.as_posix()
+        posix_rel_path = file_path.relative_to(Path("uploads").resolve().parent).as_posix()
         return {
             "file_id": file_guid,
             "title": file.filename,

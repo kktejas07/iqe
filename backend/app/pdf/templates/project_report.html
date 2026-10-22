@@ -255,7 +255,16 @@
   </div>
   {% endif %}
 
-  {{ m.section("7.0", "AUTHORISATION") }}
+  {% if photos %}
+  {{ m.section("7.0", "PHOTOGRAPHIC ANNEXURE") }}
+  <p class="note">
+    {{ photos|length }} photograph{{ '' if photos|length == 1 else 's' }} captured on site
+    and held against this job.
+  </p>
+  {{ m.photo_grid(photos) }}
+  {% endif %}
+
+  {{ m.section("8.0" if photos else "7.0", "AUTHORISATION") }}
   {{ m.signature_block("Reviewed By", "For Ideal Quality Engineers (I) Pvt. Ltd.",
                        "QC Reviewer:", signatures) }}
 

@@ -28,6 +28,7 @@ from modules.billing.models import BillingTerms  # noqa: E402
 from modules.certifications.models import Certification  # noqa: E402
 from modules.certifications.service import CertificationService  # noqa: E402
 from modules.invoices.models import Invoice  # noqa: E402
+from modules.evidence.models import Evidence  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
 from modules.people.models import (  # noqa: E402
     Authorization, CompetenceProfile, ImpartialityDeclaration, Person,
@@ -62,6 +63,7 @@ async def db():
     await init_beanie(
         database=client["audit_test"],
         document_models=[
+            Evidence,
             AuditEntry, Sequence, Job, WorkTypeDefinition, WorkPackage, Person,
             CompetenceProfile, Authorization, ImpartialityDeclaration,
             Assignment, Certification, Invoice, BillingTerms,

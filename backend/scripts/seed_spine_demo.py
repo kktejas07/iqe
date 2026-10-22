@@ -41,6 +41,7 @@ from modules.billing.service import BillingService  # noqa: E402
 from modules.certifications.models import Certification  # noqa: E402
 from modules.certifications.service import CertificationService  # noqa: E402
 from modules.invoices.models import Invoice  # noqa: E402
+from modules.evidence.models import Evidence  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
 from modules.people.models import (  # noqa: E402
     Authorization,
@@ -61,6 +62,7 @@ USER = "USR-SEED"
 NOW = datetime.now()
 
 DOCUMENT_MODELS = [
+            Evidence,
     AuditEntry,
     Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
     Authorization, ImpartialityDeclaration, Assignment, Certification,

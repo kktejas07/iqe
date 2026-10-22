@@ -25,6 +25,7 @@ from modules.construction_bill_verification.models import (  # noqa: E402
     ConstructionBillVerificationRecord,
 )
 from modules.invoices.models import Invoice  # noqa: E402
+from modules.evidence.models import Evidence  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
 from modules.migration import service as migration  # noqa: E402
 from modules.people.models import (  # noqa: E402
@@ -71,6 +72,7 @@ async def db():
     await init_beanie(
         database=client["migration_test"],
         document_models=[
+            Evidence,
             AuditEntry,
             Sequence,
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,

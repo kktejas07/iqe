@@ -7,6 +7,7 @@ import {
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
+import { StatusPill } from "@/components/ui";
 import {
   ASIDE_STATES, LIFECYCLE, RATE_BASIS_LABEL, STATUS_LABEL, STATUS_MEANING,
   STATUS_TONE, formatCurrency, formatDate, nextStates,
@@ -192,7 +193,10 @@ export default function WorkPackagesPage() {
                     stage === s ? "ring-2" : ""
                   }`}
                 >
-                  {STATUS_LABEL[s]} · {counts[s]}
+                  {STATUS_LABEL[s]}
+                  <span className="ml-1.5 rounded bg-black/5 px-1 tabular-nums dark:bg-white/10">
+                    {counts[s]}
+                  </span>
                 </button>
               ) : null
             )}
@@ -297,7 +301,7 @@ export default function WorkPackagesPage() {
                       </div>
                       <div className="mt-0.5 text-xs text-slate-400">
                         {p.job_id}
-                        {p.location ? ` · ${p.location}` : ""}
+                        {p.location ? <span className="ml-2">{p.location}</span> : null}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -342,9 +346,9 @@ export default function WorkPackagesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-block rounded-lg px-2 py-1 text-xs font-medium ring-1 ${STATUS_TONE[p.status]}`}
+                        className="inline-block"
                       >
-                        {STATUS_LABEL[p.status]}
+                        <StatusPill status={p.status}>{STATUS_LABEL[p.status]}</StatusPill>
                       </span>
                     </td>
                     <td className="px-4 py-3">

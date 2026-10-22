@@ -7,7 +7,11 @@ import {
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
-import { formatCurrency, formatDate } from "@/lib/workPackageLifecycle";
+import { formatDate } from "@/lib/workPackageLifecycle";
+import {
+  Card, EmptyState, LifecycleBar, Metric, PageHeader, SkeletonRows, StatusPill,
+  buttonPrimary, buttonSecondary, formatINR, humanise, inputClass,
+} from "@/components/ui";
 
 type ReportFormat = {
   format_code: string;
@@ -166,39 +170,23 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex items-start gap-3.5">
-          <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-[#0084bf] to-[#00618e] text-white shadow-glow-blue">
-            <FileText className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-slate-900 dark:text-white">
-              Reports
-            </h1>
-            <p className="mt-0.5 max-w-xl text-sm text-slate-500 dark:text-slate-400">
-              Which deliverable each kind of work produces, and the end-to-end project
-              position composed from what has actually been certified.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-start">
-          <button
-            onClick={seed}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-          >
-            <Sparkles className="h-4 w-4" />
-            Load standard formats
-          </button>
-          <button
-            onClick={load}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        icon={FileText}
+        title="Reports"
+        description="Which deliverable each kind of work produces, and the end-to-end project position composed from what has actually been certified."
+        actions={
+          <>
+            <button onClick={seed} className={buttonSecondary}>
+              <Sparkles className="h-4 w-4" />
+              Load standard formats
+            </button>
+            <button onClick={load} className={buttonSecondary}>
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </>
+        }
+      />
 
       {/* ------------------------------------------- composed project report */}
       <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -223,7 +211,7 @@ export default function ReportsPage() {
             <button
               onClick={runProjectReport}
               disabled={!jobId.trim() || reportLoading}
-              className="shrink-0 rounded-xl bg-[#0084bf] px-4 py-2.5 text-sm font-semibold text-white shadow-glow-blue hover:bg-[#00739f] disabled:opacity-50"
+              className={`shrink-0 ${buttonPrimary}`}
             >
               {reportLoading ? "Composing…" : "Compose"}
             </button>
@@ -237,12 +225,28 @@ export default function ReportsPage() {
                 <div className="font-heading text-lg font-bold text-slate-900 dark:text-white">
                   {report.project_header?.title}
                 </div>
-                <div className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                  {report.project_header?.client_name}
-                  {report.project_header?.location ? ` · ${report.project_header.location}` : ""}
-                  {" · "}
-                  <span className="font-mono text-xs">{report.project_header?.job_id}</span>
-                </div>
+                <dl className="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  <div>
+                    <dt className="sr-only">Client</dt>
+                    <dd className="text-slate-700 dark:text-slate-300">
+                      {report.project_header?.client_name}
+                    </dd>
+                  </div>
+                  {report.project_header?.location && (
+                    <div>
+                      <dt className="sr-only">Location</dt>
+                      <dd className="text-slate-500 dark:text-slate-400">
+                        {report.project_header.location}
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="sr-only">Job</dt>
+                    <dd className="font-mono text-xs text-slate-400">
+                      {report.project_header?.job_id}
+                    </dd>
+                  </div>
+                </dl>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">
@@ -260,36 +264,51 @@ export default function ReportsPage() {
               </div>
             </div>
 
+            {report.work_packages?.total > 0 && (
+              <div>
+                <h3 className="font-heading text-sm font-semibold text-slate-900 dark:text-white">
+                  Where the scope stands
+                </h3>
+                <LifecycleBar
+                  counts={report.work_packages.by_status ?? {}}
+                  total={report.work_packages.total}
+                  className="mt-2"
+                />
+              </div>
+            )}
+
             {/* the claimed → certified subtraction, same shape as the certifications page */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
-              <Figure
+            <div className="flex flex-wrap items-start gap-x-3 gap-y-4">
+              <Metric
+                value={formatINR(report.certified_position?.claimed_value)}
                 label="Claimed"
-                value={formatCurrency(report.certified_position?.claimed_value ?? 0)}
-                sub={`${report.certified_position?.certifications_issued ?? 0} issued`}
+                sub={`${report.certified_position?.certifications_issued ?? 0} certifications issued`}
               />
               <Operator symbol="−" />
-              <Figure
+              <Metric
+                value={formatINR(report.certified_position?.deduction_value)}
                 label="Deducted"
-                value={formatCurrency(report.certified_position?.deduction_value ?? 0)}
                 sub={
                   report.certified_position?.deduction_pct
-                    ? `${report.certified_position.deduction_pct}% of claim`
+                    ? `${report.certified_position.deduction_pct}% of the claim`
                     : undefined
                 }
-                tone="rose"
+                tone="bad"
               />
               <Operator symbol="=" />
-              <Figure
+              <Metric
+                value={formatINR(report.certified_position?.certified_value)}
                 label="Certified"
-                value={formatCurrency(report.certified_position?.certified_value ?? 0)}
-                emphasis
+                tone="info"
+                size="lg"
               />
               {(report.certified_position?.retention_held ?? 0) > 0 && (
                 <>
                   <Operator symbol="−" />
-                  <Figure
+                  <Metric
+                    value={formatINR(report.certified_position.retention_held)}
                     label="Retention held"
-                    value={formatCurrency(report.certified_position.retention_held)}
+                    tone="warn"
                   />
                 </>
               )}
@@ -300,7 +319,7 @@ export default function ReportsPage() {
                 <AlertTriangle className="h-5 w-5 shrink-0 text-[#e35f14]" />
                 <p className="text-sm text-iqeOrange-900 dark:text-iqeOrange-200">
                   <strong className="font-semibold">
-                    {formatCurrency(report.billing_position.certified_not_billed_value)}
+                    {formatINR(report.billing_position.certified_not_billed_value)}
                   </strong>{" "}
                   certified on this job and not yet invoiced.
                 </p>
@@ -315,8 +334,8 @@ export default function ReportsPage() {
                 <dl className="mt-2 space-y-1">
                   {Object.entries(report.work_packages?.by_status ?? {}).map(([s, n]) => (
                     <div key={s} className="flex justify-between text-xs">
-                      <dt className="capitalize text-slate-500 dark:text-slate-400">
-                        {s.replace(/_/g, " ")}
+                      <dt className="text-slate-500 dark:text-slate-400">
+                        {humanise(s)}
                       </dt>
                       <dd className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
                         {n as number}
@@ -347,7 +366,7 @@ export default function ReportsPage() {
 
               <Panel icon={Receipt} title="Billing position">
                 <div className="font-heading text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
-                  {formatCurrency(report.billing_position?.invoiced_value ?? 0)}
+                  {formatINR(report.billing_position?.invoiced_value)}
                 </div>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   across {report.billing_position?.invoices_raised ?? 0} invoice
@@ -357,13 +376,13 @@ export default function ReportsPage() {
                   <div className="flex justify-between text-xs">
                     <dt className="text-slate-500 dark:text-slate-400">Paid</dt>
                     <dd className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                      {formatCurrency(report.billing_position?.paid_value ?? 0)}
+                      {formatINR(report.billing_position?.paid_value)}
                     </dd>
                   </div>
                   <div className="flex justify-between text-xs">
                     <dt className="text-slate-500 dark:text-slate-400">Outstanding</dt>
                     <dd className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
-                      {formatCurrency(report.billing_position?.outstanding_value ?? 0)}
+                      {formatINR(report.billing_position?.outstanding_value)}
                     </dd>
                   </div>
                 </dl>
@@ -383,11 +402,11 @@ export default function ReportsPage() {
                     .sort((a, b) => (b[1] as number) - (a[1] as number))
                     .map(([reason, value]) => (
                       <li key={reason} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="capitalize text-slate-600 dark:text-slate-300">
-                          {reason.toLowerCase().replace(/_/g, " ")}
+                        <span className="text-slate-600 dark:text-slate-300">
+                          {humanise(reason)}
                         </span>
                         <span className="shrink-0 font-semibold tabular-nums text-rose-600 dark:text-rose-400">
-                          {formatCurrency(value as number)}
+                          {formatINR(value as number)}
                         </span>
                       </li>
                     ))}
@@ -424,8 +443,8 @@ export default function ReportsPage() {
                             <td className="px-4 py-2 text-xs text-slate-400">
                               {p.work_type_code}
                             </td>
-                            <td className="px-4 py-2 text-right text-xs capitalize text-slate-500 dark:text-slate-400">
-                              {String(p.status).replace(/_/g, " ")}
+                            <td className="px-4 py-2 text-right">
+                              <StatusPill status={p.status} />
                             </td>
                           </tr>
                         ))}
@@ -482,31 +501,24 @@ export default function ReportsPage() {
         )}
 
         {loading ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-28 animate-pulse rounded-2xl border border-slate-200/80 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40"
-              />
-            ))}
-          </div>
+          <SkeletonRows rows={4} />
         ) : visible.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 p-10 text-center dark:border-slate-700">
-            <FileText className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
-            <p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-              {formats.length === 0
-                ? "The registry is empty."
-                : "No format matches that search."}
-            </p>
-            {formats.length === 0 && (
-              <button
-                onClick={seed}
-                className="mt-3 rounded-xl bg-[#0084bf] px-4 py-2 text-sm font-semibold text-white shadow-glow-blue hover:bg-[#00739f]"
-              >
-                Load the standard formats
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={FileText}
+            title={formats.length === 0 ? "No report formats yet" : "No format matches that search"}
+            description={
+              formats.length === 0
+                ? "Load the standard registry to get the thirteen formats IQE issues, each ready to render as a blank pro forma."
+                : "Try a different code, name or work type."
+            }
+            action={
+              formats.length === 0 ? (
+                <button onClick={seed} className={buttonPrimary}>
+                  Load the standard formats
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {visible.map((f) => {
@@ -559,8 +571,8 @@ export default function ReportsPage() {
                   <div className="mt-3 flex items-center gap-4 text-xs text-slate-400">
                     <span className="inline-flex items-center gap-1">
                       <Signature className="h-3.5 w-3.5" />
-                      {f.requires_signatures.length} signatory
-                      {f.requires_signatures.length === 1 ? "" : "ies"}
+                      {f.requires_signatures.length}{" "}
+                      {f.requires_signatures.length === 1 ? "signatory" : "signatories"}
                     </span>
                     {f.annexures.length > 0 && (
                       <span className="inline-flex items-center gap-1">
@@ -644,7 +656,7 @@ function Panel({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200/80 p-4 dark:border-slate-800">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
         <Icon className="h-4 w-4" />
         {title}
       </div>
@@ -653,45 +665,16 @@ function Panel({
   );
 }
 
-function Figure({
-  label,
-  value,
-  sub,
-  emphasis,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  emphasis?: boolean;
-  tone?: "rose";
-}) {
-  return (
-    <div className="min-w-[8.5rem]">
-      <div className="text-xs text-slate-400">{label}</div>
-      <div
-        className={`font-heading text-xl font-bold tabular-nums ${
-          tone === "rose"
-            ? "text-rose-600 dark:text-rose-400"
-            : emphasis
-            ? "text-[#0084bf]"
-            : "text-slate-800 dark:text-slate-200"
-        }`}
-      >
-        {value}
-      </div>
-      {sub && <div className="mt-0.5 text-xs text-slate-400">{sub}</div>}
-    </div>
-  );
-}
-
+/** Sits on the figures' baseline so the row reads as one subtraction rather
+ *  than four unrelated statistics. */
 function Operator({ symbol }: { symbol: string }) {
   return (
-    <span aria-hidden className="px-1 text-lg font-light text-slate-300 dark:text-slate-600">
+    <span
+      aria-hidden
+      className="select-none pt-0.5 text-2xl font-light leading-9 text-slate-300 dark:text-slate-600"
+    >
       {symbol}
     </span>
   );
 }
 
-const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0084bf] focus:outline-none focus:ring-2 focus:ring-[#0084bf]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200";

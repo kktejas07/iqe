@@ -6,6 +6,7 @@ import {
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
+import { StatusPill } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/workPackageLifecycle";
 
 type Certification = {
@@ -337,9 +338,9 @@ export default function CertificationsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`inline-block rounded-lg px-2 py-1 text-xs font-medium ring-1 ${STATUS_TONE[c.status]}`}
+                            className="inline-block"
                           >
-                            {STATUS_LABEL[c.status]}
+                            <StatusPill status={c.status}>{STATUS_LABEL[c.status]}</StatusPill>
                           </span>
                           {c.billed_invoice_id && (
                             <div className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">

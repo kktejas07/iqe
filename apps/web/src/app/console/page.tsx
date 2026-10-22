@@ -8,6 +8,7 @@ import {
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
+import { StatusPill } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/workPackageLifecycle";
 
 type Role =
@@ -277,15 +278,36 @@ function Empty({ children }: { children: React.ReactNode }) {
 }
 
 function Row({
-  left, sub, right, tone,
+  left, sub, right, tone, id, status, tags,
 }: {
   left: string; sub?: string; right?: string; tone?: "alert";
+  id?: string; status?: string; tags?: string[];
 }) {
   return (
-    <li className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-2 last:border-0 dark:border-slate-800">
+    <li className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800">
       <div className="min-w-0">
         <div className="truncate text-sm text-slate-800 dark:text-slate-200">{left}</div>
-        {sub && <div className="truncate text-xs text-slate-400">{sub}</div>}
+        {/* The identifier and the state are two different facts, so they get
+            two different treatments rather than being joined into one string. */}
+        {(id || status || sub) && (
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            {id && <span className="font-mono text-xs text-slate-400">{id}</span>}
+            {status && <StatusPill status={status} />}
+            {sub && <span className="truncate text-xs text-slate-400">{sub}</span>}
+          </div>
+        )}
+        {tags && tags.length > 0 && (
+          <ul className="mt-1.5 flex flex-wrap gap-1">
+            {tags.map((t) => (
+              <li
+                key={t}
+                className="rounded-md bg-amber-50 px-1.5 py-0.5 text-xs text-amber-800 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-400/20"
+              >
+                {t}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {right && (
         <span
@@ -310,7 +332,8 @@ function CoordinatorBody({ d }: { d: any }) {
               <Row
                 key={w.work_package_id}
                 left={w.title}
-                sub={`${w.work_package_id} · ${w.location ?? w.job_id}`}
+                id={w.work_package_id}
+                sub={w.location ?? w.job_id}
                 right={w.planned_start ? formatDate(w.planned_start) : undefined}
               />
             ))}
@@ -327,7 +350,8 @@ function CoordinatorBody({ d }: { d: any }) {
               <Row
                 key={w.work_package_id}
                 left={w.title}
-                sub={`${w.work_package_id} · ${w.status.replace("_", " ")}`}
+                id={w.work_package_id}
+                status={w.status}
                 right={formatDate(w.planned_finish)}
                 tone="alert"
               />
@@ -376,7 +400,8 @@ function OfficerBody({ d }: { d: any }) {
               <Row
                 key={a.assignment_id}
                 left={a.title ?? a.work_package_id}
-                sub={`${a.work_package_id} · ${a.status.replace("_", " ")}`}
+                id={a.work_package_id}
+                status={a.status}
                 right={a.planned_from ? formatDate(a.planned_from) : undefined}
               />
             ))}
@@ -417,7 +442,8 @@ function QCBody({ d }: { d: any }) {
               <Row
                 key={w.work_package_id}
                 left={w.title}
-                sub={`${w.work_package_id} · ${w.status.replace("_", " ")}`}
+                id={w.work_package_id}
+                status={w.status}
                 right={`${w.waiting_hours}h`}
                 tone={w.waiting_hours > 48 ? "alert" : undefined}
               />
@@ -435,7 +461,8 @@ function QCBody({ d }: { d: any }) {
               <Row
                 key={c.certification_id}
                 left={c.dispute_note ?? "Disputed"}
-                sub={`${c.certification_id} · ${c.work_package_id}`}
+                id={c.certification_id}
+                sub={c.work_package_id}
                 right={formatCurrency(c.certified_value)}
                 tone="alert"
               />
@@ -459,7 +486,8 @@ function FinanceBody({ d }: { d: any }) {
               <Row
                 key={c.certification_id}
                 left={c.certification_id}
-                sub={`${c.job_id} · certified ${formatDate(c.certified_at)}`}
+                id={c.job_id}
+                sub={`Certified ${formatDate(c.certified_at)}`}
                 right={formatCurrency(c.net_payable_value)}
               />
             ))}
@@ -476,8 +504,10 @@ function FinanceBody({ d }: { d: any }) {
               <Row
                 key={i.invoice_id}
                 left={i.invoice_id}
-                sub={`${i.job_id} · due ${formatDate(i.due_date)}`}
-                right={`${formatCurrency(i.grand_total)} · ${i.days_late}d`}
+                id={i.job_id}
+                status="overdue"
+                sub={`Due ${formatDate(i.due_date)}, ${i.days_late} days ago`}
+                right={formatCurrency(i.grand_total)}
                 tone="alert"
               />
             ))}
@@ -500,13 +530,13 @@ function TechManagerBody({ d }: { d: any }) {
               <Row
                 key={a.authorization_id}
                 left={a.person_id}
-                sub={
+                sub={`Supervised inspections: ${a.supervised}`}
+                tags={
                   [
-                    a.qualification_verified ? null : "qualifications unverified",
-                    a.training_completed ? null : "training outstanding",
-                    a.witnessed_assessment_passed ? null : "assessment not passed",
-                    `supervised ${a.supervised}`,
-                  ].filter(Boolean).join(" · ")
+                    a.qualification_verified ? null : "Qualifications unverified",
+                    a.training_completed ? null : "Training outstanding",
+                    a.witnessed_assessment_passed ? null : "Assessment not passed",
+                  ].filter(Boolean) as string[]
                 }
               />
             ))}

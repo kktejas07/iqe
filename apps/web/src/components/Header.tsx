@@ -150,26 +150,21 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
   return (
     <header className={`w-full ${isDark ? "bg-[#001a2c]/95 backdrop-blur-md border-slate-800 text-white" : "bg-white/90 backdrop-blur-md border-slate-200/90 text-slate-800"} border-b sticky top-0 z-50 transition-all duration-300 ${scrolled ? "header-scrolled" : "shadow-sm"}`}>
       {/* Top Header Branding & Primary Navigation Row */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 overflow-hidden">
         {/* IQE Brand Logo (Official Q & Globe Logo + Title) */}
-        <Link href="/dashboard" className="flex items-center gap-3 group shrink-0 min-w-0" aria-label="Ideal Quality Engineers home">
-          <IQELogo className="w-11 h-11 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500 ease-spring drop-shadow-sm" />
-          <div className="hidden sm:block">
-            <h1 className="font-extrabold text-sm sm:text-base 2xl:text-lg text-slate-800 dark:text-slate-200 font-heading tracking-tight block leading-tight">
-              Ideal Quality Engineers (I) Pvt Ltd
-            </h1>
-            <p className="text-[11px] sm:text-[11px] text-red-600 dark:text-red-400 font-semibold block leading-tight flex items-center gap-1">
-              <span>Third Party Inspection &amp; Engineering</span>
-              <span className="relative inline-flex w-1.5 h-1.5">
-                <span className="absolute inset-0 rounded-full bg-red-500 animate-ping-soft" />
-                <span className="relative inline-block w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400" />
-              </span>
-            </p>
-          </div>
+        <Link href="/dashboard" className="flex items-center gap-3 group min-w-0 shrink" aria-label="Ideal Quality Engineers (I) Pvt Ltd - home">
+          <IQELogo className="w-11 h-11 shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500 ease-spring drop-shadow-sm" />
+          {/* The wordmark is deliberately not repeated here. Measured at 1600px
+              the nav needs 1148px and the actions 295px, leaving 77px - not
+              enough for the company name, which rendered as "I...". Inside the
+              app the logo already says whose product this is, and the full
+              legal name is on this link's accessible name and in every
+              document the app produces. Restoring it means re-adding the
+              block and reducing the number of top-level nav items. */}
         </Link>
 
         {/* Top Navigation Menu (ADMIN, ANALYTICS, PMS FORMATES, QMS) - [HOME, SALES, OPERATIONS, FINANCE are hidden as requested] */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 text-xs font-extrabold uppercase tracking-wider whitespace-nowrap min-w-0">
+        <nav className="hidden shrink-0 lg:flex items-center gap-0.5 xl:gap-1 text-xs font-extrabold uppercase tracking-wider whitespace-nowrap">
           {/* ADMIN Dropdown */}
           <div className="relative group/dd" onMouseEnter={() => setActiveDropdown("admin")} onMouseLeave={() => setActiveDropdown(null)}>
             <button

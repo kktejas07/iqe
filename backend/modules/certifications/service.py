@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import HTTPException
 
 from core.audit import AuditAction, record as audit
+from core.concurrency import bump, check_version
 from core.sequences import next_identifier
 from modules.certifications.models import (
     Certification,
@@ -184,8 +185,16 @@ class CertificationService:
         return cert
 
     @staticmethod
-    async def update(certification_id: str, data: dict, site_id: str = "SITE-01"):
+    async def update(
+        certification_id: str,
+        data: dict,
+        site_id: str = "SITE-01",
+        expected_version: Optional[int] = None,
+    ):
         cert = await CertificationService.get(certification_id, site_id)
+        # Two reviewers editing the same draft used to silently overwrite each
+        # other. A caller presenting a stale version is refused instead.
+        check_version(cert, expected_version, "Certification")
         if cert.status != CertificationStatus.DRAFT.value:
             raise HTTPException(
                 409,
@@ -212,6 +221,7 @@ class CertificationService:
 
         recalculate(cert)
         cert.updated_at = datetime.now()
+        bump(cert)
         await cert.save()
         return cert
 
@@ -261,6 +271,7 @@ class CertificationService:
         cert.certified_at = datetime.now()
         cert.updated_at = datetime.now()
         recalculate(cert)
+        bump(cert)
         await cert.save()
 
         # The assurance act. An assessor asks who certified this value and on

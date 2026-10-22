@@ -155,7 +155,9 @@ class ReportingService:
         Not a new document type - a composition of what the other modules
         already hold, which is why it needed the spine to exist first.
         """
-        job = await Job.find_one(Job.job_id == job_id)
+        # Scoped to the caller's site: without this a caller could read another
+        # site's job header by guessing its identifier.
+        job = await Job.find_one(Job.job_id == job_id, Job.site_id == site_id)
         if not job:
             raise HTTPException(404, f"Job '{job_id}' not found")
 

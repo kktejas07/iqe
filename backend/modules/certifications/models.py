@@ -120,6 +120,10 @@ class Certification(Document):
 
     #: See WorkPackage.migrated_from_ref - "<collection>:<record key>".
     migrated_from_ref: Optional[str] = None
+
+    #: Optimistic lock. A caller that read version N must present N to save;
+    #: see core/concurrency.py.
+    version: int = 0
     certified_by_person_id: Optional[str] = None
     certified_at: Optional[datetime] = None
     dispute_note: Optional[str] = None

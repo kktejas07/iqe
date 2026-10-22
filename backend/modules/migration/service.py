@@ -78,7 +78,7 @@ async def _ensure_job(
     """Returns (job_id, created). Jobs are keyed on the deterministic job_id,
     so re-running finds the one from the previous run rather than making a
     second."""
-    existing = await Job.find_one(Job.job_id == job_id)
+    existing = await Job.find_one(Job.job_id == job_id, Job.site_id == site_id)
     if existing:
         return existing.job_id, False
     if dry_run:

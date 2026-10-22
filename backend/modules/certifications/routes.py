@@ -57,11 +57,19 @@ async def create_certification(data: dict, user: dict = Depends(get_current_user
 
 @router.put("/{certification_id}")
 async def update_certification(
-    certification_id: str, data: dict, user: dict = Depends(get_current_user)
+    certification_id: str,
+    data: dict,
+    expected_version: Optional[int] = None,
+    user: dict = Depends(get_current_user),
 ):
-    """Drafts only. An issued certification is revised, not edited."""
+    """Drafts only. An issued certification is revised, not edited.
+
+    Pass `expected_version` - the version you read - and the save is refused
+    with 409 if someone else changed the record meanwhile, rather than
+    silently discarding their edit.
+    """
     return await CertificationService.update(
-        certification_id, data, user.get("site_id", "SITE-01")
+        certification_id, data, user.get("site_id", "SITE-01"), expected_version
     )
 
 

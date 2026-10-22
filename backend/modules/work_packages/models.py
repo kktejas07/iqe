@@ -100,6 +100,10 @@ class WorkPackage(Document):
     #: so a half-finished run can simply be re-run.
     migrated_from_ref: Optional[str] = None
 
+    #: Optimistic lock. A caller that read version N must present N to save;
+    #: see core/concurrency.py.
+    version: int = 0
+
     is_active: bool = True
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)

@@ -71,7 +71,7 @@ async def get_logsheet(
 
 @router.get("/{visit_id}/master-report")
 async def get_master_report(visit_id: str, user: dict = Depends(get_current_user)):
-    return await VisitService.get_master_report(visit_id)
+    return await VisitService.get_master_report(visit_id, user.get("site_id", "SITE-01"))
 
 
 @router.get("/{visit_id}")

@@ -53,7 +53,7 @@ class ClientService:
             total_clients = await Client.find_all().count()
             data["client_id"] = f"C-{(total_clients + 1):03d}"
         
-        existing = await Client.find_one(Client.client_id == data["client_id"])
+        existing = await Client.find_one(Client.client_id == data["client_id"], Client.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Client ID already exists")
         client = Client(**data, site_id=site_id)
@@ -93,7 +93,7 @@ class ClientService:
 
         # Auto-seed if empty so user always sees existing units details
         if not units and not region and not unit_type:
-            client = await Client.find_one(Client.client_id == client_id)
+            client = await Client.find_one(Client.client_id == client_id, Client.site_id == site_id)
             c_name = client.name if client else "Corporate Plant"
             sample_units = [
                 ClientUnit(

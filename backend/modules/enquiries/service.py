@@ -12,8 +12,8 @@ class EnquiryService:
         return {"total": total, "page": page, "per_page": per_page, "data": [e.dict() for e in items]}
 
     @staticmethod
-    async def get(enquiry_id: str):
-        eq = await Enquiry.find_one(Enquiry.enquiry_id == enquiry_id)
+    async def get(enquiry_id: str, site_id: str = "SITE-01"):
+        eq = await Enquiry.find_one(Enquiry.enquiry_id == enquiry_id, Enquiry.site_id == site_id)
         if not eq: raise HTTPException(404, "Enquiry not found")
         return eq
 

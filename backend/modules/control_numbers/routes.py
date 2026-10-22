@@ -20,7 +20,7 @@ async def list_control_numbers(
 
 @router.get("/{cn_id}")
 async def get_control_number(cn_id: str, user: dict = Depends(get_current_user)):
-    return await ControlNumberService.get(cn_id)
+    return await ControlNumberService.get(cn_id, user.get("site_id", "SITE-01"))
 
 
 @router.post("/")
@@ -35,7 +35,7 @@ async def update_control_number(cn_id: str, data: dict, user: dict = Depends(get
 
 @router.patch("/{cn_id}/status")
 async def toggle_control_number_status(cn_id: str, is_active: bool, user: dict = Depends(get_current_user)):
-    return await ControlNumberService.toggle_status(cn_id, is_active)
+    return await ControlNumberService.toggle_status(cn_id, is_active, user.get("site_id", "SITE-01"))
 
 
 @router.post("/{cn_id}/reassign")

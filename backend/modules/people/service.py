@@ -176,7 +176,8 @@ class PeopleService:
             auth = await Authorization.find_one(
                 Authorization.person_id == p.person_id,
                 Authorization.status == AuthorizationStatus.AUTHORIZED.value,
-            )
+            Authorization.site_id == site_id,
+        )
             if inspection_type and (not auth or inspection_type not in auth.inspection_types):
                 continue
             if discipline and discipline.lower() not in (p.prof_qualification or "").lower():

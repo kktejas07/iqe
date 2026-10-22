@@ -136,7 +136,7 @@ class VisitService:
 
     @staticmethod
     async def _get_or_create_visit(visit_id: str):
-        v = await Visit.find_one(Visit.visit_id == visit_id)
+        v = await Visit.find_one(Visit.visit_id == visit_id, Visit.site_id == site_id)
         if not v:
             v = await Visit.find_one({"$or": [{"visit_id": visit_id}, {"id": visit_id}]})
         if not v:
@@ -183,13 +183,13 @@ class VisitService:
             total_vsts = await Visit.find_all().count()
             data["visit_id"] = f"VST-2026-{(total_vsts + 1):03d}"
 
-        existing = await Visit.find_one(Visit.visit_id == data["visit_id"])
+        existing = await Visit.find_one(Visit.visit_id == data["visit_id"], Visit.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Visit ID already exists")
 
         # Auto-populate from Job if job_id is provided
         if data.get("job_id"):
-            job = await Job.find_one(Job.job_id == data["job_id"])
+            job = await Job.find_one(Job.job_id == data["job_id"], Job.site_id == site_id)
             if job:
                 if not data.get("inspector_name") and job.assigned_inspector_name:
                     data["inspector_id"] = job.assigned_inspector_id
@@ -324,7 +324,7 @@ class VisitService:
         v = await VisitService._get_or_create_visit(visit_id)
 
         if v.is_invoiced and v.invoice_id:
-            inv = await Invoice.find_one(Invoice.invoice_id == v.invoice_id)
+            inv = await Invoice.find_one(Invoice.invoice_id == v.invoice_id, Invoice.site_id == site_id)
             if inv:
                 return inv.dict()
 
@@ -386,15 +386,15 @@ class VisitService:
         return inv.dict()
 
     @staticmethod
-    async def get_master_report(visit_id: str):
+    async def get_master_report(visit_id: str, site_id: str = "SITE-01"):
         v = await VisitService._get_or_create_visit(visit_id)
         job = None
         if v.job_id:
-            job = await Job.find_one(Job.job_id == v.job_id)
+            job = await Job.find_one(Job.job_id == v.job_id, Job.site_id == site_id)
 
         inv = None
         if v.invoice_id:
-            inv = await Invoice.find_one(Invoice.invoice_id == v.invoice_id)
+            inv = await Invoice.find_one(Invoice.invoice_id == v.invoice_id, Invoice.site_id == site_id)
 
         completed_checklists = sum(1 for c in v.scope_checklists if c.is_completed)
         total_checklists = len(v.scope_checklists)

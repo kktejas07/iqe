@@ -144,8 +144,8 @@ class ControlNumberService:
         return {"total": total, "page": page, "per_page": per_page, "data": [c.dict() for c in items]}
 
     @staticmethod
-    async def get(cn_id: str):
-        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id)
+    async def get(cn_id: str, site_id: str = "SITE-01"):
+        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id, ControlNumber.site_id == site_id)
         if not cn:
             raise HTTPException(status_code=404, detail="Control Number not found")
         return cn.dict()
@@ -157,7 +157,7 @@ class ControlNumberService:
             data["control_number_id"] = f"CN-2026-{(total_cns + 1):03d}"
             data["control_number"] = data["control_number_id"]
 
-        existing = await ControlNumber.find_one(ControlNumber.control_number_id == data["control_number_id"])
+        existing = await ControlNumber.find_one(ControlNumber.control_number_id == data["control_number_id"], ControlNumber.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Control Number ID already exists")
 
@@ -167,7 +167,7 @@ class ControlNumberService:
 
     @staticmethod
     async def update(cn_id: str, data: dict):
-        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id)
+        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id, ControlNumber.site_id == site_id)
         if not cn:
             raise HTTPException(status_code=404, detail="Control Number not found")
 
@@ -180,8 +180,8 @@ class ControlNumberService:
         return cn
 
     @staticmethod
-    async def toggle_status(cn_id: str, is_active: bool):
-        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id)
+    async def toggle_status(cn_id: str, is_active: bool, site_id: str = "SITE-01"):
+        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id, ControlNumber.site_id == site_id)
         if not cn:
             raise HTTPException(status_code=404, detail="Control Number not found")
         cn.is_active = is_active
@@ -190,8 +190,8 @@ class ControlNumberService:
         return cn
 
     @staticmethod
-    async def reassign(cn_id: str, new_cn_id: str, reason: str, user_id: str):
-        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id)
+    async def reassign(cn_id: str, new_cn_id: str, reason: str, user_id: str, site_id: str = "SITE-01"):
+        cn = await ControlNumber.find_one(ControlNumber.control_number_id == cn_id, ControlNumber.site_id == site_id)
         if not cn:
             raise HTTPException(status_code=404, detail="Control Number not found")
         

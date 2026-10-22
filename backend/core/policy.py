@@ -148,6 +148,184 @@ MATRIX: list[Rule] = [
         write=[Role.ADMIN],
         note="As users.",
     ),
+
+    # --- Jobs and the commercial chain -------------------------------
+    Rule(
+        prefix="/jobs",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="Create Job & Service Order: Admin and Coordinator full, everyone "
+             "else read, including the client portal.",
+    ),
+    Rule(
+        prefix="/service-orders",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="As jobs.",
+    ),
+    Rule(
+        prefix="/enquiries",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="Enquiry & Proposal: Admin and Coordinator full, Finance and the "
+             "technical manager view for go/no-go input.",
+    ),
+    Rule(
+        prefix="/purchase-orders",
+        read=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR],
+        write=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR],
+        note="Commercial documents, handled by the same people who raise them.",
+    ),
+    Rule(
+        prefix="/finance",
+        read=[Role.ADMIN, Role.FINANCE],
+        write=[Role.ADMIN, Role.FINANCE],
+        note="Receivables and payables are Finance's alone.",
+    ),
+
+    # --- Execution ----------------------------------------------------
+    Rule(
+        prefix="/visits",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR],
+        note="Execute Visit & Upload Data: inspectors full on assigned work, "
+             "coordinators edit, everyone else view.",
+    ),
+    Rule(
+        prefix="/evidence",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="Whoever performs or reviews the work attaches its evidence.",
+    ),
+    Rule(
+        prefix="/control-numbers",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="Control number allocation is a coordination act.",
+    ),
+    Rule(
+        prefix="/construction-bill-verification",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR],
+        note="Legacy vertical; same permissions as the work packages that "
+             "supersede it.",
+    ),
+    Rule(
+        prefix="/schedule-m-pharma-epc",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR],
+        note="As the construction vertical.",
+    ),
+
+    # --- Masters ------------------------------------------------------
+    Rule(
+        prefix="/clients",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="Manage Users & Masters: Admin full, others read.",
+    ),
+    Rule(
+        prefix="/manufacturers",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="As clients.",
+    ),
+    Rule(
+        prefix="/documents",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.QC_AUDITOR],
+        note="The controlled-document register. Issuing a revision is a "
+             "quality act, not an administrative one.",
+    ),
+
+    # --- Quality -------------------------------------------------------
+    Rule(
+        prefix="/complaints",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.QC_AUDITOR],
+        note="Complaints concern service and are handled by whoever owns the "
+             "relationship; appeals contest the decision and are separate.",
+    ),
+    Rule(
+        prefix="/audit",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="The trail is append-only and written by the system; no route "
+             "writes to it. Searching across it is restricted on the route.",
+    ),
+
+    # --- Reporting and analysis ----------------------------------------
+    Rule(
+        prefix="/reporting",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.QC_AUDITOR],
+        note="Executive Reports: everyone reads what they are entitled to; "
+             "changing a report format is a quality decision.",
+    ),
+    Rule(
+        prefix="/reports",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="The legacy report screens; written by whoever performs the work.",
+    ),
+    Rule(
+        prefix="/dashboards",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="Role dashboards are read-only views over other modules.",
+    ),
+    Rule(
+        prefix="/dashboard",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="As dashboards.",
+    ),
+    Rule(
+        prefix="/analytics",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="Executive Reports.",
+    ),
+
+    # --- Assists --------------------------------------------------------
+    Rule(
+        prefix="/ai-assist",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="Assists run against work the caller is performing or reviewing.",
+    ),
+    Rule(
+        prefix="/ai",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="As ai-assist. Note /ai is the superseded facade module.",
+    ),
+
+    # --- Legacy TPI form routes (mounted under /api, not /api/v1) -------
+    Rule(
+        prefix="/tpi",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="The TPI form lifecycle. Issuing carries its own check in the "
+             "service; this stops a client or finance user editing a report.",
+    ),
+    Rule(
+        prefix="/pdf",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR],
+        note="Rendering a document is a read; generating one belongs to "
+             "whoever performs the work.",
+    ),
+
+    # --- Self-service --------------------------------------------------
+    Rule(
+        prefix="/auth",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=ALL_INTERNAL + [Role.CLIENT],
+        note="Changing your own password is self-service for any authenticated "
+             "role. Login and refresh are exempt from authentication entirely, "
+             "since they are how a token is obtained.",
+    ),
 ]
 
 #: Longest prefix wins, so a specific area is not shadowed by a general one.
@@ -183,6 +361,9 @@ UNAUTHENTICATED_PATHS: tuple[str, ...] = (
     "/redoc",
     "/openapi.json",
     "/files/",            # served static evidence and report assets
+    "/media",             # served report and signature assets
+    "/v/",                # scan-to-verify: a client checks a report from the
+                          # QR code on it, without an account. Open by design.
 )
 
 

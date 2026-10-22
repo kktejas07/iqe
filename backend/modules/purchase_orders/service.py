@@ -51,8 +51,8 @@ class PurchaseOrderService:
         return {"total": total, "page": page, "per_page": per_page, "data": results}
 
     @staticmethod
-    async def get(po_id: str):
-        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id)
+    async def get(po_id: str, site_id: str = "SITE-01"):
+        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id, PurchaseOrder.site_id == site_id)
         if not po:
             raise HTTPException(status_code=404, detail="Purchase Order not found")
         p_dict = po.dict()
@@ -65,7 +65,7 @@ class PurchaseOrderService:
             total_pos = await PurchaseOrder.find_all().count()
             data["po_id"] = f"PO-{(total_pos + 1):03d}"
             
-        existing = await PurchaseOrder.find_one(PurchaseOrder.po_id == data["po_id"])
+        existing = await PurchaseOrder.find_one(PurchaseOrder.po_id == data["po_id"], PurchaseOrder.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Purchase Order File No already exists")
 
@@ -94,7 +94,7 @@ class PurchaseOrderService:
 
     @staticmethod
     async def update(po_id: str, data: dict):
-        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id)
+        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id, PurchaseOrder.site_id == site_id)
         if not po:
             raise HTTPException(status_code=404, detail="Purchase Order not found")
 
@@ -123,8 +123,8 @@ class PurchaseOrderService:
         return po
 
     @staticmethod
-    async def toggle_status(po_id: str, is_active: bool):
-        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id)
+    async def toggle_status(po_id: str, is_active: bool, site_id: str = "SITE-01"):
+        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id, PurchaseOrder.site_id == site_id)
         if not po:
             raise HTTPException(status_code=404, detail="Purchase Order not found")
         po.is_active = is_active
@@ -133,8 +133,8 @@ class PurchaseOrderService:
         return po
 
     @staticmethod
-    async def add_item(po_id: str, item_data: dict):
-        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id)
+    async def add_item(po_id: str, item_data: dict, site_id: str = "SITE-01"):
+        po = await PurchaseOrder.find_one(PurchaseOrder.po_id == po_id, PurchaseOrder.site_id == site_id)
         if not po:
             raise HTTPException(status_code=404, detail="Purchase Order not found")
 

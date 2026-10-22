@@ -52,7 +52,7 @@ class ManufacturerService:
             total_mfrs = await Manufacturer.find_all().count()
             data["manufacturer_id"] = f"M-{(total_mfrs + 1):03d}"
 
-        existing = await Manufacturer.find_one(Manufacturer.manufacturer_id == data["manufacturer_id"])
+        existing = await Manufacturer.find_one(Manufacturer.manufacturer_id == data["manufacturer_id"], Manufacturer.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Manufacturer ID already exists")
         mfr = Manufacturer(**data, site_id=site_id)
@@ -92,7 +92,7 @@ class ManufacturerService:
 
         # Auto-seed if empty so user always sees existing units details
         if not units and not region and not unit_type:
-            mfr = await Manufacturer.find_one(Manufacturer.manufacturer_id == mfr_id)
+            mfr = await Manufacturer.find_one(Manufacturer.manufacturer_id == mfr_id, Manufacturer.site_id == site_id)
             m_name = mfr.name if mfr else "Vendor Plant Works"
             sample_units = [
                 ManufacturerUnit(

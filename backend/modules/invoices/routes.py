@@ -35,7 +35,7 @@ async def eligible_visits(user: dict = Depends(get_current_user)):
 
 @router.get("/{invoice_id}")
 async def get(invoice_id: str, user: dict = Depends(get_current_user)):
-    return await InvoiceService.get(invoice_id)
+    return await InvoiceService.get(invoice_id, user.get("site_id", "SITE-01"))
 
 
 @router.post("/")
@@ -51,7 +51,7 @@ async def record_payment(
     payment_date: str = "",
     user: dict = Depends(get_current_user)
 ):
-    return await InvoiceService.record_payment(invoice_id, payment_mode, transaction_ref, payment_date)
+    return await InvoiceService.record_payment(invoice_id, payment_mode, transaction_ref, payment_date, user.get("site_id", "SITE-01"))
 
 
 @router.post("/{invoice_id}/cancel")
@@ -61,4 +61,4 @@ async def cancel(invoice_id: str, reason: str, user: dict = Depends(get_current_
 
 @router.post("/{invoice_id}/toggle-freeze")
 async def toggle_freeze(invoice_id: str, user: dict = Depends(get_current_user)):
-    return await InvoiceService.toggle_freeze(invoice_id)
+    return await InvoiceService.toggle_freeze(invoice_id, user.get("site_id", "SITE-01"))

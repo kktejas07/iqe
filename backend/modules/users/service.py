@@ -19,8 +19,8 @@ class UserService:
     async def get(user_id: str, site_id: str):
         user = await UserLogin.find_one(UserLogin.user_id == user_id, UserLogin.site_id == site_id)
         if not user: raise HTTPException(404, "User not found")
-        comp = await Competency.find_one(Competency.user_id == user_id)
-        rate = await InspectorRate.find_one(InspectorRate.user_id == user_id)
+        comp = await Competency.find_one(Competency.user_id == user_id, Competency.site_id == site_id)
+        rate = await InspectorRate.find_one(InspectorRate.user_id == user_id, InspectorRate.site_id == site_id)
         return {**user.dict(), "competency": comp.dict() if comp else None, "rate": rate.dict() if rate else None}
 
     @staticmethod

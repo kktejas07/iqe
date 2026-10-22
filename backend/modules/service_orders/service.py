@@ -14,14 +14,14 @@ class ServiceOrderService:
         return {"total": total, "page": page, "per_page": per_page, "data": [s.dict() for s in items]}
 
     @staticmethod
-    async def get(so_id: str):
-        so = await ServiceOrder.find_one(ServiceOrder.so_id == so_id)
+    async def get(so_id: str, site_id: str = "SITE-01"):
+        so = await ServiceOrder.find_one(ServiceOrder.so_id == so_id, ServiceOrder.site_id == site_id)
         if not so: raise HTTPException(404, "Service Order not found")
         return so
 
     @staticmethod
     async def create(data: dict, site_id: str, user_id: str):
-        existing = await ServiceOrder.find_one(ServiceOrder.so_id == data["so_id"])
+        existing = await ServiceOrder.find_one(ServiceOrder.so_id == data["so_id"], ServiceOrder.site_id == site_id)
         if existing: raise HTTPException(400, "Service Order ID already exists")
         so = ServiceOrder(**data, site_id=site_id, created_by=user_id)
         await so.insert()
@@ -29,7 +29,7 @@ class ServiceOrderService:
 
     @staticmethod
     async def update(so_id: str, data: dict):
-        so = await ServiceOrder.find_one(ServiceOrder.so_id == so_id)
+        so = await ServiceOrder.find_one(ServiceOrder.so_id == so_id, ServiceOrder.site_id == site_id)
         if not so: raise HTTPException(404, "Service Order not found")
         for k, v in data.items():
             if hasattr(so, k) and k not in ("so_id", "site_id", "created_at"):

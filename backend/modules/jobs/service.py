@@ -133,7 +133,7 @@ class JobService:
             total_jobs = await Job.find_all().count()
             data["job_id"] = f"JOB-2026-{(total_jobs + 1):03d}"
 
-        existing = await Job.find_one(Job.job_id == data["job_id"])
+        existing = await Job.find_one(Job.job_id == data["job_id"], Job.site_id == site_id)
         if existing:
             raise HTTPException(400, "Job ID already exists")
             

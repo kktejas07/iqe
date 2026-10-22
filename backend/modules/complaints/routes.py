@@ -20,7 +20,7 @@ async def list_complaints(
 
 @router.get("/{complaint_id}")
 async def get_complaint(complaint_id: str, user: dict = Depends(get_current_user)):
-    return await ComplaintService.get(complaint_id)
+    return await ComplaintService.get(complaint_id, user.get("site_id", "SITE-01"))
 
 
 @router.post("/")
@@ -35,4 +35,4 @@ async def update_complaint(complaint_id: str, data: dict, user: dict = Depends(g
 
 @router.patch("/{complaint_id}/status")
 async def toggle_complaint_status(complaint_id: str, is_active: bool, user: dict = Depends(get_current_user)):
-    return await ComplaintService.toggle_status(complaint_id, is_active)
+    return await ComplaintService.toggle_status(complaint_id, is_active, user.get("site_id", "SITE-01"))

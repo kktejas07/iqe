@@ -17,7 +17,7 @@ class PaymentService:
         payment = Payment(**data)
         await payment.insert()
         from modules.invoices.models import Invoice
-        inv = await Invoice.find_one(Invoice.invoice_id == data.get("invoice_id"))
+        inv = await Invoice.find_one(Invoice.invoice_id == data.get("invoice_id"), Invoice.site_id == site_id)
         if inv:
             inv.status = "paid"
             inv.updated_at = datetime.now()

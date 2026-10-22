@@ -17,7 +17,7 @@ async def next_number(so_type: str = "SO", user: dict = Depends(get_current_user
 
 @router.get("/{so_id}")
 async def get(so_id: str, user: dict = Depends(get_current_user)):
-    return await ServiceOrderService.get(so_id)
+    return await ServiceOrderService.get(so_id, user.get("site_id", "SITE-01"))
 
 
 @router.post("/")

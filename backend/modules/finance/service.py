@@ -122,8 +122,8 @@ class FinanceService:
         return ar
 
     @staticmethod
-    async def record_ar_settlement(ar_id: str, paid_amount: float, payment_mode: str, transaction_ref: str):
-        ar = await AccountReceivable.find_one(AccountReceivable.ar_id == ar_id)
+    async def record_ar_settlement(ar_id: str, paid_amount: float, payment_mode: str, transaction_ref: str, site_id: str = "SITE-01"):
+        ar = await AccountReceivable.find_one(AccountReceivable.ar_id == ar_id, AccountReceivable.site_id == site_id)
         if not ar:
             raise HTTPException(404, "AR record not found")
         ar.paid_amount += paid_amount
@@ -255,8 +255,8 @@ class FinanceService:
         return ap
 
     @staticmethod
-    async def record_ap_disbursement(ap_id: str, paid_amount: float, payment_mode: str, transaction_ref: str):
-        ap = await AccountPayable.find_one(AccountPayable.ap_id == ap_id)
+    async def record_ap_disbursement(ap_id: str, paid_amount: float, payment_mode: str, transaction_ref: str, site_id: str = "SITE-01"):
+        ap = await AccountPayable.find_one(AccountPayable.ap_id == ap_id, AccountPayable.site_id == site_id)
         if not ap:
             raise HTTPException(404, "AP record not found")
         ap.paid_amount += paid_amount

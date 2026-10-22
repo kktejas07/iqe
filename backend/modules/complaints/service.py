@@ -149,8 +149,8 @@ class ComplaintService:
         return {"total": total, "page": page, "per_page": per_page, "data": [c.dict() for c in items]}
 
     @staticmethod
-    async def get(complaint_id: str):
-        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id)
+    async def get(complaint_id: str, site_id: str = "SITE-01"):
+        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id, CustomerComplaint.site_id == site_id)
         if not c:
             raise HTTPException(status_code=404, detail="Customer Complaint not found")
         return c.dict()
@@ -161,7 +161,7 @@ class ComplaintService:
             total_cmps = await CustomerComplaint.find_all().count()
             data["complaint_id"] = f"CMP-2026-{(total_cmps + 1):03d}"
 
-        existing = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == data["complaint_id"])
+        existing = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == data["complaint_id"], CustomerComplaint.site_id == site_id)
         if existing:
             raise HTTPException(status_code=400, detail="Complaint ID already exists")
 
@@ -171,7 +171,7 @@ class ComplaintService:
 
     @staticmethod
     async def update(complaint_id: str, data: dict):
-        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id)
+        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id, CustomerComplaint.site_id == site_id)
         if not c:
             raise HTTPException(status_code=404, detail="Customer Complaint not found")
 
@@ -184,8 +184,8 @@ class ComplaintService:
         return c
 
     @staticmethod
-    async def toggle_status(complaint_id: str, is_active: bool):
-        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id)
+    async def toggle_status(complaint_id: str, is_active: bool, site_id: str = "SITE-01"):
+        c = await CustomerComplaint.find_one(CustomerComplaint.complaint_id == complaint_id, CustomerComplaint.site_id == site_id)
         if not c:
             raise HTTPException(status_code=404, detail="Customer Complaint not found")
         c.is_active = is_active

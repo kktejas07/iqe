@@ -105,7 +105,7 @@ class AIService:
         inspectors = await UserLogin.find(UserLogin.site_id == site_id, UserLogin.role_id == 3, UserLogin.is_active == True).to_list()
         suggestions = []
         for i in inspectors:
-            comp = await Competency.find_one(Competency.user_id == i.user_id)
+            comp = await Competency.find_one(Competency.user_id == i.user_id, Competency.site_id == site_id)
             score = 50
             if job_type == "welding" and comp and comp.welding: score += 30
             if job_type == "electrical" and comp and comp.switchboards_pmccs_mccs: score += 30

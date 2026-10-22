@@ -53,9 +53,53 @@ def test_the_version_prefix_is_ignored():
 
 
 def test_an_area_outside_the_matrix_has_no_rule():
-    """Unlisted areas are authenticated but unrestricted - default-deny on a
-    running system means finding the gaps by breaking production."""
-    assert rule_for("/api/v1/clients") is None
+    """The fallback still exists: an area nobody has classified is
+    authenticated but unrestricted, because default-deny on a running system
+    means finding the gaps by breaking production."""
+    assert rule_for("/api/v1/some-module-nobody-has-classified-yet") is None
+
+
+def test_every_route_is_either_covered_or_deliberately_open():
+    """The matrix started covering 13 areas and 168 routes fell through. This
+    asserts the gap stays closed: a new router must be classified or explicitly
+    exempted, and cannot quietly inherit "authenticated but unrestricted"."""
+    from main import app as real_app
+
+    def walk(router):
+        for r in getattr(router, "routes", []):
+            if type(r).__name__ == "_IncludedRouter":
+                yield from walk(r.original_router)
+            else:
+                yield r
+
+    unclassified = []
+    for route in walk(real_app):
+        path = getattr(route, "path", "") or ""
+        if any(is_open(c) for c in (path, "/api/v1" + path)):
+            continue
+        if rule_for(path) is None:
+            unclassified.append(path)
+
+    assert not unclassified, (
+        "these routes are neither in the RBAC matrix nor on the open list: "
+        f"{sorted(set(unclassified))}"
+    )
+
+
+def test_the_open_list_stays_small_and_deliberate():
+    """Every exemption is a hole by design, so each one should be defensible:
+    obtaining a token, health, the docs, static assets, and the public
+    scan-to-verify page a client uses without an account."""
+    from core.policy import UNAUTHENTICATED_PATHS
+
+    assert len(UNAUTHENTICATED_PATHS) <= 12, UNAUTHENTICATED_PATHS
+    assert "/api/v1/auth/login" in UNAUTHENTICATED_PATHS
+    assert "/v/" in UNAUTHENTICATED_PATHS, "scan-to-verify must work without an account"
+    # Anything that mutates business data must not be exempt.
+    for p in UNAUTHENTICATED_PATHS:
+        assert not any(
+            word in p for word in ("certification", "invoice", "people", "migration")
+        ), f"{p} should not be open"
 
 
 def test_reads_and_writes_are_separated():

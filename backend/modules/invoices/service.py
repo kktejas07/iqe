@@ -127,15 +127,15 @@ class InvoiceService:
         return {"total": total, "page": page, "per_page": per_page, "data": [i.dict() for i in items]}
 
     @staticmethod
-    async def get(invoice_id: str):
-        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id)
+    async def get(invoice_id: str, site_id: str = "SITE-01"):
+        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id, Invoice.site_id == site_id)
         if not inv:
             raise HTTPException(404, "Invoice not found")
         return inv
 
     @staticmethod
     async def create(data: dict, site_id: str, user_id: str):
-        existing = await Invoice.find_one(Invoice.invoice_id == data.get("invoice_id"))
+        existing = await Invoice.find_one(Invoice.invoice_id == data.get("invoice_id"), Invoice.site_id == site_id)
         if existing:
             raise HTTPException(400, "Invoice ID already exists")
 
@@ -154,7 +154,7 @@ class InvoiceService:
 
         inv = Invoice(**data, site_id=site_id, created_by=user_id)
         for visit_id in inv.visit_ids:
-            visit = await Visit.find_one(Visit.visit_id == visit_id)
+            visit = await Visit.find_one(Visit.visit_id == visit_id, Visit.site_id == site_id)
             if visit:
                 visit.is_invoiced = True
                 visit.invoice_id = inv.invoice_id
@@ -165,8 +165,8 @@ class InvoiceService:
         return inv
 
     @staticmethod
-    async def record_payment(invoice_id: str, payment_mode: str, transaction_ref: str, payment_date: Optional[str] = None):
-        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id)
+    async def record_payment(invoice_id: str, payment_mode: str, transaction_ref: str, payment_date: Optional[str] = None, site_id: str = "SITE-01"):
+        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id, Invoice.site_id == site_id)
         if not inv:
             raise HTTPException(404, "Invoice not found")
         inv.payment_status = "paid"
@@ -186,8 +186,8 @@ class InvoiceService:
         return inv
 
     @staticmethod
-    async def cancel(invoice_id: str, reason: str, user_id: str):
-        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id)
+    async def cancel(invoice_id: str, reason: str, user_id: str, site_id: str = "SITE-01"):
+        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id, Invoice.site_id == site_id)
         if not inv:
             raise HTTPException(404, "Invoice not found")
         inv.cancelled = True
@@ -200,8 +200,8 @@ class InvoiceService:
         return inv
 
     @staticmethod
-    async def toggle_freeze(invoice_id: str):
-        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id)
+    async def toggle_freeze(invoice_id: str, site_id: str = "SITE-01"):
+        inv = await Invoice.find_one(Invoice.invoice_id == invoice_id, Invoice.site_id == site_id)
         if not inv:
             raise HTTPException(404, "Invoice not found")
         inv.frozen = not inv.frozen

@@ -38,7 +38,7 @@ async def record_ar_settlement(
     transaction_ref: str = "TXN-AR",
     user: dict = Depends(get_current_user)
 ):
-    return await FinanceService.record_ar_settlement(ar_id, paid_amount, payment_mode, transaction_ref)
+    return await FinanceService.record_ar_settlement(ar_id, paid_amount, payment_mode, transaction_ref, user.get("site_id", "SITE-01"))
 
 
 # ACCOUNTS PAYABLE (Creditors Modernization)
@@ -74,4 +74,4 @@ async def record_ap_disbursement(
     transaction_ref: str = "TXN-AP",
     user: dict = Depends(get_current_user)
 ):
-    return await FinanceService.record_ap_disbursement(ap_id, paid_amount, payment_mode, transaction_ref)
+    return await FinanceService.record_ap_disbursement(ap_id, paid_amount, payment_mode, transaction_ref, user.get("site_id", "SITE-01"))

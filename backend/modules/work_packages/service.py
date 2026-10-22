@@ -105,7 +105,7 @@ class WorkPackageService:
             if value is None or (isinstance(value, str) and not value.strip()):
                 raise HTTPException(400, f"{required} is required")
 
-        job = await Job.find_one(Job.job_id == data["job_id"])
+        job = await Job.find_one(Job.job_id == data["job_id"], Job.site_id == site_id)
         if not job:
             raise HTTPException(400, f"Job '{data['job_id']}' not found")
 
@@ -216,7 +216,7 @@ class WorkPackageService:
         Idempotent on migrated_from_sow_item_id, so re-running will not duplicate.
         Defaults to dry_run so the caller sees what would happen first.
         """
-        job = await Job.find_one(Job.job_id == job_id)
+        job = await Job.find_one(Job.job_id == job_id, Job.site_id == site_id)
         if not job:
             raise HTTPException(404, f"Job '{job_id}' not found")
         await WorkPackageService._resolve_work_type(work_type_code, site_id)
@@ -229,7 +229,8 @@ class WorkPackageService:
             existing = await WorkPackage.find_one(
                 WorkPackage.job_id == job_id,
                 WorkPackage.migrated_from_sow_item_id == item_id,
-            )
+            WorkPackage.site_id == site_id,
+        )
             if existing:
                 skipped.append({"sow_item_id": item_id, "work_package_id": existing.work_package_id})
                 continue

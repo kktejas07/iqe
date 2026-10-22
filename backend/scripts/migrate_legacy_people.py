@@ -46,6 +46,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 from modules.people.models import (  # noqa: E402
     Authorization,
@@ -391,6 +392,7 @@ async def run(dsn: str, site_id: str, site_id_numeric: int, commit: bool, limit:
     await init_beanie(
         database=client[os.environ.get("MONGODB_DB_NAME", "iqeapp_dev")],
         document_models=[
+            AuditEntry,
             Sequence,Person, CompetenceProfile, Authorization],
     )
 

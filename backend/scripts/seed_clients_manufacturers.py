@@ -5,6 +5,7 @@ from beanie import init_beanie
 from core.config import settings
 from modules.clients.models import Client, ClientUnit
 from modules.manufacturers.models import Manufacturer, ManufacturerUnit
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 CITIES_STATES = [
@@ -67,6 +68,7 @@ async def seed():
     print("Connecting to MongoDB for seeding...")
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(database=client[settings.mongodb_db_name], document_models=[
+            AuditEntry,
             Sequence,Client, ClientUnit, Manufacturer, ManufacturerUnit])
 
     print("Clearing existing clients & manufacturers for fresh 200 seed dataset...")

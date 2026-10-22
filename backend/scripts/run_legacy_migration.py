@@ -10,6 +10,7 @@ from modules.invoices.models import Invoice
 from modules.analytics.models import AnalyticsEvent
 from modules.jobs.migration import LegacyMigrationService
 from modules.analytics.service import AnalyticsService
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 
@@ -19,6 +20,7 @@ async def main():
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            AuditEntry,
             Sequence,Job, ServiceOrder, Visit, Invoice, AnalyticsEvent],
     )
 

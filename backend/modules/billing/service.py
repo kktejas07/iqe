@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.billing.models import (
     BillingFrequency,
@@ -268,6 +269,18 @@ class BillingService:
             created_by=user_id,
         )
         await invoice.insert()
+
+        await audit(
+            "invoice", invoice.invoice_id, AuditAction.BILL,
+            actor={"user_id": user_id},
+            note=f"Raised from {len(certs)} certification(s)",
+            context={
+                "job_id": invoice.job_id,
+                "certification_ids": [c.certification_id for c in certs],
+                "grand_total": invoice.grand_total,
+            },
+            site_id=site_id,
+        )
 
         # Consume the certifications and advance their work packages.
         for c in certs:

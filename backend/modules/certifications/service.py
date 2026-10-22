@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.certifications.models import (
     Certification,
@@ -262,6 +263,23 @@ class CertificationService:
         recalculate(cert)
         await cert.save()
 
+        # The assurance act. An assessor asks who certified this value and on
+        # what basis; both identities and the money are on the record.
+        await audit(
+            "certification", cert.certification_id, AuditAction.ISSUE,
+            actor={"user_id": user_id},
+            note=f"Issued against work package {cert.work_package_id}",
+            context={
+                "prepared_by": cert.prepared_by,
+                "certified_by": certified_by_person_id,
+                "claimed_value": cert.claimed_value,
+                "certified_value": cert.certified_value,
+                "deduction_value": cert.deduction_value,
+                "job_id": cert.job_id,
+            },
+            site_id=site_id,
+        )
+
         # Move the package to certified if the lifecycle allows it from here.
         wp = await WorkPackage.find_one(
             WorkPackage.work_package_id == cert.work_package_id,
@@ -338,6 +356,13 @@ class CertificationService:
         cert.dispute_note = note.strip()
         cert.updated_at = datetime.now()
         await cert.save()
+
+        await audit(
+            "certification", cert.certification_id, AuditAction.DISPUTE,
+            note=note.strip(),
+            context={"certified_value": cert.certified_value, "job_id": cert.job_id},
+            site_id=site_id,
+        )
         return cert
 
     @staticmethod

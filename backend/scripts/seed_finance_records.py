@@ -6,6 +6,7 @@ from beanie import init_beanie
 from core.config import settings
 from modules.finance.models import AccountReceivable, AccountPayable
 from modules.invoices.models import Invoice, ChargeItem, AnnexureItem
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 CLIENTS = [
@@ -54,6 +55,7 @@ async def seed_finance_data():
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            AuditEntry,
             Sequence,AccountReceivable, AccountPayable, Invoice],
     )
 

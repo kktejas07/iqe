@@ -38,6 +38,7 @@ from modules.work_packages.models import WorkPackage  # noqa: E402
 from modules.work_packages.service import WorkPackageService  # noqa: E402
 from modules.work_types.models import WorkTypeDefinition  # noqa: E402
 from modules.work_types.service import WorkTypeService  # noqa: E402
+from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 
 SITE = "SITE-01"
@@ -66,6 +67,7 @@ async def db():
     await init_beanie(
         database=client["spine_test"],
         document_models=[
+            AuditEntry,
             Sequence,
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
             Authorization, ImpartialityDeclaration, Assignment, Certification,

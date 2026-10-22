@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from beanie import init_beanie  # noqa: E402
 from pymongo import AsyncMongoClient  # noqa: E402
 
+from core.audit import AuditEntry  # noqa: E402
 from core.config import settings  # noqa: E402
 from modules.assignments.models import Assignment  # noqa: E402
 from modules.assignments.service import AssignmentService  # noqa: E402
@@ -60,6 +61,7 @@ USER = "USR-SEED"
 NOW = datetime.now()
 
 DOCUMENT_MODELS = [
+    AuditEntry,
     Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
     Authorization, ImpartialityDeclaration, Assignment, Certification,
     Invoice, BillingTerms, ReportFormat,

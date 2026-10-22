@@ -19,6 +19,7 @@ from mongomock_motor import AsyncMongoMockClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence, next_identifier, next_value  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
 from modules.people.models import (  # noqa: E402
@@ -56,6 +57,7 @@ async def db():
     await init_beanie(
         database=client["sequence_test"],
         document_models=[
+            AuditEntry,
             Sequence, Job, WorkTypeDefinition, WorkPackage, Person,
             CompetenceProfile, Authorization, ImpartialityDeclaration,
         ],

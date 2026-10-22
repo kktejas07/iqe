@@ -52,6 +52,7 @@ from modules.schedule_m_pharma_epc.models import ScheduleMPharmaEPCProject  # no
 from modules.tpi.models import TpiReport  # noqa: E402
 from modules.work_packages.models import WorkPackage  # noqa: E402
 from modules.work_types.models import WorkTypeDefinition  # noqa: E402
+from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 
 RUNNERS = {
@@ -67,6 +68,7 @@ async def main(which: str, site_id: str, user_id: str, apply: bool) -> int:
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            AuditEntry,
             Sequence,
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
             Authorization, ImpartialityDeclaration, Assignment, Certification,

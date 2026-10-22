@@ -41,6 +41,7 @@ from beanie import init_beanie  # noqa: E402
 from pymongo import AsyncMongoClient  # noqa: E402
 from pymongo.errors import DuplicateKeyError, PyMongoError  # noqa: E402
 
+from core.audit import AuditEntry  # noqa: E402
 from core.config import settings  # noqa: E402
 from modules.assignments.models import Assignment  # noqa: E402
 from modules.billing.models import BillingTerms  # noqa: E402
@@ -72,6 +73,7 @@ SITE = "SITE-VERIFY"
 USER = "USR-VERIFY"
 
 DOCUMENT_MODELS = [
+    AuditEntry,
     Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
     Authorization, ImpartialityDeclaration, Assignment, Certification,
     Invoice, BillingTerms, ReportFormat, TpiReport,

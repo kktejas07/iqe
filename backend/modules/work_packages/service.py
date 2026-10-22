@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import HTTPException
 
 from modules.jobs.models import Job
+from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.work_packages.models import (
     ALLOWED_TRANSITIONS,
@@ -177,11 +178,21 @@ class WorkPackageService:
                 from_status=wp.status, to_status=to_status, changed_by=user_id, reason=reason
             )
         )
+        from_status = wp.status
         wp.status = to_status
         if to_status == WorkPackageStatus.CLOSED.value:
             wp.percent_complete = 100.0
         wp.updated_at = datetime.now()
         await wp.save()
+
+        await audit(
+            "work_package", wp.work_package_id, AuditAction.STATUS_CHANGE,
+            actor={"user_id": user_id},
+            changes=None, before={"status": from_status}, after={"status": to_status},
+            note=reason,
+            context={"job_id": wp.job_id, "work_type_code": wp.work_type_code},
+            site_id=site_id,
+        )
         return wp
 
     @staticmethod

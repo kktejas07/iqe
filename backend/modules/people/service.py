@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.people.models import (
     Authorization,
@@ -298,10 +299,31 @@ class PeopleService:
         if status == AuthorizationStatus.SUSPENDED.value:
             auth.suspension_reason = reason
 
+        previous = auth.status
         auth.status = status
         auth.updated_at = datetime.now()
         await auth.save()
         await PeopleService.refresh_deployability(auth.person_id, site_id)
+
+        # Granting, suspending or withdrawing an authorization is a competence
+        # decision. ISO/IEC 17020 expects it to be traceable to a named person
+        # and to the evidence that supported it.
+        await audit(
+            "authorization", auth.authorization_id, AuditAction.AUTHORIZE,
+            actor={"user_id": authorized_by},
+            before={"status": previous}, after={"status": status},
+            note=reason,
+            context={
+                "person_id": auth.person_id,
+                "inspection_types": list(auth.inspection_types or []),
+                "qualification_verified": auth.qualification_verified,
+                "training_completed": auth.training_completed,
+                "supervised": f"{auth.supervised_inspections_count}/{auth.supervised_required}",
+                "witnessed_assessment_passed": auth.witnessed_assessment_passed,
+                "valid_until": str(auth.valid_until) if auth.valid_until else None,
+            },
+            site_id=site_id,
+        )
         return auth
 
     # ------------------------------------------------------------ profiles

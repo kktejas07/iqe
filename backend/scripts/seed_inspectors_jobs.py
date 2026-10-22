@@ -9,6 +9,7 @@ from modules.auth.models import UserLogin
 from modules.users.models import Competency, InspectorRate
 from modules.jobs.models import Job
 from modules.clients.models import Client
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 FIRST_NAMES = [
@@ -55,6 +56,7 @@ async def seed():
     print("Connecting to MongoDB for Inspector & Job seeding...")
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(database=client[settings.mongodb_db_name], document_models=[
+            AuditEntry,
             Sequence,UserLogin, Competency, InspectorRate, Job, Client])
 
     site_id = "SITE-01"

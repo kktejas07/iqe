@@ -14,6 +14,7 @@ from pymongo.errors import PyMongoError
 from beanie import init_beanie
 from core.config import settings
 from modules.tpi.models import TpiReport
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 
@@ -48,6 +49,7 @@ def test_tpi_lifecycle_roundtrip():
         await init_beanie(
             database=client[settings.mongodb_db_name],
             document_models=[
+            AuditEntry,
             Sequence,TpiReport],
         )
 

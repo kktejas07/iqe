@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.assignments.models import (
     ALLOWED_TRANSITIONS,
@@ -269,6 +270,19 @@ class AssignmentService:
             ),
         )
         await assignment.insert()
+
+        # Who was put on this work, by whom, and on what competence evidence -
+        # the question an impartiality review starts from.
+        await audit(
+            "assignment", assignment.assignment_id, AuditAction.ASSIGN,
+            actor={"user_id": user_id},
+            note=f"{assignment.person_name or person_id} assigned to {work_package_id}",
+            context={
+                "person_id": person_id, "work_package_id": work_package_id,
+                "role": role, "method": method,
+            },
+            site_id=site_id,
+        )
 
         if wp.status == "planned":
             await WorkPackageService.transition(

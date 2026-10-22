@@ -69,9 +69,11 @@ from modules.people.routes import router as people_router
 from modules.assignments.models import Assignment
 from modules.assignments.routes import router as assignments_router
 from modules.dashboards.routes import router as dashboards_router
+from modules.audit.routes import router as audit_router
 from modules.migration.routes import router as migration_router
 from modules.reporting.models import ReportFormat
 from modules.reporting.routes import router as reporting_router
+from core.audit import AuditEntry
 from core.sequences import Sequence
 
 
@@ -81,6 +83,7 @@ async def lifespan(app: FastAPI):
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            AuditEntry,
             Sequence,
             UserLogin, Client, ClientUnit, Manufacturer, ManufacturerUnit,
             Competency, InspectorRate, Associate, Job, ServiceOrder,
@@ -190,6 +193,7 @@ app.include_router(assignments_router, prefix="/api/v1")
 app.include_router(dashboards_router, prefix="/api/v1")
 app.include_router(reporting_router, prefix="/api/v1")
 app.include_router(migration_router, prefix="/api/v1")
+app.include_router(audit_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

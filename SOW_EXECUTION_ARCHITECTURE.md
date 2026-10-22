@@ -433,7 +433,20 @@ render them against real data would risk breaking live deliverables to gain stru
 registry is the home for new formats and for the composed report, which had none; folding the
 nine in is a follow-up to do screen by screen with a visible comparison each time.
 
-**The registry is not yet wired to the renderer — this is the main outstanding gap.**
+**The registry now drives the renderer.** `app/pdf/formats.py` resolves a format to a render
+spec in one place: a client's own variant, then the registry, then the legacy configs, then a
+generic renderer. Rendering stays synchronous — the registry is pushed in at startup by
+`ReportingService.sync_renderer()`, and `POST /reporting/sync-renderer` refreshes it without a
+restart. Nothing breaks if that never runs, because the legacy configs remain the base layer.
+
+All thirteen formats render. `templates/generic.html` builds a document from whatever sections a
+format declares, which is what gives the six formats that never had a template a PDF without
+writing six bespoke files; `templates/project_report.html` gives the composed report its own
+layout. `GET /reporting/formats/{code}/pdf` returns a blank pro forma and
+`GET /reporting/project-report/{job_id}/pdf` the composed report, both on IQE letterhead with
+the brand watermark.
+
+Historical note, kept because it explains the shape of the fix:
 `app/pdf/service.py` keeps its own hardcoded `FORM_CONFIGS` table keyed on the legacy form codes
 (`TP02`, `FBILL01`, `FBOQ01`…), while the registry is keyed on report codes (`IVR`, `FIR`,
 `RA_BILL_CERT`…). Both describe the same seven templates, so the mapping now lives in two places
@@ -585,9 +598,13 @@ them.
    work to `certified` would assert a control that was never exercised. And Schedule M RA bill
    reviews are *reported* rather than written, because which discipline's package a bill attaches
    to is a judgement the legacy data does not hold.
-2. **Is "inspection officer" a distinct role, or the primary assignment role?** Specced as a
-   role value in `Assignment.role`. If it is a *designation* in the HR sense, it also belongs
-   in the designation master — confirm which.
+2. ~~**Is "inspection officer" a distinct role, or the primary assignment role?**~~ **Answered
+   from the legacy app: both, and they are already separate.** `MasterViewModel.MasterDataType`
+   has `Roles = 1` and `Designations = 2` as distinct masters, and each employee carries a
+   `DesignationId`. So an assignment role (what someone does on this package) and an HR
+   designation (what their job is called) coexist, which is exactly what `Assignment.role` and
+   `Person.designation` / `Person.designation_id` already model. No change needed, and the
+   people migration carries `DesignationId` across.
 3. ~~**Who certifies?**~~ **Settled as configuration, pending your confirmation of the
    default.** `CertificationService.issue()` now refuses to issue when `prepared_by` equals
    `certified_by_person_id`, unless the work type sets `allow_self_certification`. The default
@@ -595,12 +612,34 @@ them.
    execution. If a scope in your accreditation does place certifying authority with the
    performing inspector, turn the flag on for that work type rather than changing code. What
    still needs your answer is *which* work types, if any, should have it on.
-4. **Retention and advance** — confirm these exist in IQE's contracts. If yes they are phase 5,
-   not optional.
-5. **Auto-assign appetite.** Full auto (TÜV's stated direction), recommend-only, or auto above
-   a confidence threshold? Recommend starting recommend-only and measuring override rate.
-6. **Client-specific report formats** — how many clients mandate their own layouts? Drives
-   whether `ReportFormat.is_client_specific` needs a template inheritance model.
+4. **Retention and advance** — **still open.** The question came back with three mutually
+   exclusive answers selected ("both", "retention only", "neither"), so nothing was changed:
+   both remain first-class billing terms, which is the tested behaviour and the superset.
+   Stripping either is a small change once a single answer is given.
+5. ~~**Auto-assign appetite.**~~ **Answered: full auto wherever eligible.** Every work type in
+   the catalogue carries `auto_assign_threshold: 0.0`, which `should_auto_assign()` treats as
+   full auto — assign the top-ranked candidate whenever anyone is eligible, without review, and
+   without stalling on a tie. The hard eligibility gate still runs, so this means "the best
+   eligible person, unreviewed", never "anyone": competence, authorization validity, impartiality
+   conflict and calendar clash all still block.
+
+   Two things to keep in view. Auto-assignment does not fire by itself when a package is created
+   — something has to call `POST /assignments/auto-assign/{id}`, so switching this on changes
+   what that endpoint *does*, not when it runs. And every assignment records its method and
+   score, so the override rate is measurable; dialling back to recommend-only or to a threshold
+   is a change to `auto_assign_threshold`, not to code. `tests/test_operating_decisions.py`
+   asserts the current setting so a drift is visible.
+
+   Worth stating once, since an accreditation assessor will ask: what full auto gives up is the
+   human check on client sensitivity and commercial judgement, and a stale competence record now
+   reaches site unreviewed.
+6. ~~**Client-specific report formats**~~ **Answered: most large clients mandate their own
+   layouts, so inheritance is built.** A client variant sets `client_id` and `inherits_from` and
+   overrides only the fields that differ — its own letterhead, template or section order.
+   Everything else resolves from the parent at render time, so a change to the standard format
+   reaches every variant that did not deliberately override it. Register one with
+   `POST /reporting/formats/{code}/client-override?client_id=...`, and pass `client_id` to either
+   PDF endpoint to render it.
 
 ---
 

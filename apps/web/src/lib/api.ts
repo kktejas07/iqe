@@ -651,6 +651,30 @@ class API {
   async getProjectReport(jobId: string) {
     return (await this.client.get(`/reporting/project-report/${jobId}`)).data;
   }
+
+  // PDFs come back as blobs rather than a plain link, because the API is
+  // bearer-authenticated and an <a href> would not carry the token.
+  async getReportFormatPdf(formatCode: string, opts?: { client_id?: string; blank?: boolean }) {
+    return (await this.client.get(`/reporting/formats/${formatCode}/pdf`, {
+      params: { client_id: opts?.client_id, blank: opts?.blank ?? true },
+      responseType: "blob",
+    })).data as Blob;
+  }
+
+  async getProjectReportPdf(jobId: string, client_id?: string) {
+    return (await this.client.get(`/reporting/project-report/${jobId}/pdf`, {
+      params: { client_id },
+      responseType: "blob",
+    })).data as Blob;
+  }
+
+  async createReportClientOverride(formatCode: string, client_id: string, overrides: any) {
+    return (await this.client.post(
+      `/reporting/formats/${formatCode}/client-override`,
+      overrides,
+      { params: { client_id } },
+    )).data;
+  }
 }
 
 export const api = new API();

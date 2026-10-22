@@ -53,6 +53,22 @@ const KIND_MEANING: Record<string, string> = {
   COMPOSED: "Built from records already captured, not filled in by hand.",
 };
 
+/** Opens a fetched PDF in a new tab, revoking the object URL once the browser
+ *  has had a chance to load it. A blob is needed rather than a direct link
+ *  because the API is bearer-authenticated. */
+function openPdfBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank");
+  if (!win) {
+    // Pop-up blocked: fall back to a download instead of failing silently.
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export default function ReportsPage() {
   const [formats, setFormats] = useState<ReportFormat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +77,7 @@ export default function ReportsPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const [jobId, setJobId] = useState("");
+  const [pdfBusy, setPdfBusy] = useState<string | null>(null);
   const [report, setReport] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
 
@@ -94,6 +111,30 @@ export default function ReportsPage() {
       load();
     } catch {
       toast.error("Could not load the standard formats.");
+    }
+  };
+
+  const openFormatPdf = async (code: string) => {
+    setPdfBusy(code);
+    try {
+      openPdfBlob(await api.getReportFormatPdf(code, { blank: true }), `${code}.pdf`);
+    } catch {
+      toast.error(`Could not render ${code}. Check the API connection and try again.`);
+    } finally {
+      setPdfBusy(null);
+    }
+  };
+
+  const openProjectReportPdf = async () => {
+    const id = jobId.trim();
+    if (!id) return;
+    setPdfBusy("PROJECT_REPORT");
+    try {
+      openPdfBlob(await api.getProjectReportPdf(id), `project-report-${id}.pdf`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || `Could not render a PDF for ${id}.`);
+    } finally {
+      setPdfBusy(null);
     }
   };
 
@@ -208,11 +249,13 @@ export default function ReportsPage() {
                   Composed {formatDate(report.generated_at)}
                 </span>
                 <button
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  onClick={openProjectReportPdf}
+                  disabled={pdfBusy === "PROJECT_REPORT"}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  title="Server-rendered PDF on IQE letterhead"
                 >
                   <Printer className="h-3.5 w-3.5" />
-                  Print
+                  {pdfBusy === "PROJECT_REPORT" ? "Rendering…" : "PDF"}
                 </button>
               </div>
             </div>
@@ -528,8 +571,17 @@ export default function ReportsPage() {
                     )}
                     <span>{f.revision}</span>
                     <button
+                      onClick={() => openFormatPdf(f.format_code)}
+                      disabled={pdfBusy === f.format_code}
+                      className="ml-auto inline-flex items-center gap-1 font-medium text-slate-500 hover:text-[#0084bf] hover:underline disabled:opacity-50 dark:text-slate-400"
+                      title="Blank pro forma on IQE letterhead"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      {pdfBusy === f.format_code ? "Rendering…" : "PDF"}
+                    </button>
+                    <button
                       onClick={() => setExpanded(open ? null : f.format_code)}
-                      className="ml-auto inline-flex items-center gap-0.5 font-medium text-[#0084bf] hover:underline"
+                      className="inline-flex items-center gap-0.5 font-medium text-[#0084bf] hover:underline"
                     >
                       {open ? "Hide" : "Structure"}
                       <ChevronRight

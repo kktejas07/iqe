@@ -73,6 +73,24 @@ pass `--force`. `tests/test_seed_spine_demo.py` executes the script itself
 against an in-memory MongoDB, so the seeder is covered by the suite rather than
 trusted.
 
+#### Verifying against a real MongoDB
+
+Everything in `tests/` runs against mongomock, which needs no server but is not
+MongoDB: it does not enforce indexes, and it has no real concurrency, so a race
+cannot appear there. One command checks what the suite structurally cannot:
+
+```bash
+PYTHONPATH=. python scripts/verify_against_real_db.py
+```
+
+It uses a scratch database (`<your db>__verify`) and drops it afterwards, so it
+never touches real data. It checks that declared indexes exist, that identifier
+allocation stays unique under concurrent creates, that the `$regex` selections
+the migration and `--wipe` paths rely on match only the records they should,
+that certification money survives a BSON round trip unchanged, and that the
+dashboards' aggregations run on a real server. Exit code 0 means everything the
+sandbox could not prove now holds on yours.
+
 #### Migrating the legacy verticals
 
 ```bash

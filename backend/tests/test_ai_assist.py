@@ -260,7 +260,7 @@ async def test_report_drafting_reports_honestly_without_a_model(db):
     wp = await make_package("CODE_INSP")
     result = await AIAssistService.draft_report(wp.work_package_id, SITE)
     assert result["draft"] is None
-    assert result["status"] in ("model_not_configured", "not_implemented")
+    assert result["status"] == "not_configured"
     assert result["context"]["work_type"]["code"] == "CODE_INSP"
 
 
@@ -274,4 +274,5 @@ async def test_extraction_returns_no_invented_values(db):
                    size_bytes=1, sha256="x").insert()
     result = await AIAssistService.extract_document(wp.work_package_id, "EV-9", SITE)
     assert result["extracted"] is None
+    assert result["status"] in ("not_configured", "unsupported_source")
     assert result["source"]["filename"] == "mtc.pdf"

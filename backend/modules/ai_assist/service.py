@@ -30,6 +30,7 @@ from typing import Any, Optional
 
 from fastapi import HTTPException
 
+from core import llm
 from core.config import settings
 from modules.certifications.models import Certification
 from modules.work_packages.models import WorkPackage
@@ -279,9 +280,17 @@ class AIAssistService:
 
     # -------------------------------------------------- model-backed
 
-    @staticmethod
-    def _model_available() -> bool:
-        return bool(settings.azure_openai_endpoint and settings.azure_openai_api_key)
+    #: One place decides whether a model can be called; see core/llm.py.
+    _model_available = staticmethod(llm.is_configured)
+
+    DRAFT_SYSTEM_PROMPT = (
+        "You are drafting a section of an inspection report for a third-party "
+        "inspection body accredited to ISO/IEC 17020. Write only from the "
+        "facts supplied. Do not infer findings that were not recorded and do "
+        "not state an acceptance decision that is not present; where "
+        "information is missing, say so. A competent inspector will review and "
+        "sign this."
+    )
 
     @staticmethod
     async def draft_report(work_package_id: str, site_id: str = "SITE-01") -> dict:
@@ -322,31 +331,30 @@ class AIAssistService:
             "photograph_count": len(photos),
         }
 
-        if not AIAssistService._model_available():
+        if not llm.is_configured():
+            refusal = llm.not_configured("Report drafting")
             return {
                 "work_package_id": work_package_id,
                 "draft": None,
-                "status": "model_not_configured",
-                "detail": (
-                    "Report drafting needs a language model. Set "
-                    "AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY to enable it. "
-                    "The assembled context is returned so the section can be "
-                    "written by hand meanwhile."
-                ),
+                "status": refusal.status,
+                "detail": refusal.detail + " The assembled context is returned "
+                          "so the section can be written by hand meanwhile.",
                 "context": context,
             }
 
-        # A configured deployment would be called here with `context`. Left
-        # unimplemented rather than stubbed: a fabricated draft presented as
-        # model output is worse than an honest gap.
+        rendered = await llm.complete(
+            AIAssistService.DRAFT_SYSTEM_PROMPT,
+            f"Draft the narrative sections of a {wt.name} report for this work "
+            f"package. Governing codes: "
+            f"{', '.join(wt.applicable_codes) or 'none recorded'}.\n\n"
+            f"{_as_text(context)}",
+        )
         return {
             "work_package_id": work_package_id,
-            "draft": None,
-            "status": "not_implemented",
-            "detail": (
-                "A model is configured but the drafting call is not wired up yet. "
-                "Nothing is returned rather than a fabricated draft."
-            ),
+            "draft": rendered.text,
+            "status": rendered.status,
+            "detail": rendered.detail,
+            "model": rendered.model,
             "context": context,
         }
 
@@ -365,18 +373,52 @@ class AIAssistService:
         from modules.evidence.service import EvidenceService
 
         item = await EvidenceService.get(evidence_id, site_id)
-        return {
+        base = {
             "work_package_id": work_package_id,
             "evidence_id": evidence_id,
             "source": {"filename": item.filename, "content_type": item.content_type},
             "extracted": None,
-            "status": "model_not_configured" if not AIAssistService._model_available()
-                      else "not_implemented",
-            "detail": (
-                "Document extraction needs a vision-capable model. No values are "
-                "returned until one is wired up - a guessed heat number on a "
-                "material certificate would be worse than a blank field."
-            ),
+        }
+
+        if not llm.is_configured():
+            refusal = llm.not_configured("Document extraction")
+            return {**base, "status": refusal.status, "detail": refusal.detail}
+
+        # Text-bearing documents can be read by the text model. A scan or a
+        # photograph needs a vision deployment, which is a different call and a
+        # different deployment name - so it reports rather than guessing. A
+        # fabricated heat number on a material certificate is worse than a
+        # blank field.
+        if item.content_type not in ("text/csv",):
+            return {
+                **base,
+                "status": "unsupported_source",
+                "detail": (
+                    f"{item.content_type} needs a vision-capable deployment, which "
+                    f"is not configured. Only text sources are extracted today."
+                ),
+            }
+
+        from pathlib import Path
+
+        from modules.evidence.service import _resolve_within_root
+
+        text = _resolve_within_root(*Path(item.stored_path).parts).read_text(
+            errors="ignore"
+        )[:20_000]
+        rendered = await llm.complete(
+            "You extract structured data from inspection and billing documents. "
+            "Return JSON only. Use null for any field you cannot read - never "
+            "guess a value.",
+            f"Extract the line items, quantities, rates and any certificate or "
+            f"heat numbers from this document:\n\n{text}",
+        )
+        return {
+            **base,
+            "extracted": rendered.text,
+            "status": rendered.status,
+            "detail": rendered.detail,
+            "model": rendered.model,
         }
 
     @staticmethod
@@ -395,3 +437,22 @@ class AIAssistService:
             "needs_a_model": [a for a in declared if a not in deterministic],
             "model_configured": AIAssistService._model_available(),
         }
+
+
+def _as_text(context: dict) -> str:
+    """Flatten the assembled context for the prompt, keeping it readable so a
+    person reviewing what was sent can follow it."""
+    lines: list[str] = []
+    for key, value in context.items():
+        if isinstance(value, dict):
+            lines.append(f"{key}:")
+            lines.extend(
+                f"  {k}: {v if v not in (None, '') else '(not recorded)'}"
+                for k, v in value.items()
+            )
+        elif isinstance(value, list):
+            lines.append(f"{key}:")
+            lines.extend(f"  - {v}" for v in value) if value else lines.append("  (none)")
+        else:
+            lines.append(f"{key}: {value}")
+    return "\n".join(lines)

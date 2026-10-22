@@ -14,6 +14,8 @@ from modules.work_types.models import AIAssist, RateBasis
 DEFAULT_CATALOGUE: list[dict] = [
     {
         "work_type_code": "CODE_INSP",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
+        "allow_self_certification": True,
         "name": "Code-based Inspection",
         "description": "Third-party inspection against a design or construction code, at vendor works or site.",
         "discipline_tags": ["Mechanical", "Welding", "NDT", "Pressure Equipment"],
@@ -34,6 +36,7 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "BOQ_RECON",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
         "name": "BOQ Reconciliation & Quantity Survey",
         "description": "Joint measurement against the bill of quantities; produces certified quantity and value.",
         "discipline_tags": ["Civil", "Quantity Surveying", "Structural"],
@@ -54,6 +57,7 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "BILL_VERIF",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
         "name": "RA / Running Bill Verification",
         "description": "Verification of contractor running-account bills: claimed vs certified value with deductions.",
         "discipline_tags": ["Civil", "Billing", "Quantity Surveying"],
@@ -74,6 +78,7 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "GMP_SCHEDM",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
         "name": "Schedule M / WHO-GMP Compliance",
         "description": "Pharmaceutical facility compliance verification against Schedule M, WHO-GMP and ISPE.",
         "discipline_tags": ["HVAC", "Cleanroom", "Process & Piping", "QC Lab", "Civil"],
@@ -94,6 +99,7 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "VENDOR_AUDIT",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
         "name": "Vendor Capability Assessment",
         "description": "Assessment of a vendor's manufacturing, technical and quality-system capability.",
         "discipline_tags": ["Quality Systems", "Mechanical", "Electrical"],
@@ -114,6 +120,8 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "EXPEDITING",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
+        "allow_self_certification": True,
         "name": "Expediting & Progress Monitoring",
         "description": "Vendor progress monitoring against delivery milestones, with constraint escalation.",
         "discipline_tags": ["Expediting", "Procurement"],
@@ -134,6 +142,7 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "SAT_COMM",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
         "name": "Site Acceptance & Commissioning Tests",
         "description": "Site acceptance and endurance testing of installed equipment prior to handover.",
         "discipline_tags": ["Mechanical", "Electrical", "Material Handling"],
@@ -154,6 +163,8 @@ DEFAULT_CATALOGUE: list[dict] = [
     },
     {
         "work_type_code": "STAFF_DEPUT",
+        "auto_assign_threshold": 0.0,   # full auto wherever eligible
+        "allow_self_certification": True,
         "name": "Site Deputation / Secondment",
         "description": "Engineer deputed to a client site for a sustained period under client direction.",
         "discipline_tags": ["Mechanical", "Civil", "Electrical", "QA/QC"],

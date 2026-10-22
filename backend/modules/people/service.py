@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.sequences import next_identifier
 from modules.people.models import (
     Authorization,
     AuthorizationStatus,
@@ -23,34 +24,21 @@ VALID_AUTH_STATUSES = {s.value for s in AuthorizationStatus}
 
 
 async def _next_id(model, site_id: str, prefix: str, field: str, width: int = 4) -> str:
-    year = datetime.now().year
-    root = f"{prefix}-{year}-"
-    latest = (
-        await model.find(model.site_id == site_id, {field: {"$regex": f"^{root}"}})
-        .sort(f"-{field}").limit(1).to_list()
+    """PREFIX-YYYY-NNNN, allocated atomically. See core/sequences.py."""
+    return await next_identifier(
+        model, field, site_id, prefix, width=width, kind=f"people:{prefix}"
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(getattr(latest[0], field).rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            seq = await model.find(model.site_id == site_id).count() + 1
-    return f"{root}{seq:0{width}d}"
 
 
 async def _next_person_id(site_id: str) -> str:
-    """EMP-XXXXX, not year-scoped - a person outlives a calendar year."""
-    latest = (
-        await Person.find(Person.site_id == site_id, {"person_id": {"$regex": "^EMP-"}})
-        .sort(-Person.person_id).limit(1).to_list()
+    """EMP-NNNNN, not year-scoped - a person outlives a calendar year.
+
+    Allocated atomically. See core/sequences.py.
+    """
+    return await next_identifier(
+        Person, "person_id", site_id, "EMP",
+        year_scoped=False, width=5, kind="person",
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(latest[0].person_id.rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            seq = await Person.find(Person.site_id == site_id).count() + 1
-    return f"EMP-{seq:05d}"
 
 
 class PeopleService:

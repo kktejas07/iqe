@@ -64,11 +64,76 @@ class ReportingService:
                 continue
             await ReportFormat(**{**entry, "site_id": site_id}).insert()
             created.append(code)
+        await ReportingService.sync_renderer(site_id)
         return {
             "created": created,
             "skipped_existing": skipped,
             "total_in_registry": len(DEFAULT_FORMATS),
         }
+
+    @staticmethod
+    async def sync_renderer(site_id: str = "SITE-01") -> dict:
+        """Push the registry into the PDF renderer.
+
+        Called at startup and after any change to a format. The renderer is
+        synchronous, so it cannot read MongoDB itself; this is the one place
+        that crosses from the async world into it. Imported locally to keep
+        app.pdf free of a module-level dependency on this package.
+        """
+        from app.pdf.formats import load_overlay
+
+        items = await ReportFormat.find(
+            ReportFormat.site_id == site_id,
+            ReportFormat.is_active == True,  # noqa: E712
+        ).to_list()
+        return load_overlay([i.model_dump(exclude={"id"}) for i in items])
+
+    @staticmethod
+    async def create_client_override(
+        parent_format_code: str,
+        client_id: str,
+        overrides: dict,
+        site_id: str = "SITE-01",
+    ) -> ReportFormat:
+        """Register a client's own layout for a standard format.
+
+        Only the fields that differ need setting; the rest resolve from the
+        parent at render time, so a change to the standard format reaches every
+        client variant that did not deliberately override it.
+        """
+        parent = await ReportingService.get_format(parent_format_code, site_id)
+
+        code = overrides.get("format_code") or f"{parent.format_code}__{client_id}"
+        existing = await ReportFormat.find_one(
+            ReportFormat.format_code == code, ReportFormat.site_id == site_id
+        )
+        if existing:
+            raise HTTPException(409, f"Format '{code}' already exists")
+
+        payload = {
+            "format_code": code,
+            "site_id": site_id,
+            "name": overrides.get("name") or f"{parent.name} ({client_id})",
+            "kind": parent.kind,
+            "description": overrides.get("description") or parent.description,
+            "work_type_codes": parent.work_type_codes,
+            "is_client_specific": True,
+            "client_id": client_id,
+            "inherits_from": parent.format_code,
+        }
+        # Only carry across what the caller actually set. An override that
+        # copied every parent field would stop inheriting future changes, which
+        # is the whole point of the parent link.
+        for field in ("template_path", "stylesheet_path", "legacy_form_code",
+                      "document_title", "header_subline", "sections",
+                      "requires_signatures", "annexures", "revision"):
+            if overrides.get(field):
+                payload[field] = overrides[field]
+
+        fmt = ReportFormat(**payload)
+        await fmt.insert()
+        await ReportingService.sync_renderer(site_id)
+        return fmt
 
     @staticmethod
     async def formats_for_work_type(work_type_code: str, site_id: str = "SITE-01"):

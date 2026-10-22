@@ -14,6 +14,7 @@ from pymongo.errors import PyMongoError
 from beanie import init_beanie
 from core.config import settings
 from modules.tpi.models import TpiReport
+from core.sequences import Sequence
 
 
 def _mongodb_reachable() -> bool:
@@ -46,7 +47,8 @@ def test_tpi_lifecycle_roundtrip():
         client = AsyncMongoClient(settings.mongodb_url)
         await init_beanie(
             database=client[settings.mongodb_db_name],
-            document_models=[TpiReport],
+            document_models=[
+            Sequence,TpiReport],
         )
 
         # 1. Create Draft

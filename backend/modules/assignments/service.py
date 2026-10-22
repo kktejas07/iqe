@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.sequences import next_identifier
 from modules.assignments.models import (
     ALLOWED_TRANSITIONS,
     Assignment,
@@ -27,19 +28,10 @@ VALID_STATUSES = {s.value for s in AssignmentStatus}
 
 
 async def _next_assignment_id(site_id: str) -> str:
-    year = datetime.now().year
-    root = f"ASG-{year}-"
-    latest = (
-        await Assignment.find(Assignment.site_id == site_id, {"assignment_id": {"$regex": f"^{root}"}})
-        .sort(-Assignment.assignment_id).limit(1).to_list()
+    """ASG-YYYY-NNNN, allocated atomically. See core/sequences.py."""
+    return await next_identifier(
+        Assignment, "assignment_id", site_id, "ASG", kind="assignment"
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(latest[0].assignment_id.rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            seq = await Assignment.find(Assignment.site_id == site_id).count() + 1
-    return f"{root}{seq:04d}"
 
 
 async def _has_calendar_clash(

@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import HTTPException
 
 from modules.jobs.models import Job
+from core.sequences import next_identifier
 from modules.work_packages.models import (
     ALLOWED_TRANSITIONS,
     StatusTransition,
@@ -16,26 +17,14 @@ from modules.work_types.models import WorkTypeDefinition
 
 
 async def _next_work_package_id(site_id: str) -> str:
-    """WP-YYYY-NNNN, sequential within the current year for this site."""
-    year = datetime.now().year
-    prefix = f"WP-{year}-"
-    latest = (
-        await WorkPackage.find(
-            WorkPackage.site_id == site_id,
-            {"work_package_id": {"$regex": f"^{prefix}"}},
-        )
-        .sort(-WorkPackage.work_package_id)
-        .limit(1)
-        .to_list()
+    """WP-YYYY-NNNN, sequential within the current year for this site.
+
+    Allocated through an atomic counter rather than max-plus-one, which raced
+    under concurrent creates. See core/sequences.py.
+    """
+    return await next_identifier(
+        WorkPackage, "work_package_id", site_id, "WP", kind="work_package"
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(latest[0].work_package_id.rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            # Malformed existing id - fall back to a count so we still progress.
-            seq = await WorkPackage.find(WorkPackage.site_id == site_id).count() + 1
-    return f"{prefix}{seq:04d}"
 
 
 class WorkPackageService:

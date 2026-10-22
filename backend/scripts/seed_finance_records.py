@@ -6,6 +6,7 @@ from beanie import init_beanie
 from core.config import settings
 from modules.finance.models import AccountReceivable, AccountPayable
 from modules.invoices.models import Invoice, ChargeItem, AnnexureItem
+from core.sequences import Sequence
 
 CLIENTS = [
     {"client_id": "C-001", "name": "Reliance Industries Ltd", "unit": "Hazira Heavy Yard"},
@@ -52,7 +53,8 @@ async def seed_finance_data():
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
-        document_models=[AccountReceivable, AccountPayable, Invoice],
+        document_models=[
+            Sequence,AccountReceivable, AccountPayable, Invoice],
     )
 
     site_id = "SITE-01"

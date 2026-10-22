@@ -307,3 +307,42 @@ td.td-value {
 .nowrap {
   white-space: nowrap;
 }
+
+/* --- Brand identity on every rendered document ------------------------- */
+
+.header-logo-cell {
+  width: 42pt;
+  vertical-align: middle;
+  padding-right: 7pt;
+}
+
+.header-logo {
+  width: 38pt;
+  height: auto;
+  display: block;
+}
+
+/* The watermark is the IQE mark, not the wordmark: at this opacity a wordmark
+   turns into illegible grey smear, whereas the mark still reads as the brand.
+   Kept faint enough that printed text over it stays legible on a photocopy. */
+.brand-watermark {
+  position: fixed;
+  top: 38%;
+  left: 50%;
+  width: 46%;
+  transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.055;
+}
+
+.brand-watermark img {
+  width: 100%;
+  height: auto;
+}
+
+/* Content must sit above the watermark or WeasyPrint paints it over the text. */
+.page-container {
+  position: relative;
+  z-index: 1;
+}

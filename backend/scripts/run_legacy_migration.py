@@ -10,6 +10,7 @@ from modules.invoices.models import Invoice
 from modules.analytics.models import AnalyticsEvent
 from modules.jobs.migration import LegacyMigrationService
 from modules.analytics.service import AnalyticsService
+from core.sequences import Sequence
 
 
 async def main():
@@ -17,7 +18,8 @@ async def main():
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
-        document_models=[Job, ServiceOrder, Visit, Invoice, AnalyticsEvent],
+        document_models=[
+            Sequence,Job, ServiceOrder, Visit, Invoice, AnalyticsEvent],
     )
 
     print("\n--- Running Legacy Data Ingestion Engine ---")

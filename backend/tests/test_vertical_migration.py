@@ -42,6 +42,7 @@ from modules.tpi.models import TpiReport  # noqa: E402
 from modules.work_packages.models import WorkPackage  # noqa: E402
 from modules.work_types.models import WorkTypeDefinition  # noqa: E402
 from modules.work_types.service import WorkTypeService  # noqa: E402
+from core.sequences import Sequence  # noqa: E402
 
 SITE = "SITE-01"
 USER = "USR-MIGRATION"
@@ -69,6 +70,7 @@ async def db():
     await init_beanie(
         database=client["migration_test"],
         document_models=[
+            Sequence,
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
             Authorization, ImpartialityDeclaration, Assignment, Certification,
             Invoice, BillingTerms, TpiReport, ScheduleMPharmaEPCProject,

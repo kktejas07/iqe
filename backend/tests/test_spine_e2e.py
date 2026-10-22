@@ -38,6 +38,7 @@ from modules.work_packages.models import WorkPackage  # noqa: E402
 from modules.work_packages.service import WorkPackageService  # noqa: E402
 from modules.work_types.models import WorkTypeDefinition  # noqa: E402
 from modules.work_types.service import WorkTypeService  # noqa: E402
+from core.sequences import Sequence  # noqa: E402
 
 SITE = "SITE-01"
 USER = "USR-TEST"
@@ -65,6 +66,7 @@ async def db():
     await init_beanie(
         database=client["spine_test"],
         document_models=[
+            Sequence,
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
             Authorization, ImpartialityDeclaration, Assignment, Certification,
             Invoice, BillingTerms,
@@ -402,15 +404,19 @@ async def test_self_certification_is_allowed_when_the_work_type_permits_it(db):
     await seed_job()
     await WorkTypeService.seed_catalogue(SITE, USER)
 
+    # BOQ_RECON is False in the catalogue, so turning it on here is what grants
+    # the permission. Using a work type that already allows it would make this
+    # test pass even if the flag were ignored entirely.
     wt = await WorkTypeDefinition.find_one(
-        WorkTypeDefinition.work_type_code == "CODE_INSP",
+        WorkTypeDefinition.work_type_code == "BOQ_RECON",
         WorkTypeDefinition.site_id == SITE,
     )
+    assert wt.allow_self_certification is False, "precondition: catalogue default"
     wt.allow_self_certification = True
     await wt.save()
 
     wp = await WorkPackageService.create(
-        {"job_id": "JOB-2026-0001", "work_type_code": "CODE_INSP",
+        {"job_id": "JOB-2026-0001", "work_type_code": "BOQ_RECON",
          "title": "Weld visual", "rate": 1.0},
         SITE, USER,
     )

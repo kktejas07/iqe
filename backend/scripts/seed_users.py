@@ -4,12 +4,14 @@ from beanie import init_beanie
 from core.config import settings
 from core.auth import hash_password
 from modules.auth.models import UserLogin
+from core.sequences import Sequence
 
 
 async def seed_users():
     print("Connecting to MongoDB to seed standard login users...")
     client = AsyncMongoClient(settings.mongodb_url)
-    await init_beanie(database=client[settings.mongodb_db_name], document_models=[UserLogin])
+    await init_beanie(database=client[settings.mongodb_db_name], document_models=[
+            Sequence,UserLogin])
 
     site_id = "SITE-01"
     pwd_hash = hash_password("password123")

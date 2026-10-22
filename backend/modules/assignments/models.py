@@ -203,14 +203,28 @@ def should_auto_assign(
 ) -> tuple[bool, str]:
     """Whether the engine may assign without a human.
 
-    Requires an explicit threshold, a top score that clears it, and a clear gap
-    to second place. A near-tie is a decision for a coordinator, not a machine.
+    Three modes, selected by the work type's auto_assign_threshold:
+
+    * ``None``  - recommend only; a human always assigns.
+    * ``0.0``   - full auto: assign the top-ranked candidate whenever anyone is
+      eligible. The hard eligibility gate still runs, so this means "the best
+      eligible person, without review" and never "anyone". The near-tie guard
+      is deliberately skipped here: when two candidates are equally ranked and
+      both eligible, either is a correct choice, and falling back to a human
+      would make the mode quietly partial.
+    * ``> 0.0`` - auto above a confidence threshold, with a clear gap to second
+      place. A near-tie is a decision for a coordinator, not a machine.
     """
     if threshold is None:
         return False, "Auto-assign is off for this work type"
     if not ranked:
         return False, "No eligible candidates"
     top = ranked[0]["score"]
+    if threshold == 0.0:
+        return True, (
+            f"Full auto: {len(ranked)} eligible, assigning top-ranked "
+            f"candidate (score {top})"
+        )
     if top < threshold:
         return False, f"Top score {top} is below the {threshold} threshold"
     if len(ranked) > 1:

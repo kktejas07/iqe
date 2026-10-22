@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.sequences import next_identifier
 from modules.certifications.models import (
     Certification,
     CertificationLineItem,
@@ -19,24 +20,10 @@ VALID_DEDUCTION_REASONS = {r.value for r in DeductionReason}
 
 
 async def _next_certification_id(site_id: str) -> str:
-    year = datetime.now().year
-    prefix = f"CERT-{year}-"
-    latest = (
-        await Certification.find(
-            Certification.site_id == site_id,
-            {"certification_id": {"$regex": f"^{prefix}"}},
-        )
-        .sort(-Certification.certification_id)
-        .limit(1)
-        .to_list()
+    """CERT-YYYY-NNNN, allocated atomically. See core/sequences.py."""
+    return await next_identifier(
+        Certification, "certification_id", site_id, "CERT", kind="certification"
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(latest[0].certification_id.rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            seq = await Certification.find(Certification.site_id == site_id).count() + 1
-    return f"{prefix}{seq:04d}"
 
 
 def _round2(v: float) -> float:

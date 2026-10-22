@@ -17,6 +17,7 @@ from modules.auth.models import UserLogin
 from modules.analytics.models import AnalyticsEvent
 from modules.jobs.migration import LegacyMigrationService
 from modules.analytics.service import AnalyticsService
+from core.sequences import Sequence
 
 CLIENTS = [
     {"client_id": "CLT-001", "name": "Larsen & Toubro Ltd - Infra Div"},
@@ -65,6 +66,7 @@ async def seed_analytics_and_mock_data():
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            Sequence,
             Client, Manufacturer, Job, ServiceOrder, ControlNumber, Visit, Invoice, UserLogin, AnalyticsEvent
         ],
     )

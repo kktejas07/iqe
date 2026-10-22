@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+from core.sequences import next_identifier
 from modules.billing.models import (
     BillingFrequency,
     BillingTerms,
@@ -72,21 +73,10 @@ def compute_invoice_totals(
 
 
 async def _next_id(model, site_id: str, prefix_root: str, field: str) -> str:
-    year = datetime.now().year
-    prefix = f"{prefix_root}-{year}-"
-    latest = (
-        await model.find(model.site_id == site_id, {field: {"$regex": f"^{prefix}"}})
-        .sort(f"-{field}")
-        .limit(1)
-        .to_list()
+    """PREFIX-YYYY-NNNN, allocated atomically. See core/sequences.py."""
+    return await next_identifier(
+        model, field, site_id, prefix_root, kind=f"billing:{prefix_root}"
     )
-    seq = 1
-    if latest:
-        try:
-            seq = int(getattr(latest[0], field).rsplit("-", 1)[1]) + 1
-        except (IndexError, ValueError):
-            seq = await model.find(model.site_id == site_id).count() + 1
-    return f"{prefix}{seq:04d}"
 
 
 class BillingService:

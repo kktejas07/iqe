@@ -13,6 +13,12 @@
 {% macro running_header(form_code, revision, sub_line, third_line_label, report_no) %}
 <table class="running-header-table">
   <tr>
+    <td class="header-logo-cell">
+      {# The mark alone, not the full lockup: the lockup's wordmark is
+         illegible at header size and only repeats the company name set
+         beside it. #}
+      <img class="header-logo" src="../images/iqe-mark.png" alt="Ideal Quality Engineers (I) Pvt. Ltd.">
+    </td>
     <td class="header-left-cell">
       <div class="header-company-name">IDEAL QUALITY ENGINEERS (I) PVT. LTD.</div>
       <div class="header-subline">{{ sub_line }}</div>

@@ -45,6 +45,7 @@ from typing import Any, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core.sequences import Sequence  # noqa: E402
 from modules.people.models import (  # noqa: E402
     Authorization,
     AuthorizationStatus,
@@ -239,7 +240,8 @@ async def run(dsn: str, site_id: str, site_id_numeric: int, commit: bool, limit:
     client = AsyncMongoClient(os.environ.get("MONGODB_URL", "mongodb://localhost:27017"))
     await init_beanie(
         database=client[os.environ.get("MONGODB_DB_NAME", "iqeapp_dev")],
-        document_models=[Person, CompetenceProfile, Authorization],
+        document_models=[
+            Sequence,Person, CompetenceProfile, Authorization],
     )
 
     created = updated = grants = 0

@@ -25,6 +25,14 @@
   {% endif %}
 </head>
 <body>
+  {# Brand watermark on every page. position:fixed makes WeasyPrint repeat it
+     per page, and it sits behind the content so nothing becomes unreadable. #}
+  {% if not suppress_brand_watermark %}
+  <div class="brand-watermark">
+    <img src="../images/iqe-mark.png" alt="">
+  </div>
+  {% endif %}
+
   {% if is_draft %}
   <div class="draft-watermark">DRAFT</div>
   {% endif %}

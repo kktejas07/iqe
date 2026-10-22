@@ -13,6 +13,7 @@ from modules.control_numbers.models import ControlNumber
 from modules.visits.models import Visit, Expense, Photo, Finding
 from modules.invoices.models import Invoice, ChargeItem, AnnexureItem
 from modules.auth.models import UserLogin
+from core.sequences import Sequence
 
 EQUIPMENT_NAMES = [
     "High-Pressure Steam Boiler Shell",
@@ -48,6 +49,7 @@ async def seed():
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            Sequence,
             Client, Manufacturer, Job, ServiceOrder, ControlNumber, Visit, Invoice, UserLogin
         ],
     )

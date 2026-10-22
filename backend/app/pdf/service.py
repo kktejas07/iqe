@@ -21,63 +21,31 @@ jinja_env = Environment(
     lstrip_blocks=True,
 )
 
-FORM_CONFIGS = {
-    "TP02": {
-        "display_title": "Flash Inspection Report",
-        "template": "tp02.html",
-        "stylesheet": "tp02.css",
-        "title": "FLASH INSPECTION REPORT",
-        "form_code": "IQE-TP-02",
-    },
-    "TP03": {
-        "display_title": "Inspection Visit Report",
-        "template": "tp03.html",
-        "stylesheet": "tp03.css",
-        "title": "INSPECTION VISIT REPORT",
-        "form_code": "IQE-TP-03",
-    },
-    "TP04": {
-        "display_title": "Inspection Release Note",
-        "template": "tp04.html",
-        "stylesheet": "tp04.css",
-        "title": "INSPECTION RELEASE NOTE",
-        "form_code": "IQE-TP-04",
-    },
-    "TP05": {
-        "display_title": "Expediting Visit Report",
-        "template": "tp05.html",
-        "stylesheet": "tp05.css",
-        "title": "EXPEDITING VISIT REPORT",
-        "form_code": "IQE-TP-05",
-    },
-    "FBILL01": {
-        "display_title": "TPI Bill Verification Report",
-        "template": "fbill01.html",
-        "stylesheet": "fbill01.css",
-        "title": "TPI BILL VERIFICATION REPORT",
-        "form_code": "F-BILL-01",
-    },
-    "FQUAL01": {
-        "display_title": "Quantity Verification & Survey Report",
-        "template": "fqual01.html",
-        "stylesheet": "fqual01.css",
-        "title": "QUANTITY VERIFICATION & SURVEY REPORT",
-        "form_code": "F-QUAL-01",
-    },
-    "FBOQ01": {
-        "display_title": "BOQ Reconciliation & Material Audit Report",
-        "template": "fboq01.html",
-        "stylesheet": "fboq01.css",
-        "title": "BOQ RECONCILIATION & MATERIAL AUDIT REPORT",
-        "form_code": "F-BOQ-01",
-    },
-}
+from app.pdf.formats import (  # noqa: E402
+    LEGACY_FORM_CONFIGS,
+    clear_overlay,
+    known_codes,
+    load_overlay,
+    normalize_code,
+    overlay_is_loaded,
+    resolve,
+)
+
+#: Kept as a module attribute because other modules and tests read it. It is
+#: now the base layer only - the authoritative mapping lives in the report
+#: format registry and is resolved through app.pdf.formats.
+FORM_CONFIGS = LEGACY_FORM_CONFIGS
+
+__all__ = [
+    "FORM_CONFIGS", "render_html", "render_pdf", "normalize_form_code",
+    "load_overlay", "clear_overlay", "overlay_is_loaded", "known_codes",
+    "resolve", "default_qr_url",
+]
+
 
 def normalize_form_code(form_code: str) -> str:
-    cleaned = form_code.upper().replace(".PDF", "").replace("_", "").replace("-", "").strip()
-    if cleaned.startswith("IQE"):
-        cleaned = cleaned[3:]
-    return cleaned
+    """Delegates to the resolver so there is one normalization rule, not two."""
+    return normalize_code(form_code)
 
 # Where the verify page can re-fetch each form's PDF when no stored report id exists
 FORM_PDF_PATHS = {
@@ -93,13 +61,13 @@ def default_qr_url(code: str, payload: Dict[str, Any], is_blank: bool) -> Option
         return None
     from core.qr import verify_url
 
-    cfg = FORM_CONFIGS[code]
+    spec = resolve(code)
     report_id = payload.get("id") or payload.get("_id")
     pdf_path = f"/api/tpi/report/{report_id}/pdf" if report_id else FORM_PDF_PATHS.get(code)
     return verify_url(
-        title=cfg.get("display_title") or cfg["title"],
+        title=spec.display_title or spec.title,
         ref=str(payload.get("report_no") or ""),
-        form=cfg["form_code"],
+        form=spec.form_code,
         client=str(payload.get("client") or payload.get("client_name") or ""),
         date=str(payload.get("date") or payload.get("report_date") or ""),
         pdf_path=pdf_path,
@@ -107,13 +75,17 @@ def default_qr_url(code: str, payload: Dict[str, Any], is_blank: bool) -> Option
 
 
 def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False, is_draft: bool = False,
-                qr_url: Optional[str] = None) -> str:
-    code = normalize_form_code(form_code)
-    cfg = FORM_CONFIGS.get(code)
-    if not cfg:
-        raise ValueError(f"Unknown form code: {form_code}")
+                qr_url: Optional[str] = None, client_id: Optional[str] = None) -> str:
+    """Render a form to HTML.
 
-    template = jinja_env.get_template(cfg["template"])
+    `client_id` selects that client's mandated variant of the format when one
+    is registered; without it, or with no variant on file, the standard format
+    renders.
+    """
+    spec = resolve(form_code, client_id)
+    code = spec.code
+
+    template = jinja_env.get_template(spec.template)
     context = dict(payload)
     for key in [
         "signatures", "activities", "immediate_action", "basis_of_release",
@@ -128,11 +100,26 @@ def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False,
     ]:
         context.setdefault(key, [])
 
-    context["form_code"] = cfg["form_code"]
-    context["title"] = cfg["title"]
-    context["stylesheet_url"] = f"../styles/{cfg['stylesheet']}"
+    context["form_code"] = spec.form_code
+    context["title"] = spec.title
+    context["stylesheet_url"] = f"../styles/{spec.stylesheet}"
     context["is_blank"] = is_blank
     context["is_draft"] = is_draft
+
+    # The generic and project-report templates are driven by the spec itself
+    # rather than by a bespoke layout, so they need it in the context.
+    context["spec"] = spec
+    context.setdefault("display_title", spec.display_title)
+    context.setdefault("sections", list(spec.sections))
+    context.setdefault("requires_signatures", list(spec.requires_signatures))
+    context.setdefault("annexures", list(spec.annexures))
+    context.setdefault("header_subline", spec.header_subline)
+    context.setdefault("format_description", spec.description)
+    context.setdefault("revision", spec.revision)
+    # The generic template looks each declared section up by its own key, which
+    # needs the payload addressable as a mapping rather than only splatted into
+    # the context.
+    context["context_data"] = dict(payload)
 
     url = qr_url if qr_url is not None else default_qr_url(code, payload, is_blank)
     if url:
@@ -143,19 +130,19 @@ def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False,
     return template.render(**context)
 
 def render_pdf(form_code: str, payload: Optional[Dict[str, Any]] = None, is_blank: bool = False, is_draft: bool = False,
-               qr_url: Optional[str] = None) -> bytes:
+               qr_url: Optional[str] = None, client_id: Optional[str] = None) -> bytes:
     try:
         import weasyprint
     except Exception as e:
         raise RuntimeError(f"WeasyPrint is not available: {e}")
 
-    code = normalize_form_code(form_code)
-    cfg = FORM_CONFIGS.get(code)
-    if not cfg:
-        raise ValueError(f"Unknown form code: {form_code}")
+    spec = resolve(form_code, client_id)   # raises ValueError on an unknown code
 
     data = payload or {}
-    html_content = render_html(code, data, is_blank=is_blank, is_draft=is_draft, qr_url=qr_url)
+    html_content = render_html(
+        spec.code, data, is_blank=is_blank, is_draft=is_draft,
+        qr_url=qr_url, client_id=client_id,
+    )
 
     base_url = str(TEMPLATES_DIR)
     html = weasyprint.HTML(string=html_content, base_url=base_url)

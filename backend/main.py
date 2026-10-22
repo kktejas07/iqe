@@ -72,6 +72,7 @@ from modules.dashboards.routes import router as dashboards_router
 from modules.migration.routes import router as migration_router
 from modules.reporting.models import ReportFormat
 from modules.reporting.routes import router as reporting_router
+from core.sequences import Sequence
 
 
 @asynccontextmanager
@@ -80,6 +81,7 @@ async def lifespan(app: FastAPI):
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
+            Sequence,
             UserLogin, Client, ClientUnit, Manufacturer, ManufacturerUnit,
             Competency, InspectorRate, Associate, Job, ServiceOrder,
             ControlNumber, Visit, ManufacturerVisitLocation, Invoice,
@@ -91,6 +93,24 @@ async def lifespan(app: FastAPI):
             Assignment, ReportFormat
         ],
     )
+
+    # Load the report format registry into the PDF renderer. The renderer is
+    # synchronous and cannot read MongoDB itself, so the mapping is pushed in
+    # once at startup; /reporting/sync-renderer refreshes it without a restart.
+    # A failure here must not stop the API booting - rendering falls back to
+    # the built-in format definitions.
+    try:
+        from modules.reporting.service import ReportingService
+
+        await ReportingService.sync_renderer()
+    except Exception as exc:  # pragma: no cover - startup resilience
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Report format registry not loaded, falling back to built-in "
+            "definitions: %s", exc,
+        )
+
     yield
     await close_redis()
 

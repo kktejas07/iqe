@@ -41,9 +41,23 @@ class ReportFormat(Document):
     requires_signatures: list[str] = []     # inspector, qc_reviewer, client_witness
     annexures: list[str] = []
 
-    #: Clients routinely mandate their own layouts.
+    # --- render details the PDF layer needs ---
+    #: Defaults to template_path with a .css extension when unset.
+    stylesheet_path: Optional[str] = None
+    #: The form number printed in the letterhead (IQE-TP-02, F-BILL-01).
+    legacy_form_code: Optional[str] = None
+    #: The all-caps heading on the page; falls back to `name`.
+    document_title: Optional[str] = None
+    header_subline: str = "Third Party Inspection Services"
+
+    #: Clients routinely mandate their own layouts. A client-specific format
+    #: sets client_id and inherits_from, and overrides only the fields that
+    #: differ - letterhead, section order, its own template. Everything else
+    #: comes from the parent, so a change to the standard format reaches every
+    #: client variant that did not deliberately override it.
     is_client_specific: bool = False
     client_id: Optional[str] = None
+    inherits_from: Optional[str] = None     # parent format_code
 
     revision: str = "Rev 0"
     is_active: bool = True
@@ -52,7 +66,7 @@ class ReportFormat(Document):
 
     class Settings:
         name = "report_formats"
-        indexes = ["site_id", "format_code", "is_active"]
+        indexes = ["site_id", "format_code", "is_active", "client_id", "inherits_from"]
 
 
 #: Seeded from the report screens that already exist in apps/web, plus the
@@ -100,6 +114,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "LOGSHEET", "name": "Site Daily Logsheet",
         "kind": ReportKind.REGISTER.value,
+        "legacy_form_code": "IQE-TP-06",
         "description": "Daily record of a deputed engineer's activity.",
         "work_type_codes": ["STAFF_DEPUT"],
         "sections": ["header", "activity", "hours", "remarks"],
@@ -108,6 +123,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "MEASUREMENT_SHEET", "name": "Measurement Sheet",
         "kind": ReportKind.MEASUREMENT.value,
+        "legacy_form_code": "F-MEAS-01",
         "description": "Joint measurement backing a certified quantity.",
         "work_type_codes": ["BOQ_RECON", "BILL_VERIF"],
         "sections": ["header", "measured_items", "summary"],
@@ -146,6 +162,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "GMP_COMPLIANCE", "name": "Schedule M Compliance Report",
         "kind": ReportKind.REGISTER.value,
+        "legacy_form_code": "F-GMP-01",
         "description": "Compliance position against Schedule M and WHO-GMP.",
         "work_type_codes": ["GMP_SCHEDM"],
         # No template authored yet. It previously pointed at fqual01.html, which
@@ -158,6 +175,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "SAT_CERT", "name": "Site Acceptance Test Certificate",
         "kind": ReportKind.CERTIFICATE.value,
+        "legacy_form_code": "F-SAT-01",
         "description": "Equipment acceptance against the approved SAT protocol.",
         "work_type_codes": ["SAT_COMM"],
         "sections": ["header", "equipment", "tests_performed", "results", "acceptance"],
@@ -166,6 +184,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "VENDOR_AUDIT", "name": "Vendor Assessment Report",
         "kind": ReportKind.REGISTER.value,
+        "legacy_form_code": "F-VEND-01",
         "description": "Vendor capability against client approval criteria.",
         "work_type_codes": ["VENDOR_AUDIT"],
         "sections": ["header", "capability", "quality_system", "findings", "recommendation"],
@@ -175,6 +194,7 @@ DEFAULT_FORMATS: list[dict] = [
     {
         "format_code": "PROJECT_REPORT", "name": "End-to-End Project Report",
         "kind": ReportKind.COMPOSED.value,
+        "legacy_form_code": "F-PROJ-01",
         "description": (
             "Composed per job: work packages by discipline and status, certified "
             "quantities and values against BOQ, NCRs, inspector man-days, and the "

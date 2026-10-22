@@ -59,3 +59,52 @@
   color: #555;
   text-align: center;
 }
+
+/* --- Proportional scope bar ---------------------------------------------
+   A table rather than flexbox: WeasyPrint's table layout is the most reliable
+   way to get exact percentage widths in print. */
+.scope-bar {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 4pt 0 3pt 0;
+}
+
+.scope-bar td.seg {
+  height: 15pt;
+  text-align: center;
+  font-size: 7.5pt;
+  font-weight: bold;
+  color: #ffffff;
+  border: 0.4pt solid #ffffff;
+  overflow: hidden;
+}
+
+.seg-ok   { background-color: #1a7f4b; }
+.seg-warn { background-color: #d97706; }
+.seg-bad  { background-color: #b91c1c; }
+.seg-info { background-color: #0084bf; }
+.seg-idle { background-color: #94a3b8; }
+
+.scope-legend {
+  font-size: 7pt;
+  color: #334155;
+  margin-bottom: 6pt;
+}
+
+.legend-item { margin-right: 10pt; white-space: nowrap; }
+
+.swatch {
+  display: inline-block;
+  width: 7pt;
+  height: 7pt;
+  border-radius: 1.5pt;
+  vertical-align: -0.5pt;
+  margin-right: 2pt;
+}
+
+.swatch-ok   { background-color: #1a7f4b; }
+.swatch-warn { background-color: #d97706; }
+.swatch-bad  { background-color: #b91c1c; }
+.swatch-info { background-color: #0084bf; }
+.swatch-idle { background-color: #94a3b8; }

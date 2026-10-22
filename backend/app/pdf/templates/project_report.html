@@ -14,6 +14,20 @@
 
 {% macro money(v) %}{{ "{:,.2f}".format(v or 0) }}{% endmacro %}
 
+{# Lifecycle state -> tone. Colour marks where a package has got to, so a
+   reader scanning the table finds the stalled and the finished work without
+   reading every row. The label is always printed too, so nothing depends on
+   colour alone. #}
+{% set STATUS_TONE = {
+  'planned': 'idle', 'assigned': 'info', 'in_progress': 'warn',
+  'submitted': 'warn', 'under_qc': 'warn', 'certified': 'ok',
+  'billed': 'ok', 'closed': 'ok', 'on_hold': 'bad', 'cancelled': 'bad',
+} %}
+{% macro status_pill(status) %}
+{%- set key = (status or '')|lower -%}
+<span class="pill pill-{{ STATUS_TONE.get(key, 'idle') }}">{{ key|replace('_', ' ')|title }}</span>
+{%- endmacro %}
+
 {% block content %}
 <div class="page-container">
   {{ m.running_header(form_code, revision, header_subline, "PROJECT REPORT NO.",
@@ -54,6 +68,28 @@
   </table>
 
   {{ m.section("2.0", "SCOPE POSITION") }}
+
+  {# A proportional bar beats a column of counts for "how far along is this".
+     Widths are computed from the totals the API already returned. #}
+  {% if work_packages.total %}
+  <table class="scope-bar"><tr>
+    {% for status, count in (work_packages.by_status or {}).items() %}
+    <td class="seg seg-{{ STATUS_TONE.get(status|lower, 'idle') }}"
+        style="width: {{ (count / work_packages.total * 100)|round(2) }}%;">
+      {{ count }}
+    </td>
+    {% endfor %}
+  </tr></table>
+  <div class="scope-legend">
+    {% for status, count in (work_packages.by_status or {}).items() %}
+      <span class="legend-item">
+        <span class="swatch swatch-{{ STATUS_TONE.get(status|lower, 'idle') }}"></span>
+        {{ status|replace('_', ' ')|title }} ({{ count }})
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <table class="report-table">
     <thead>
       <tr>
@@ -64,7 +100,7 @@
     <tbody>
       {% for status, count in (work_packages.by_status or {}).items() %}
       <tr>
-        <td class="td-value">{{ status|replace('_', ' ')|title }}</td>
+        <td class="td-value">{{ status_pill(status) }}</td>
         <td class="td-value num">{{ count }}</td>
       </tr>
       {% endfor %}
@@ -76,8 +112,8 @@
   </table>
 
   {% for discipline, packages in (work_packages.by_discipline or {}).items() %}
-  <div class="discipline-heading">{{ discipline }} &mdash; {{ packages|length }} package{{ '' if packages|length == 1 else 's' }}</div>
-  <table class="report-table compact">
+  <div class="group-band">{{ discipline }} &mdash; {{ packages|length }} package{{ '' if packages|length == 1 else 's' }}</div>
+  <table class="report-table compact striped">
     <thead>
       <tr>
         <th class="th-label" style="width: 16%;">Package</th>
@@ -92,7 +128,7 @@
         <td class="td-value mono">{{ p.work_package_id }}</td>
         <td class="td-value">{{ p.title }}</td>
         <td class="td-value mono">{{ p.work_type_code }}</td>
-        <td class="td-value">{{ (p.status or '')|replace('_', ' ')|title }}</td>
+        <td class="td-value">{{ status_pill(p.status) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -117,16 +153,16 @@
             <span class="muted">({{ certified_position.deduction_pct }}% of claim)</span>
           {% endif %}
         </td>
-        <td class="td-value num deduction">({{ money(certified_position.deduction_value) }})</td>
+        <td class="td-value num v-bad">({{ money(certified_position.deduction_value) }})</td>
       </tr>
       <tr class="total-row">
         <td class="td-label"><strong>Value certified</strong></td>
-        <td class="td-value num"><strong>{{ money(certified_position.certified_value) }}</strong></td>
+        <td class="td-value num v-ok">{{ money(certified_position.certified_value) }}</td>
       </tr>
       {% if certified_position.retention_held %}
       <tr>
         <td class="td-label">Retention held</td>
-        <td class="td-value num deduction">({{ money(certified_position.retention_held) }})</td>
+        <td class="td-value num v-warn">({{ money(certified_position.retention_held) }})</td>
       </tr>
       {% endif %}
     </tbody>
@@ -146,7 +182,7 @@
       {% for reason, value in deductions_by_reason.items() %}
       <tr>
         <td class="td-value">{{ reason|replace('_', ' ')|title }}</td>
-        <td class="td-value num deduction">{{ money(value) }}</td>
+        <td class="td-value num v-bad">{{ money(value) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -155,7 +191,7 @@
 
   {{ m.section("5.0", "PERSONNEL DEPLOYED") }}
   {% if people_deployed and people_deployed.detail %}
-  <table class="report-table">
+  <table class="report-table striped">
     <thead>
       <tr>
         <th class="th-label" style="width: 20%;">Person ID</th>
@@ -206,11 +242,18 @@
       {% if billing_position.certified_not_billed_value %}
       <tr>
         <td class="td-label">Certified and not yet invoiced</td>
-        <td class="td-value num flag">{{ money(billing_position.certified_not_billed_value) }}</td>
+        <td class="td-value num v-warn">{{ money(billing_position.certified_not_billed_value) }}</td>
       </tr>
       {% endif %}
     </tbody>
   </table>
+
+  {% if billing_position.certified_not_billed_value %}
+  <div class="callout">
+    <strong>{{ money(billing_position.certified_not_billed_value) }}</strong> has been
+    certified on this job and not yet invoiced.
+  </div>
+  {% endif %}
 
   {{ m.section("7.0", "AUTHORISATION") }}
   {{ m.signature_block("Reviewed By", "For Ideal Quality Engineers (I) Pvt. Ltd.",

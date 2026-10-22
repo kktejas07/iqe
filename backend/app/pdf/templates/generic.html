@@ -30,9 +30,40 @@
 {%- endfor -%}
 {% endmacro %}
 
+{#
+  Colour is applied by meaning, not by column position: a cell is tinted only
+  when its column is a status/result column AND its value is a word we
+  recognise. An unrecognised value renders as plain text rather than guessing a
+  colour, because a wrong colour on an inspection result is worse than none.
+#}
+{% set OK_WORDS   = ['pass', 'passed', 'conforming', 'compliant', 'accepted',
+                     'satisfactory', 'approved', 'closed', 'complete',
+                     'completed', 'certified', 'verified', 'ok', 'yes', 'c'] %}
+{% set BAD_WORDS  = ['fail', 'failed', 'non-conforming', 'nonconforming', 'nc',
+                     'rejected', 'non-compliant', 'critical', 'unsatisfactory',
+                     'overdue', 'disputed', 'no'] %}
+{% set WARN_WORDS = ['partial', 'pending', 'pnd', 'observation', 'obs', 'open',
+                     'major', 'minor', 'in progress', 'in_progress', 'hold',
+                     'on hold', 'under qc', 'under_qc', 'submitted', 'deviation'] %}
+{% set IDLE_WORDS = ['na', 'n/a', 'not applicable', 'planned', 'draft',
+                     'cancelled', 'superseded'] %}
+
+{% set STATUS_COLUMNS = ['status', 'result', 'result_code', 'outcome',
+                         'compliance_status', 'verification_status', 'severity',
+                         'risk', 'finding', 'accepted', 'conformity'] %}
+
+{% macro tone_for(value) %}
+{%- set v = (value|string|lower|trim) -%}
+{%- if v in OK_WORDS -%}ok
+{%- elif v in BAD_WORDS -%}bad
+{%- elif v in WARN_WORDS -%}warn
+{%- elif v in IDLE_WORDS -%}idle
+{%- endif -%}
+{% endmacro %}
+
 {% macro render_rows(rows) %}
   {% set cols = rows[0].keys() | list %}
-  <table class="report-table">
+  <table class="report-table{% if rows|length > 6 %} striped{% endif %}">
     <thead>
       <tr>
         {% for c in cols %}<th class="th-label">{{ humanise(c) }}</th>{% endfor %}
@@ -42,8 +73,14 @@
       {% for row in rows %}
       <tr>
         {% for c in cols %}
+        {% set is_status = c|lower in STATUS_COLUMNS %}
+        {% set tone = tone_for(row[c])|trim if is_status else '' %}
         <td class="td-value{% if row[c] is number %} num{% endif %}">
-          {{ row[c] if row[c] is not none else '' }}
+          {% if tone %}
+            <span class="pill pill-{{ tone }}">{{ row[c] }}</span>
+          {% else %}
+            {{ row[c] if row[c] is not none else '' }}
+          {% endif %}
         </td>
         {% endfor %}
       </tr>
@@ -57,9 +94,13 @@
     <colgroup><col style="width: 32%;"><col style="width: 68%;"></colgroup>
     <tbody>
       {% for k, v in data.items() %}
+      {% set tone = tone_for(v)|trim if k|lower in STATUS_COLUMNS else '' %}
       <tr>
         <td class="td-label">{{ humanise(k) }}</td>
-        <td class="td-value">{{ v if v is not none else '' }}</td>
+        <td class="td-value">
+          {% if tone %}<span class="pill pill-{{ tone }}">{{ v }}</span>
+          {% else %}{{ v if v is not none else '' }}{% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>

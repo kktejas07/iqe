@@ -120,11 +120,26 @@ def test_every_rule_in_the_matrix_has_a_reason():
 
 def test_login_is_reachable_without_a_token():
     """The defect this guards: a login route behind the token it issues locks
-    everyone out permanently."""
+    everyone out permanently.
+
+    Asserted on the message rather than the status code. Bad credentials also
+    answer 401, so the code alone cannot tell "the gate blocked this" from
+    "that password is wrong" - and which one it is, is the whole question.
+    """
     assert is_open("/api/v1/auth/login")
-    assert client.post(
-        "/api/v1/auth/login", json={"login_name": "x", "password": "y"}
-    ).status_code != 401
+
+    response = client.post(
+        "/api/v1/auth/login", json={"login_name": "nobody", "password": "wrong"}
+    )
+    detail = ""
+    try:
+        detail = str(response.json().get("detail", ""))
+    except Exception:
+        pass
+    assert "Not authenticated" not in detail, (
+        "the login route is behind the authentication gate, so no one can ever "
+        "obtain a token"
+    )
 
 
 def test_health_and_docs_stay_open():

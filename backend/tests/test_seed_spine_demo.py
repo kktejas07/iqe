@@ -27,6 +27,7 @@ from modules.certifications.models import Certification  # noqa: E402
 from modules.invoices.models import Invoice  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
 from modules.people.models import Person  # noqa: E402
+from modules.reporting.models import DEFAULT_FORMATS  # noqa: E402
 from modules.reporting.service import ReportingService  # noqa: E402
 from modules.work_packages.models import WorkPackage  # noqa: E402
 
@@ -82,7 +83,7 @@ async def test_the_seeder_runs(db):
     assert result["people_total"] == len(seeder.PEOPLE)
     assert result["packages"] == len(seeder.PACKAGES)
     assert result["work_types_created"] == 8
-    assert result["report_formats_created"] == 12
+    assert result["report_formats_created"] == len(DEFAULT_FORMATS)
     assert result["certifications"] == sum(1 for p in seeder.PACKAGES if p.get("certify"))
     assert result["disputed"] == 1
     assert result["overdue_invoices"] == 1

@@ -65,6 +65,7 @@ DEFAULT_FORMATS: list[dict] = [
         "kind": ReportKind.VISIT.value,
         "description": "Record of a single inspection visit, its findings and evidence.",
         "work_type_codes": ["CODE_INSP"],
+        "template_path": "tp03.html",
         "sections": ["header", "scope", "checklist", "findings", "photographs", "conclusion"],
         "requires_signatures": ["inspector", "qc_reviewer"],
         "annexures": ["PHOTO_ANNEX"],
@@ -83,6 +84,7 @@ DEFAULT_FORMATS: list[dict] = [
         "kind": ReportKind.CERTIFICATE.value,
         "description": "Releases inspected material for despatch.",
         "work_type_codes": ["CODE_INSP"],
+        "template_path": "tp04.html",
         "sections": ["header", "material", "basis_of_release", "limitations"],
         "requires_signatures": ["inspector", "qc_reviewer"],
     },
@@ -91,6 +93,7 @@ DEFAULT_FORMATS: list[dict] = [
         "kind": ReportKind.VISIT.value,
         "description": "Progress against delivery milestones, with constraints raised.",
         "work_type_codes": ["EXPEDITING"],
+        "template_path": "tp05.html",
         "sections": ["header", "progress", "constraints", "recovery_plan"],
         "requires_signatures": ["inspector"],
     },
@@ -109,6 +112,16 @@ DEFAULT_FORMATS: list[dict] = [
         "work_type_codes": ["BOQ_RECON", "BILL_VERIF"],
         "sections": ["header", "measured_items", "summary"],
         "requires_signatures": ["inspector", "client_witness"],
+    },
+    {
+        "format_code": "QTY_SURVEY", "name": "Quantity Verification & Survey Report",
+        "kind": ReportKind.MEASUREMENT.value,
+        "description": "Measured quantity verified against claim, with survey basis.",
+        "work_type_codes": ["BOQ_RECON", "BILL_VERIF"],
+        "template_path": "fqual01.html",
+        "sections": ["header", "survey_basis", "verified_quantities", "summary"],
+        "requires_signatures": ["inspector", "qc_reviewer"],
+        "annexures": ["MEASUREMENT_SHEET"],
     },
     {
         "format_code": "BOQ_RECON", "name": "BOQ Reconciliation",
@@ -135,7 +148,9 @@ DEFAULT_FORMATS: list[dict] = [
         "kind": ReportKind.REGISTER.value,
         "description": "Compliance position against Schedule M and WHO-GMP.",
         "work_type_codes": ["GMP_SCHEDM"],
-        "template_path": "fqual01.html",
+        # No template authored yet. It previously pointed at fqual01.html, which
+        # is the quantity survey form - a wrong template renders a confidently
+        # mislabelled document, which is worse than none.
         "sections": ["header", "requirements", "findings", "ncr_summary", "conclusion"],
         "requires_signatures": ["inspector", "qc_reviewer"],
         "annexures": ["NCR", "PUNCH_LIST"],

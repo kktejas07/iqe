@@ -95,6 +95,70 @@ def test_certificate_formats_require_a_reviewer_signature():
             assert len(sigs) >= 2, f"{f['format_code']} needs a second signatory, has {sigs}"
 
 
+def test_every_template_path_exists_on_disk():
+    """A template_path pointing at a file that is not there fails at render
+    time, in front of a client, rather than here."""
+    from pathlib import Path
+
+    templates = Path(__file__).resolve().parent.parent / "app" / "pdf" / "templates"
+    for f in DEFAULT_FORMATS:
+        path = f.get("template_path")
+        if not path:
+            continue
+        assert (templates / path).is_file(), (
+            f"{f['format_code']} points at {path}, which does not exist in {templates}"
+        )
+
+
+def test_template_paths_are_not_shared_between_unrelated_formats():
+    """Two formats rendering from one template means at least one of them is
+    producing a document with the wrong title and sections - the kind of defect
+    that only shows up when a client reads it."""
+    seen: dict[str, str] = {}
+    for f in DEFAULT_FORMATS:
+        path = f.get("template_path")
+        if not path:
+            continue
+        assert path not in seen, (
+            f"{f['format_code']} and {seen[path]} both render from {path}; "
+            "one of them is mislabelled"
+        )
+        seen[path] = f["format_code"]
+
+
+def test_registry_names_match_the_title_the_template_actually_renders():
+    """The defect this exists for: GMP_COMPLIANCE ("Schedule M Compliance
+    Report") was pointed at fqual01.html, whose own title is "Quantity
+    Verification & Survey Report". The file existed and nothing else used it, so
+    neither an existence check nor a uniqueness check caught it - only comparing
+    the registry's name against the template's own declared title does.
+
+    app/pdf/service.py holds the authoritative title per template.
+    """
+    from app.pdf.service import FORM_CONFIGS
+
+    title_by_template = {
+        cfg["template"]: cfg["display_title"] for cfg in FORM_CONFIGS.values()
+    }
+
+    def words(text: str) -> set[str]:
+        return {
+            w for w in text.lower().replace("&", " ").replace("-", " ").split()
+            if w not in {"report", "note", "the", "of", "and", "iqe", "tpi"}
+        }
+
+    for f in DEFAULT_FORMATS:
+        path = f.get("template_path")
+        if not path or path not in title_by_template:
+            continue
+        declared = title_by_template[path]
+        shared = words(f["name"]) & words(declared)
+        assert shared, (
+            f"{f['format_code']} is named '{f['name']}' but renders from {path}, "
+            f"which declares itself '{declared}'. One of the two is wrong."
+        )
+
+
 def test_annexures_resolve_to_known_formats_or_declared_artefacts():
     """Annexure codes are either other formats or named evidence artefacts.
     Anything else is a typo that renders as an empty appendix."""

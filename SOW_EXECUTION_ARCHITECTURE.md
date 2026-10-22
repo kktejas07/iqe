@@ -433,6 +433,25 @@ render them against real data would risk breaking live deliverables to gain stru
 registry is the home for new formats and for the composed report, which had none; folding the
 nine in is a follow-up to do screen by screen with a visible comparison each time.
 
+**The registry is not yet wired to the renderer — this is the main outstanding gap.**
+`app/pdf/service.py` keeps its own hardcoded `FORM_CONFIGS` table keyed on the legacy form codes
+(`TP02`, `FBILL01`, `FBOQ01`…), while the registry is keyed on report codes (`IVR`, `FIR`,
+`RA_BILL_CERT`…). Both describe the same seven templates, so the mapping now lives in two places
+that can disagree — and did. Five of the thirteen registry formats have a template; the other
+eight (`LOGSHEET`, `MEASUREMENT_SHEET`, `GMP_COMPLIANCE`, `SAT_CERT`, `VENDOR_AUDIT`,
+`PROJECT_REPORT`) have no PDF at all. The project report is JSON plus a browser print; there is
+no server-side PDF of it.
+
+Closing this means making `FORM_CONFIGS` read from `ReportFormat` rather than its own table, and
+authoring the eight missing templates. Until then, three tests guard the seam
+(`tests/test_reporting.py`): every `template_path` must exist on disk, no two formats may share a
+template, and a format's name must share vocabulary with the title the template itself declares.
+That last test exists because of a real defect: `GMP_COMPLIANCE` ("Schedule M Compliance Report")
+was pointed at `fqual01.html`, which declares itself "Quantity Verification & Survey Report". The
+file existed and nothing else used it, so only comparing the two titles caught it. The same
+exercise revealed that `fqual01` is a real IQE form (F-QUAL-01) the registry had omitted
+entirely, now entered as `QTY_SURVEY`.
+
 ---
 
 ## 7. AI capability map

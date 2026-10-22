@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from beanie import init_beanie
+from fastapi import Depends
+from core.policy import enforce_policy
 from pymongo import AsyncMongoClient
 from core.config import settings
 from core.cache import close_redis
@@ -70,6 +72,7 @@ from modules.assignments.models import Assignment
 from modules.assignments.routes import router as assignments_router
 from modules.dashboards.routes import router as dashboards_router
 from modules.audit.routes import router as audit_router
+from modules.ai_assist.routes import router as ai_assist_router
 from modules.appeals.models import Appeal
 from modules.appeals.routes import router as appeals_router
 from modules.equipment.models import CalibrationRecord, Equipment, EquipmentUsage
@@ -137,7 +140,14 @@ async def lifespan(app: FastAPI):
     await close_redis()
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+# The RBAC matrix is applied once here rather than on each of ~200 routes.
+# See core/policy.py: areas the matrix covers are enforced, areas it does not
+# still require authentication.
+app = FastAPI(
+    title=settings.app_name,
+    lifespan=lifespan,
+    dependencies=[Depends(enforce_policy)],
+)
 
 configured_origins = [o.strip() for o in settings.allowed_origins if o and o.strip()]
 allow_all_origins = "*" in configured_origins
@@ -205,6 +215,7 @@ app.include_router(audit_router, prefix="/api/v1")
 app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(appeals_router, prefix="/api/v1")
 app.include_router(equipment_router, prefix="/api/v1")
+app.include_router(ai_assist_router, prefix="/api/v1")
 app.include_router(tpi_router)
 
 

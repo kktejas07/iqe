@@ -36,6 +36,7 @@ SAFETY
 from __future__ import annotations
 
 import argparse
+import re
 import asyncio
 import os
 import sys
@@ -116,6 +117,13 @@ def fetch_legacy_rows(dsn: str, site_id_numeric: int) -> list[dict[str, Any]]:
 
     with pyodbc.connect(dsn, timeout=30, readonly=True) as conn:
         cur = conn.cursor()
+
+        # Derive the category mapping from the live master first, so the rows
+        # below are mapped from fact rather than from hardcoded ids.
+        for note in load_employee_type_master(cur):
+            print(note)
+        print()
+
         cur.execute(LEGACY_QUERY, site_id_numeric)
         columns = [c[0] for c in cur.description]
         return [dict(zip(columns, row)) for row in cur.fetchall()]
@@ -123,10 +131,10 @@ def fetch_legacy_rows(dsn: str, site_id_numeric: int) -> list[dict[str, Any]]:
 
 # ------------------------------------------------------------------ mapping
 
-#: Legacy EmployeeTypeId -> Person.category.
-#: VERIFY THIS against the EmployeeType master before committing - the ids are
-#: installation-specific and this mapping is an informed guess, not fact.
-EMPLOYEE_TYPE_TO_CATEGORY: dict[int, str] = {
+#: Last-resort mapping, used only when the EmployeeType master cannot be read.
+#: These ids are installation-specific, so this is a guess and the script says
+#: so loudly whenever it has to fall back to it.
+FALLBACK_TYPE_TO_CATEGORY: dict[int, str] = {
     1: PersonCategory.TECHNICAL_INSPECTION.value,
     2: PersonCategory.TECHNICAL_ENGINEERING.value,
     3: PersonCategory.ADMIN_SUPPORT.value,
@@ -134,7 +142,138 @@ EMPLOYEE_TYPE_TO_CATEGORY: dict[int, str] = {
     5: PersonCategory.SITE_LABOUR.value,
 }
 
+#: Populated at runtime from the EmployeeType master. Derived mappings are
+#: authoritative; FALLBACK_TYPE_TO_CATEGORY is only consulted when this is
+#: empty.
+EMPLOYEE_TYPE_TO_CATEGORY: dict[int, str] = {}
+
+#: Kept for the run report, so a human can see what each id was called.
+EMPLOYEE_TYPE_NAMES: dict[int, str] = {}
+
 DEFAULT_CATEGORY = PersonCategory.TECHNICAL_INSPECTION.value
+
+#: Word -> category. A type's name is matched against these; the first category
+#: with any matching word wins, checked in the order listed so that a specific
+#: word beats a generic one ("QA Engineer" is inspection, not engineering).
+CATEGORY_KEYWORDS: list[tuple[str, tuple[str, ...]]] = [
+    (PersonCategory.TECHNICAL_INSPECTION.value, (
+        "inspect", "inspector", "ndt", "weld", "qa", "qc", "quality",
+        "auditor", "witness", "tpi",
+    )),
+    (PersonCategory.CORPORATE_FUNCTION.value, (
+        "hr", "human resource", "finance", "account", "payroll", "legal",
+        "marketing", "sales", "director", "management", "manager", "it",
+        "software", "developer", "admin manager",
+    )),
+    (PersonCategory.TECHNICAL_ENGINEERING.value, (
+        "engineer", "engineering", "design", "draft", "planning", "commission",
+        "estimator", "technical", "surveyor", "quantity", "billing",
+    )),
+    (PersonCategory.SITE_LABOUR.value, (
+        "labour", "labor", "helper", "worker", "mason", "fitter", "rigger",
+        "technician", "operator", "site staff", "daily wage",
+    )),
+    (PersonCategory.ADMIN_SUPPORT.value, (
+        "admin", "office", "clerk", "peon", "driver", "receptionist",
+        "store", "assistant", "support", "secretary",
+    )),
+]
+
+
+def category_for_type_name(name: str) -> Optional[str]:
+    """Best category for an employee type, from its name.
+
+    Matching is anchored at a word boundary, not a bare substring. Plain
+    substring matching classified "Site Helper" as a corporate function,
+    because "it" occurs inside "site" - the kind of error that would quietly
+    put a labourer in the wrong category for every report thereafter. A prefix
+    match from the boundary is still allowed, so "account" matches "Accounts".
+    """
+    low = (name or "").strip().lower()
+    if not low:
+        return None
+    for category, words in CATEGORY_KEYWORDS:
+        for w in words:
+            if re.search(r"\b" + re.escape(w), low):
+                return category
+    return None
+
+
+#: Column pair that identifies the EmployeeType master, whatever it is called.
+EMPLOYEE_TYPE_DISCOVERY = """
+SELECT c1.TABLE_SCHEMA, c1.TABLE_NAME
+FROM INFORMATION_SCHEMA.COLUMNS c1
+JOIN INFORMATION_SCHEMA.COLUMNS c2
+  ON c1.TABLE_SCHEMA = c2.TABLE_SCHEMA AND c1.TABLE_NAME = c2.TABLE_NAME
+WHERE c1.COLUMN_NAME = 'EmployeeTypeId'
+  AND c2.COLUMN_NAME = 'EmployeeTypeName'
+"""
+
+
+def load_employee_type_master(cursor) -> list[str]:
+    """Read the EmployeeType master and derive the category mapping from it.
+
+    The master's table name is discovered rather than assumed: this schema puts
+    some masters in a generic mstSection/mstDetails pair and others in their own
+    table, and hardcoding the wrong name is how the original guess happened.
+
+    Returns a list of human-readable notes for the run report.
+    """
+    notes: list[str] = []
+    try:
+        cursor.execute(EMPLOYEE_TYPE_DISCOVERY)
+        tables = [(r[0], r[1]) for r in cursor.fetchall()]
+    except Exception as e:  # noqa: BLE001
+        notes.append(f"Could not inspect the schema for an EmployeeType master: {e}")
+        return notes
+
+    if not tables:
+        notes.append(
+            "No table carries both EmployeeTypeId and EmployeeTypeName. The "
+            "category mapping will fall back to hardcoded ids, which are a guess."
+        )
+        return notes
+
+    if len(tables) > 1:
+        notes.append(
+            f"Several candidate masters found ({tables}); reading the first. "
+            "Check that is the right one."
+        )
+
+    schema, table = tables[0]
+    try:
+        cursor.execute(
+            f"SELECT EmployeeTypeId, EmployeeTypeName FROM [{schema}].[{table}]"
+        )
+        rows = cursor.fetchall()
+    except Exception as e:  # noqa: BLE001
+        notes.append(f"Found [{schema}].[{table}] but could not read it: {e}")
+        return notes
+
+    notes.append(f"EmployeeType master: [{schema}].[{table}] ({len(rows)} rows)")
+    unmatched: list[str] = []
+    for type_id, type_name in rows:
+        if type_id is None:
+            continue
+        tid = int(type_id)
+        EMPLOYEE_TYPE_NAMES[tid] = str(type_name or "")
+        category = category_for_type_name(str(type_name or ""))
+        if category:
+            EMPLOYEE_TYPE_TO_CATEGORY[tid] = category
+        else:
+            unmatched.append(f"{tid}={type_name!r}")
+
+    for tid, category in sorted(EMPLOYEE_TYPE_TO_CATEGORY.items()):
+        notes.append(f"  {tid:>3}  {EMPLOYEE_TYPE_NAMES[tid]:<32} -> {category}")
+    if unmatched:
+        notes.append(
+            "  No keyword matched these, so they will take the default "
+            f"({DEFAULT_CATEGORY}): {', '.join(unmatched)}"
+        )
+        notes.append(
+            "  Add a keyword to CATEGORY_KEYWORDS for each before applying."
+        )
+    return notes
 
 
 def _clean(v: Any) -> Optional[str]:
@@ -151,9 +290,11 @@ def map_row(row: dict[str, Any], site_id: str) -> dict[str, Any]:
     full_name = f"{first} {last}".strip() or _clean(row.get("LoginName")) or "Unnamed"
 
     emp_type = row.get("EmployeeTypeId")
-    category = EMPLOYEE_TYPE_TO_CATEGORY.get(
-        int(emp_type) if emp_type is not None else -1, DEFAULT_CATEGORY
-    )
+    tid = int(emp_type) if emp_type is not None else -1
+    # Derived from the master when it could be read; the hardcoded ids are a
+    # fallback only, and the run report says which was used.
+    table = EMPLOYEE_TYPE_TO_CATEGORY or FALLBACK_TYPE_TO_CATEGORY
+    category = table.get(tid, DEFAULT_CATEGORY)
 
     if row.get("IsSecondment"):
         engagement = EngagementType.SECONDMENT.value
@@ -225,8 +366,17 @@ async def run(dsn: str, site_id: str, site_id_numeric: int, commit: bool, limit:
         unmapped = {
             int(r["EmployeeTypeId"]) for r in rows
             if r.get("EmployeeTypeId") is not None
-            and int(r["EmployeeTypeId"]) not in EMPLOYEE_TYPE_TO_CATEGORY
+            and int(r["EmployeeTypeId"])
+            not in (EMPLOYEE_TYPE_TO_CATEGORY or FALLBACK_TYPE_TO_CATEGORY)
         }
+        if EMPLOYEE_TYPE_TO_CATEGORY:
+            print(f"\n  Categories derived from the EmployeeType master "
+                  f"({len(EMPLOYEE_TYPE_TO_CATEGORY)} types).")
+        else:
+            print("\n  WARNING: the EmployeeType master could not be read, so "
+                  "categories came from hardcoded ids, which are a GUESS. "
+                  "Do not --commit on this basis.")
+
         if unmapped:
             print(f"\n  WARNING: EmployeeTypeId values with no category mapping: "
                   f"{sorted(unmapped)} — these default to {DEFAULT_CATEGORY}.")

@@ -1106,15 +1106,6 @@
     <Content Include="Views\ServiceOrder\_AddServiceOrderExistingCNo.cshtml" />
     <Content Include="Views\ServiceOrder\AddServiceOrderCNo.cshtml" />
     <Content Include="Views\ServiceOrder\UpdateServiceOrder.cshtml" />
-    <Content Include="Web_bkp.config">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Web_bkp.Debug.config">
-      <DependentUpon>Web_bkp.config</DependentUpon>
-    </Content>
-    <Content Include="Web_bkp.Release.config">
-      <DependentUpon>Web_bkp.config</DependentUpon>
-    </Content>
     <Content Include="Views\VisitProcessing\_ScheduleVisit2.cshtml" />
     <Content Include="Views\User\_CompetanceDetails1.cshtml" />
     <Content Include="Views\Operations1\Index.cshtml" />

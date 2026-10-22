@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore", env_file=".env")
     app_name: str = "IQEApp API"
     debug: bool = False
+
+    #: Accept unauthenticated requests as an Admin. Development only - with
+    #: this on, every endpoint is open to anyone who can reach the port.
+    auth_allow_anonymous: bool = False
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "iqeapp_dev"
     jwt_secret_key: str = "change-me-in-production"

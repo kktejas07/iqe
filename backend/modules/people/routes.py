@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 
-from core.auth import get_current_user
+from core.auth import AUTHORIZES_PERSONNEL, get_current_user, require_roles
 from modules.people.service import PeopleService
 
 router = APIRouter(prefix="/people", tags=["People"])
@@ -102,7 +102,10 @@ async def decide_authorization(
     authorization_id: str,
     status: str,
     reason: Optional[str] = None,
-    user: dict = Depends(get_current_user),
+    # Under ISO/IEC 17020 the authority to authorize inspection personnel sits
+    # with a named competent technical function, not an administrative
+    # permission - so this is the one action Admin alone should not hold.
+    user: dict = Depends(require_roles(AUTHORIZES_PERSONNEL)),
 ):
     """Authorize, suspend or withdraw. Authorizing checks the evidence is complete."""
     return await PeopleService.decide_authorization(

@@ -111,6 +111,17 @@ async def lifespan(app: FastAPI):
             "definitions: %s", exc,
         )
 
+    # Anonymous access means every endpoint is open to anyone who can reach the
+    # port. It is a development convenience and must never be on in production,
+    # so say so loudly at every boot rather than leaving it to be discovered.
+    if settings.auth_allow_anonymous:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "AUTH_ALLOW_ANONYMOUS is enabled: unauthenticated requests are "
+            "accepted as Admin. Do not run this way outside local development."
+        )
+
     yield
     await close_redis()
 

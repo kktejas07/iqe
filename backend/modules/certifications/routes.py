@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 
-from core.auth import get_current_user
+from core.auth import ISSUES_CERTIFICATES, get_current_user, require_roles
 from modules.certifications.service import CertificationService
 
 router = APIRouter(prefix="/certifications", tags=["Certifications"])
@@ -69,7 +69,9 @@ async def update_certification(
 async def issue_certification(
     certification_id: str,
     certified_by_person_id: str,
-    user: dict = Depends(get_current_user),
+    # Issuing is the act that puts IQE's name on a value. The RBAC matrix
+    # (ARCHITECTURE_AND_E2E_FLOW.md 6.2) reserves it for the QC Auditor.
+    user: dict = Depends(require_roles(ISSUES_CERTIFICATES)),
 ):
     return await CertificationService.issue(
         certification_id, certified_by_person_id,

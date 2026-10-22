@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 
-from core.auth import get_current_user
+from core.auth import MANAGES_MONEY, get_current_user, require_roles
 from modules.billing.service import BillingService
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -43,7 +43,8 @@ async def set_terms(so_id: str, data: dict, user: dict = Depends(get_current_use
 @router.post("/invoices/from-certifications")
 async def raise_invoice(
     data: dict,
-    user: dict = Depends(get_current_user),
+    # Raising an invoice is a Finance action in the RBAC matrix.
+    user: dict = Depends(require_roles(MANAGES_MONEY)),
 ):
     """Raise a draft invoice from issued certifications.
 

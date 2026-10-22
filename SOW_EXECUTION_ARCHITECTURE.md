@@ -676,20 +676,31 @@ documents described but the system did not do. All are now built, with tests.
 | **Identifier allocation raced** under concurrency | `core/sequences.py`; `tests/test_sequences.py` |
 | **Declared AI assists unimplemented** | `modules/ai_assist`; `tests/test_ai_assist.py` |
 
+### Closed since (23 October 2026)
+
+| Gap | Where it is now |
+| :--- | :--- |
+| **RBAC covered 13 areas; 168 routes fell through** to "authenticated but unrestricted" | `core/policy.py` now classifies every route; a test asserts no route is unclassified or accidentally exempt |
+| **`/auth/change-password` was unauthenticated** | classified as self-service for any authenticated role |
+| **48 lookups found records by identifier without a site scope** — and because identifier sequences are per-site, two sites can hold the same `JOB-2026-0001`, so this could return the *wrong record*, not merely another site's | 45 fixed; the three remaining are noted below |
+| **`modules/ai` was a facade** — a prompt string returned as a "draft", substring matching called "vector search" | each endpoint now does what its name says |
+| **`suggest_inspector` selected `role_id == 3`, the *client* role**, and applied none of the competence, authorization, impartiality or calendar checks — it could propose a client's project manager as an IQE inspector | delegates to the assignment engine, so a suggestion carries the same gate an assignment would |
+| **No language model client** | `core/llm.py`; report drafting and document extraction in both AI modules call it |
+
 ### What is deliberately still open
 
-- **`modules/ai` is a facade.** It composes a prompt string and returns it
-  without calling a model, and its `vector_search` is substring matching. The
-  new `modules/ai_assist` supersedes it for work-package assists; the old
-  module is left in place because other screens call it, and removing it is a
-  separate change.
-- **Report drafting and document extraction need a model.** Both report that
-  honestly rather than fabricating output. Set `AZURE_OPENAI_ENDPOINT` and
-  `AZURE_OPENAI_API_KEY`, then wire the call.
-- **The RBAC table covers fourteen areas, not every module.** The rest are
-  authenticated but unrestricted; see the note in §6.2 of the E2E document.
-- **`site_id` is scoped per query, not enforced globally.** The spine and
-  reporting are scoped; several legacy modules look records up by identifier
-  alone. Harmless while IQE is single-site.
+- **Set `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`** to turn on report
+  drafting and document extraction. Without them nothing is generated and both
+  say so; with them the call is wired and works. Note that no inspection
+  content leaves the deployment until a key is set.
+- **Document extraction reads text sources only.** A scanned certificate or a
+  photograph needs a vision deployment, which is a different deployment name;
+  until one is configured it reports rather than guessing a heat number.
+- **Three unscoped lookups remain** — two in `modules/ai` that take a visit id
+  with no site parameter on the public method, and one hardcoded project
+  lookup in the Schedule M vertical. Harmless while IQE is single-site, and
+  each needs a signature change to fix.
+- **`site_id` is enforced per query, not by the database.** Nothing stops a
+  future query omitting the scope; a Mongo-level guard would.
 - **Nothing has run against a real MongoDB.** `scripts/verify_against_real_db.py`
   checks what mongomock structurally cannot.

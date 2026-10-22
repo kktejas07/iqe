@@ -654,3 +654,42 @@ them.
   `modules/construction_bill_verification`, `modules/invoices`, `modules/visits`,
   `apps/web/src/app/*`.
 - Public sources on competitor AI adoption are linked inline in §7.
+
+---
+
+## 13. Controls added October 2026
+
+An audit of the architecture against the code found several things the
+documents described but the system did not do. All are now built, with tests.
+
+| Gap | Where it is now |
+| :--- | :--- |
+| **Authentication failed open to Admin** — no credentials, no subject claim, or any exception resolved to `role_id 1` | `core/auth.py`; `tests/test_auth_gate.py` |
+| **RBAC matrix enforced nowhere** — `require_roles` applied to no route | `core/policy.py`; `tests/test_rbac_policy.py` |
+| **No audit trail** — only work packages recorded who changed what | `core/audit.py`, `/audit`; `tests/test_audit_trail.py` |
+| **No evidence capture** — formats declared photo sections with nothing to fill them | `modules/evidence`; `tests/test_evidence.py` |
+| **Path traversal in file upload** — `section_id` went straight onto the filesystem path | `modules/file_upload/service.py`, `modules/evidence/service.py` |
+| **No appeals process** (ISO/IEC 17020 cl. 7.6) — appeals were handled as complaints | `modules/appeals`; `tests/test_appeals_and_equipment.py` |
+| **No equipment or calibration register** (cl. 6.2) | `modules/equipment`; same test file |
+| **Concurrent edits overwrote silently** | `core/concurrency.py`; `tests/test_tenancy_and_locking.py` |
+| **`site_id` not enforced in reporting** — one site could read another's job | `modules/reporting/service.py`; same test file |
+| **Identifier allocation raced** under concurrency | `core/sequences.py`; `tests/test_sequences.py` |
+| **Declared AI assists unimplemented** | `modules/ai_assist`; `tests/test_ai_assist.py` |
+
+### What is deliberately still open
+
+- **`modules/ai` is a facade.** It composes a prompt string and returns it
+  without calling a model, and its `vector_search` is substring matching. The
+  new `modules/ai_assist` supersedes it for work-package assists; the old
+  module is left in place because other screens call it, and removing it is a
+  separate change.
+- **Report drafting and document extraction need a model.** Both report that
+  honestly rather than fabricating output. Set `AZURE_OPENAI_ENDPOINT` and
+  `AZURE_OPENAI_API_KEY`, then wire the call.
+- **The RBAC table covers fourteen areas, not every module.** The rest are
+  authenticated but unrestricted; see the note in §6.2 of the E2E document.
+- **`site_id` is scoped per query, not enforced globally.** The spine and
+  reporting are scoped; several legacy modules look records up by identifier
+  alone. Harmless while IQE is single-site.
+- **Nothing has run against a real MongoDB.** `scripts/verify_against_real_db.py`
+  checks what mongomock structurally cannot.

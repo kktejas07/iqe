@@ -503,6 +503,18 @@ $$\text{Filter} = (\text{Tenant Site ID} == \text{User Site ID}) \land (\text{En
 
 ### 6.2 Role-Based Access Control (RBAC) Matrix
 
+> **Status: enforced.** This matrix described nothing until October 2026 —
+> `require_roles` existed and was applied to no route, and `get_current_user`
+> returned an *Admin* identity whenever authentication failed, so the whole API
+> was unauthenticated and every caller was an administrator. Both are fixed.
+> The matrix now lives in `backend/core/policy.py` as one table, applied once as
+> an application dependency rather than on each of ~200 routes, and
+> `tests/test_rbac_policy.py` exercises it through the HTTP layer.
+>
+> Areas the table does not yet cover are authenticated but unrestricted, not
+> denied — default-deny on a running system means finding the gaps by breaking
+> production. Add an area to `MATRIX` once its permissions are confirmed.
+
 | Module / Action | Admin | Coordinator | Inspector | QC Auditor | Finance | Tech. Mgr | Client View |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Manage Users & Masters** | Full | Read | Read | Read | Read | Read | None |

@@ -21,6 +21,25 @@ class ServiceOrder(Document):
     so_type: str = "SO"; so_number: str
     so_date: Optional[datetime] = None; due_date: Optional[datetime] = None
     amount: float = 0.0; currency: str = "INR"
+
+    # The commercial envelope. `amount` is the base ceiling and `valid_until`
+    # the base end date; both are moved by approved amendments, and the
+    # effective figures are computed in modules.commercial.envelope rather
+    # than written back here. A stored balance is a number that was true once.
+    #
+    # term_type: FIXED_PERIOD runs to a date and can be renewed; PROJECT runs
+    # until the work is done; OPEN_ENDED has no end at all - what a client
+    # usually means by a lifetime or standing arrangement.
+    term_type: Optional[str] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    renewal_lead_days: Optional[int] = None
+
+    # Set when this order succeeded another for the same client. New scope,
+    # so a new order rather than an amendment - but the lineage is worth
+    # keeping, because "is this the fourth year of the same arrangement" is a
+    # question people ask.
+    succeeds_so_id: Optional[str] = None
     po_items: list[POItem] = []
     project_number: Optional[str] = None; project_name: Optional[str] = None
     comments: Optional[str] = None

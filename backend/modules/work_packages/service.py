@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -14,6 +15,8 @@ from modules.work_packages.models import (
     WorkPackage,
     WorkPackageStatus,
 )
+
+logger = logging.getLogger(__name__)
 from modules.work_types.models import WorkTypeDefinition
 
 
@@ -118,6 +121,46 @@ class WorkPackageService:
         for field in ("client_id", "client_name", "manufacturer_id", "manufacturer_name"):
             if not data.get(field) and getattr(job, field, None):
                 data[field] = getattr(job, field)
+
+        # The commercial envelope, where the package is drawn against an
+        # order. Refused rather than warned about: a package raised past the
+        # ceiling or after the order lapsed becomes work the client never
+        # agreed to pay for, and that is discovered at invoice time, when
+        # there is nothing left to negotiate with.
+        #
+        # Only enforced where there is an envelope to enforce. An order with
+        # no terms set is not treated as an order with a zero ceiling, which
+        # would refuse every package in the system the day this shipped.
+        so_id = data.get("so_id")
+        if so_id:
+            draw = float(
+                data.get("ceiling_value")
+                or (float(data.get("rate") or 0) * float(data.get("planned_quantity") or 0))
+            )
+            try:
+                from modules.commercial.service import CommercialService
+
+                check = await CommercialService.check_draw(so_id, draw, site_id)
+            except HTTPException:
+                raise
+            except Exception as e:  # noqa: BLE001
+                # A broken envelope check must not stop legitimate work. It is
+                # logged rather than swallowed silently.
+                logger.warning("Envelope check skipped for %s: %s", so_id, e)
+                check = None
+
+            if check and not check["allowed"]:
+                remedies = check.get("suggested_amendments") or []
+                raise HTTPException(
+                    409,
+                    f"This package cannot be raised against {so_id}: "
+                    + "; and ".join(check["blockers"])
+                    + (
+                        f". Raise a {' or '.join(r.replace('_', ' ').lower() for r in remedies)} "
+                        f"and have the client authorise it first."
+                        if remedies else "."
+                    ),
+                )
 
         data["site_id"] = site_id
         data["created_by"] = user_id

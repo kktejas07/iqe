@@ -246,6 +246,13 @@ const operationsSubModules: SubModuleItem[] = [
 
 const financeSubModules: SubModuleItem[] = [
   {
+    name: "Contracts & Amendments",
+    subtitle: "Order Ceilings, Periods & Renewals",
+    href: "/contracts",
+    icon: FileText,
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
+  },
+  {
     name: "Billing Invoices",
     subtitle: "Client Invoices & Records",
     href: "/invoices",
@@ -384,6 +391,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/verify");
 
   const isFinanceActive =
+    pathname.startsWith("/contracts") ||
     pathname.startsWith("/invoices") ||
     pathname.startsWith("/accounts-receivable") ||
     pathname.startsWith("/accounts-payable") ||

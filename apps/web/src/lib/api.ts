@@ -1010,6 +1010,48 @@ class API {
   async declineInspectionCall(callId: string, body: any) {
     return (await this.client.post(`/inspection-calls/${callId}/decline`, body)).data;
   }
+
+  // ------------------------------------------------- commercial envelope
+
+  async commercialSweep() {
+    return (await this.client.get("/commercial/sweep")).data;
+  }
+
+  async orderEnvelope(soId: string) {
+    return (await this.client.get(`/commercial/orders/${soId}/state`)).data;
+  }
+
+  async setOrderTerms(soId: string, body: any) {
+    return (await this.client.put(`/commercial/orders/${soId}/terms`, body)).data;
+  }
+
+  async canDrawAgainstOrder(soId: string, amount: number) {
+    return (
+      await this.client.get(`/commercial/orders/${soId}/can-draw`, {
+        params: { amount },
+      })
+    ).data;
+  }
+
+  async proposeSuccessorOrder(soId: string, body: any = {}) {
+    return (await this.client.post(`/commercial/orders/${soId}/successor`, body)).data;
+  }
+
+  async listAmendments(params?: { so_id?: string; status?: string }) {
+    return (await this.client.get("/commercial/amendments", { params })).data;
+  }
+
+  async proposeAmendment(body: any) {
+    return (await this.client.post("/commercial/amendments", body)).data;
+  }
+
+  async approveAmendment(amendmentId: string, body: any) {
+    return (await this.client.post(`/commercial/amendments/${amendmentId}/approve`, body)).data;
+  }
+
+  async rejectAmendment(amendmentId: string, body: any) {
+    return (await this.client.post(`/commercial/amendments/${amendmentId}/reject`, body)).data;
+  }
 }
 
 export const api = new API();

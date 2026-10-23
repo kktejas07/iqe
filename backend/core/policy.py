@@ -171,6 +171,16 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/commercial",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE],
+        note="Order terms, consumption and amendments. Clients read because "
+             "the envelope is theirs - they authorised the value and the "
+             "period, and an amendment is a change to their commitment. "
+             "Writing is commercial, not technical: a technical manager does "
+             "not move a ceiling.",
+    ),
+    Rule(
         prefix="/itps",
         read=ALL_INTERNAL + [Role.CLIENT],
         write=[Role.ADMIN, Role.COORDINATOR, Role.TECHNICAL_MANAGER],

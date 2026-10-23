@@ -1,0 +1,109 @@
+name: CI
+
+# The repository had 389 backend tests and nothing running them. A test suite
+# that only runs when someone remembers is a suite that silently rots.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A second push supersedes the first; no point finishing a run for a commit
+  # nobody will look at again.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install the libraries WeasyPrint binds to
+        # weasyprint imports cairo/pango through cffi at import time, and the
+        # document-rendering tests render real PDFs. Without these the suite
+        # fails on an import error that looks nothing like the actual cause.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
+            libcairo2 libffi-dev fonts-dejavu-core fonts-liberation
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        # No MongoDB service here on purpose: the suite runs against
+        # mongomock, and standing up a real one would hide the fact that it
+        # does. scripts/verify_against_real_db.py is the separate thing that
+        # needs a real server, and it is not wired into CI yet.
+        run: pytest -q
+
+  frontend:
+    name: Frontend typecheck and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        # next/font fetches the typefaces from Google at build time, so this
+        # step needs egress. It is also the only check that catches a page
+        # which typechecks but fails to prerender.
+        run: npm run build
+
+  guards:
+    name: Repository guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deployment stacks are valid
+        run: |
+          docker compose -f docker-compose.yml config >/dev/null
+          echo "dev stack: valid"
+          MONGO_PASSWORD=ci JWT_SECRET_KEY=ci PUBLIC_WEB_URL=https://ci.invalid \
+            docker compose -f docker-compose.prod.yml config >/dev/null
+          echo "prod stack: valid"
+
+      - name: Production stack refuses to start without its secrets
+        # The check that matters more than the one above: this is what stops
+        # "change-me-in-production" reaching production.
+        run: |
+          if docker compose -f docker-compose.prod.yml config >/dev/null 2>&1; then
+            echo "::error::docker-compose.prod.yml started without MONGO_PASSWORD / JWT_SECRET_KEY set"
+            exit 1
+          fi
+          echo "refused, as it should"

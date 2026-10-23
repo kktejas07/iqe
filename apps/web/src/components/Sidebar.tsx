@@ -215,6 +215,20 @@ const operationsSubModules: SubModuleItem[] = [
     color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
   },
   {
+    name: "Enquiries",
+    subtitle: "Bid Gate, Proposals & Award",
+    href: "/enquiries",
+    icon: Briefcase,
+    color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
+  },
+  {
+    name: "Pipeline",
+    subtitle: "Funnel, Win Rate & Loss Reasons",
+    href: "/pipeline",
+    icon: BarChart3,
+    color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40",
+  },
+  {
     name: "Evidence & Checks",
     subtitle: "Photographs, Certificates, Readiness",
     href: "/evidence",
@@ -351,6 +365,8 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/logsheet") ||
     pathname.startsWith("/control-numbers") ||
     pathname.startsWith("/evidence") ||
+    pathname.startsWith("/enquiries") ||
+    pathname.startsWith("/pipeline") ||
     pathname.startsWith("/verify");
 
   const isFinanceActive =

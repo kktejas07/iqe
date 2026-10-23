@@ -795,6 +795,77 @@ class API {
   async draftReport(workPackageId: string) {
     return (await this.client.post(`/ai-assist/${workPackageId}/draft-report`)).data;
   }
+
+  // ---- Pre-sales: enquiry -> go/no-go -> proposal -> work order ----
+  async getEnquiries(params?: { status?: string; client_id?: string; page?: number; per_page?: number }) {
+    return (await this.client.get("/enquiries/", { params })).data;
+  }
+
+  async getEnquiry(enquiryId: string) {
+    return (await this.client.get(`/enquiries/${enquiryId}`)).data;
+  }
+
+  async createEnquiry(data: any) {
+    return (await this.client.post("/enquiries/", data)).data;
+  }
+
+  async getReasonCodes() {
+    return (await this.client.get("/enquiries/reason-codes")).data;
+  }
+
+  async advanceEnquiry(enquiryId: string, to_status: string, note?: string) {
+    return (await this.client.post(`/enquiries/${enquiryId}/advance`, { to_status, note })).data;
+  }
+
+  async buildScorecard(enquiryId: string, auto_score = true) {
+    return (await this.client.post(`/enquiries/${enquiryId}/scorecard`, null, {
+      params: { auto_score },
+    })).data;
+  }
+
+  async decideEnquiry(enquiryId: string, body: any) {
+    return (await this.client.post(`/enquiries/${enquiryId}/decision`, body)).data;
+  }
+
+  async remediateEnquiry(enquiryId: string, body: any) {
+    return (await this.client.post(`/enquiries/${enquiryId}/remediate`, body)).data;
+  }
+
+  async createProposal(enquiryId: string, body: any) {
+    return (await this.client.post(`/enquiries/${enquiryId}/proposals`, body)).data;
+  }
+
+  async addProposalRevision(proposalId: string, body: any) {
+    return (await this.client.post(`/proposals/${proposalId}/revisions`, body)).data;
+  }
+
+  async issueProposalRevision(proposalId: string, revisionNo: number) {
+    return (await this.client.post(`/proposals/${proposalId}/revisions/${revisionNo}/issue`)).data;
+  }
+
+  async recordEnquiryOutcome(enquiryId: string, body: any) {
+    return (await this.client.post(`/enquiries/${enquiryId}/outcome`, body)).data;
+  }
+
+  async reviveEnquiry(enquiryId: string, note?: string) {
+    return (await this.client.post(`/enquiries/${enquiryId}/revive`, { note })).data;
+  }
+
+  async closeEnquiry(enquiryId: string, note?: string) {
+    return (await this.client.post(`/enquiries/${enquiryId}/close`, { note })).data;
+  }
+
+  async convertEnquiry(enquiryId: string, body: any) {
+    return (await this.client.post(`/enquiries/${enquiryId}/convert`, body)).data;
+  }
+
+  async getPipelineSummary() {
+    return (await this.client.get("/pipeline/summary")).data;
+  }
+
+  async getLossAnalysis() {
+    return (await this.client.get("/pipeline/loss-analysis")).data;
+  }
 }
 
 export const api = new API();

@@ -24,7 +24,8 @@ from modules.visits.models import Visit, ManufacturerVisitLocation
 from modules.invoices.models import Invoice
 from modules.purchase_orders.models import PurchaseOrder
 from modules.payments.models import Payment
-from modules.enquiries.models import Enquiry
+from modules.enquiries.models import Enquiry, GoNoGoDecision, ProposalRevision
+from modules.enquiries.reason_codes import ReasonCode
 from modules.complaints.models import CustomerComplaint
 from modules.documents.models import Document as DocModel
 from modules.analytics.models import AnalyticsEvent
@@ -40,7 +41,11 @@ from modules.visits.routes import router as visits_router
 from modules.invoices.routes import router as invoices_router
 from modules.purchase_orders.routes import router as purchase_orders_router
 from modules.payments.routes import router as payments_router
-from modules.enquiries.routes import router as enquiries_router
+from modules.enquiries.routes import (
+    router as enquiries_router,
+    proposals as proposals_router,
+    pipeline as pipeline_router,
+)
 from modules.complaints.routes import router as complaints_router
 from modules.documents.routes import router as documents_router
 from modules.reports.routes import router as reports_router
@@ -100,7 +105,8 @@ async def lifespan(app: FastAPI):
             UserLogin, Client, ClientUnit, Manufacturer, ManufacturerUnit,
             Competency, InspectorRate, Associate, Job, ServiceOrder,
             ControlNumber, Visit, ManufacturerVisitLocation, Invoice,
-            PurchaseOrder, Payment, Enquiry, CustomerComplaint, DocModel,
+            PurchaseOrder, Payment, Enquiry, GoNoGoDecision, ProposalRevision,
+            ReasonCode, CustomerComplaint, DocModel,
             AnalyticsEvent, AccountReceivable, AccountPayable, ConstructionBillVerificationRecord,
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
             Certification, BillingTerms,
@@ -206,6 +212,8 @@ app.include_router(invoices_router, prefix="/api/v1")
 app.include_router(purchase_orders_router, prefix="/api/v1")
 app.include_router(payments_router, prefix="/api/v1")
 app.include_router(enquiries_router, prefix="/api/v1")
+app.include_router(proposals_router, prefix="/api/v1")
+app.include_router(pipeline_router, prefix="/api/v1")
 app.include_router(complaints_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")

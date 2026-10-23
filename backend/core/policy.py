@@ -171,6 +171,23 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/proposals",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE],
+        note="A quotation is a priced commitment, so Finance can revise and "
+             "issue alongside the coordinator who drafted it. Clients do not "
+             "read this: they receive the revision that was issued to them, "
+             "not the drafts and the margin behind it.",
+    ),
+    Rule(
+        prefix="/pipeline",
+        read=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN],
+        note="Win rates, pipeline value and why work was lost. Commercially "
+             "sensitive and of no use to an inspector or a QC auditor, so it "
+             "is not opened to all internal roles the way most reads are.",
+    ),
+    Rule(
         prefix="/purchase-orders",
         read=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR],
         write=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR],

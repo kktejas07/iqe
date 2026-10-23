@@ -47,6 +47,7 @@ from modules.payments.routes import router as payments_router
 from modules.providers.routes import router as providers_router
 from modules.risk.models import InternalAudit, Risk, RiskReview
 from modules.risk.routes import audits as internal_audits_router, router as risks_router
+from modules.verification.routes import router as verification_router
 from modules.enquiries.routes import (
     router as enquiries_router,
     proposals as proposals_router,
@@ -226,6 +227,7 @@ app.include_router(pipeline_router, prefix="/api/v1")
 app.include_router(providers_router, prefix="/api/v1")
 app.include_router(risks_router, prefix="/api/v1")
 app.include_router(internal_audits_router, prefix="/api/v1")
+app.include_router(verification_router, prefix="/api/v1")
 app.include_router(complaints_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")

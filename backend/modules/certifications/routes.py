@@ -106,6 +106,39 @@ async def dispute_certification(
     )
 
 
+@router.post("/{certification_id}/suspend")
+async def suspend_certification(
+    certification_id: str, reason: str, user: dict = Depends(get_current_user)
+):
+    """Take a certificate out of force, reversibly. Public verification
+    reports it as suspended from this moment."""
+    return await CertificationService.suspend(
+        certification_id, reason,
+        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+    )
+
+
+@router.post("/{certification_id}/restore")
+async def restore_certification(
+    certification_id: str, reason: str, user: dict = Depends(get_current_user)
+):
+    return await CertificationService.restore(
+        certification_id, reason,
+        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+    )
+
+
+@router.post("/{certification_id}/withdraw")
+async def withdraw_certification(
+    certification_id: str, reason: str, user: dict = Depends(get_current_user)
+):
+    """Void a certificate permanently. Not reversible."""
+    return await CertificationService.withdraw(
+        certification_id, reason,
+        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+    )
+
+
 @router.post("/{certification_id}/mark-billed")
 async def mark_certification_billed(
     certification_id: str, invoice_id: str, user: dict = Depends(get_current_user)

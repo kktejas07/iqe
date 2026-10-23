@@ -13,6 +13,7 @@ from modules.certifications.models import (
     CertificationLineItem,
     CertificationStatus,
     DeductionReason,
+    LifecycleEvent,
 )
 from modules.work_packages.models import WorkPackage
 from modules.work_packages.service import WorkPackageService
@@ -372,6 +373,151 @@ class CertificationService:
             "certification", cert.certification_id, AuditAction.DISPUTE,
             note=note.strip(),
             context={"certified_value": cert.certified_value, "job_id": cert.job_id},
+            site_id=site_id,
+        )
+        return cert
+
+    # ------------------------------------------------------------ lifecycle
+    # A certificate that cannot be pulled out of force is a certificate that
+    # stays trusted after IQE stops standing behind it. Suspension is
+    # reversible; withdrawal is not.
+
+    @staticmethod
+    async def suspend(
+        certification_id: str, reason: str,
+        site_id: str = "SITE-01", user_id: str = "USR-001",
+    ):
+        """Take a certificate out of force, reversibly."""
+        cert = await CertificationService.get(certification_id, site_id)
+        if not (reason or "").strip():
+            raise HTTPException(
+                400,
+                "Suspension needs a reason. A certificate pulled out of force "
+                "without one cannot be explained to the holder, who is the "
+                "person it hurts.",
+            )
+        if cert.status == CertificationStatus.WITHDRAWN.value:
+            raise HTTPException(
+                409,
+                f"{certification_id} is withdrawn. A void certificate cannot "
+                f"be suspended - there is nothing left to suspend.",
+            )
+        if cert.status == CertificationStatus.SUSPENDED.value:
+            raise HTTPException(409, f"{certification_id} is already suspended")
+        if cert.status == CertificationStatus.DRAFT.value:
+            raise HTTPException(
+                409, "A draft was never in force, so there is nothing to suspend."
+            )
+
+        before = cert.status
+        cert.status = CertificationStatus.SUSPENDED.value
+        cert.suspended_at = datetime.now()
+        cert.suspended_by = user_id
+        cert.suspension_reason = reason.strip()
+        cert.lifecycle_events.append(LifecycleEvent(
+            event="SUSPENDED", by=user_id, reason=reason.strip(),
+            status_before=before, status_after=cert.status,
+        ))
+        cert.updated_at = datetime.now()
+        await cert.save()
+
+        await audit(
+            "certification", cert.certification_id, AuditAction.STATUS_CHANGE,
+            note=f"Suspended: {reason.strip()}",
+            changes=[{"field": "status", "before": before, "after": cert.status}],
+            context={"job_id": cert.job_id, "reversible": True},
+            site_id=site_id,
+        )
+        return cert
+
+    @staticmethod
+    async def restore(
+        certification_id: str, reason: str,
+        site_id: str = "SITE-01", user_id: str = "USR-001",
+    ):
+        """Return a suspended certificate to force.
+
+        Only from suspension. A withdrawn certificate is void and stays void:
+        if it should not have been withdrawn, the answer is a fresh
+        certificate that says so, not a reinstatement that leaves no trace of
+        the period in between.
+        """
+        cert = await CertificationService.get(certification_id, site_id)
+        if cert.status != CertificationStatus.SUSPENDED.value:
+            raise HTTPException(
+                409,
+                f"Only a suspended certificate can be restored; "
+                f"{certification_id} is {cert.status}.",
+            )
+        if not (reason or "").strip():
+            raise HTTPException(
+                400, "Restoration needs a reason: what was resolved?"
+            )
+
+        before = cert.status
+        cert.status = CertificationStatus.ISSUED.value
+        cert.suspended_at = None
+        cert.suspended_by = None
+        cert.suspension_reason = None
+        cert.lifecycle_events.append(LifecycleEvent(
+            event="RESTORED", by=user_id, reason=reason.strip(),
+            status_before=before, status_after=cert.status,
+        ))
+        cert.updated_at = datetime.now()
+        await cert.save()
+
+        await audit(
+            "certification", cert.certification_id, AuditAction.STATUS_CHANGE,
+            note=f"Restored: {reason.strip()}",
+            changes=[{"field": "status", "before": before, "after": cert.status}],
+            context={"job_id": cert.job_id},
+            site_id=site_id,
+        )
+        return cert
+
+    @staticmethod
+    async def withdraw(
+        certification_id: str, reason: str,
+        site_id: str = "SITE-01", user_id: str = "USR-001",
+    ):
+        """Void a certificate permanently."""
+        cert = await CertificationService.get(certification_id, site_id)
+        if not (reason or "").strip():
+            raise HTTPException(400, "Withdrawal needs a reason")
+        if cert.status == CertificationStatus.WITHDRAWN.value:
+            raise HTTPException(409, f"{certification_id} is already withdrawn")
+        if cert.status == CertificationStatus.DRAFT.value:
+            raise HTTPException(
+                409, "A draft was never issued, so there is nothing to withdraw."
+            )
+        if cert.billed_invoice_id:
+            # Not a refusal: billing already consumed this value, and whoever
+            # withdraws it needs to know the commercial position moves too.
+            pass
+
+        before = cert.status
+        cert.status = CertificationStatus.WITHDRAWN.value
+        cert.withdrawn_at = datetime.now()
+        cert.withdrawn_by = user_id
+        cert.withdrawal_reason = reason.strip()
+        cert.lifecycle_events.append(LifecycleEvent(
+            event="WITHDRAWN", by=user_id, reason=reason.strip(),
+            status_before=before, status_after=cert.status,
+        ))
+        cert.updated_at = datetime.now()
+        await cert.save()
+
+        await audit(
+            "certification", cert.certification_id, AuditAction.STATUS_CHANGE,
+            note=f"Withdrawn: {reason.strip()}",
+            changes=[{"field": "status", "before": before, "after": cert.status}],
+            context={
+                "job_id": cert.job_id,
+                "reversible": False,
+                # Surfaced because withdrawing something already billed is a
+                # commercial event, not only a quality one.
+                "billed_invoice_id": cert.billed_invoice_id,
+            },
             site_id=site_id,
         )
         return cert

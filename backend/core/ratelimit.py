@@ -75,6 +75,15 @@ LIMITS: dict[str, Limit] = {
             "timer and several browser tabs refresh independently."
         ),
     ),
+    "/api/v1/verify/": Limit(
+        requests=30,
+        window_seconds=60,
+        note=(
+            "Thirty a minute. A person checking the certificate in their hand "
+            "does it once; this is here because an open endpoint keyed on a "
+            "document reference is an enumeration surface."
+        ),
+    ),
     "/v/": Limit(
         requests=60,
         window_seconds=60,
@@ -86,14 +95,21 @@ LIMITS: dict[str, Limit] = {
 }
 
 
-def limit_for(path: str) -> Optional[Limit]:
-    """The limit covering this path, longest prefix first, or None."""
-    best: Optional[tuple[int, Limit]] = None
+def match(path: str) -> Optional[tuple[str, Limit]]:
+    """The rule covering this path and the prefix it matched on, longest
+    prefix first, or None."""
+    best: Optional[tuple[int, str, Limit]] = None
     for prefix, limit in LIMITS.items():
         if path == prefix or path.startswith(prefix):
             if best is None or len(prefix) > best[0]:
-                best = (len(prefix), limit)
-    return best[1] if best else None
+                best = (len(prefix), prefix, limit)
+    return (best[1], best[2]) if best else None
+
+
+def limit_for(path: str) -> Optional[Limit]:
+    """The limit covering this path, or None."""
+    found = match(path)
+    return found[1] if found else None
 
 
 @dataclass
@@ -132,11 +148,19 @@ def client_identity(request: Request) -> str:
 def check(request: Request) -> Optional[JSONResponse]:
     """None to let the request through, or the 429 to return instead."""
     try:
-        limit = limit_for(request.url.path)
-        if limit is None:
+        found = match(request.url.path)
+        if found is None:
             return None
+        prefix, limit = found
 
-        key = (client_identity(request), request.url.path.split("?")[0])
+        # Keyed on the prefix the rule matched, not the full path. Keying on
+        # the path looked right and was useless for the case it mattered
+        # most: /api/v1/verify/{reference} is a different path on every
+        # request, so an enumerator walking references got a fresh allowance
+        # each time - defeating the limit that was added precisely because
+        # the endpoint is enumerable. Different rules still count separately,
+        # so exhausting login does not spend the verify allowance.
+        key = (client_identity(request), prefix)
         now = time.monotonic()
 
         with _lock:

@@ -26,6 +26,60 @@ class CertificationStatus(str, Enum):
     ISSUED = "issued"
     DISPUTED = "disputed"
     SUPERSEDED = "superseded"   # replaced by a later revision
+    #: Temporarily not to be relied on - the conditions it was issued against
+    #: have lapsed, or something has come to light that is still being
+    #: investigated. Reversible.
+    SUSPENDED = "suspended"
+    #: Permanently void. Not reversible: a certificate that should never have
+    #: been issued is replaced by a corrected one, never quietly reinstated.
+    WITHDRAWN = "withdrawn"
+
+
+#: What a certificate in each state means to someone holding it. The public
+#: verification endpoint returns this wording rather than the raw status,
+#: because "superseded" tells a layperson nothing about whether to rely on it.
+PUBLIC_MEANING: dict[str, str] = {
+    CertificationStatus.DRAFT: "Not issued. This is not a valid IQE certificate.",
+    CertificationStatus.ISSUED: "Valid and in force.",
+    CertificationStatus.DISPUTED: (
+        "Issued, but under dispute. Contact IQE before relying on it."
+    ),
+    CertificationStatus.SUPERSEDED: (
+        "Replaced by a later revision. Ask the holder for the current one."
+    ),
+    CertificationStatus.SUSPENDED: (
+        "Suspended. Do not rely on this certificate while it is suspended."
+    ),
+    CertificationStatus.WITHDRAWN: (
+        "Withdrawn. This certificate is void and must not be relied on."
+    ),
+}
+
+#: States in which a certificate should not be relied on. Everything that is
+#: not plainly in force is listed here deliberately: the default for a public
+#: verification is caution, not optimism.
+NOT_IN_FORCE = {
+    CertificationStatus.DRAFT,
+    CertificationStatus.SUSPENDED,
+    CertificationStatus.WITHDRAWN,
+    CertificationStatus.SUPERSEDED,
+}
+
+
+class LifecycleEvent(BaseModel):
+    """One change in whether a certificate is in force.
+
+    Append-only. Suspension is reversible and withdrawal is not, but both
+    have to stay on the record either way: the question asked later is never
+    "is it valid now" but "was it valid on the day we relied on it".
+    """
+
+    event: str                      # SUSPENDED | RESTORED | WITHDRAWN
+    at: datetime = Field(default_factory=datetime.now)
+    by: Optional[str] = None
+    reason: str
+    status_before: Optional[str] = None
+    status_after: Optional[str] = None
 
 
 class DeductionReason(str, Enum):
@@ -127,6 +181,19 @@ class Certification(Document):
     certified_by_person_id: Optional[str] = None
     certified_at: Optional[datetime] = None
     dispute_note: Optional[str] = None
+
+    #: Suspension and withdrawal. Reason is mandatory at the service layer -
+    #: a certificate pulled out of force without a recorded reason cannot be
+    #: explained to the holder, who is the person it hurts.
+    suspended_at: Optional[datetime] = None
+    suspended_by: Optional[str] = None
+    suspension_reason: Optional[str] = None
+    withdrawn_at: Optional[datetime] = None
+    withdrawn_by: Optional[str] = None
+    withdrawal_reason: Optional[str] = None
+    #: Append-only: every suspension, restoration and withdrawal, so the
+    #: question "was this in force on 14 October" has an answer.
+    lifecycle_events: list["LifecycleEvent"] = []
 
     # set when an invoice consumes this certification, so the same certified
     # value cannot be billed twice

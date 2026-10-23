@@ -407,6 +407,9 @@ UNAUTHENTICATED_PATHS: tuple[str, ...] = (
     "/openapi.json",
     "/files/",            # served static evidence and report assets
     "/media",             # served report and signature assets
+    "/api/v1/verify/",    # the verification endpoint itself: a client
+                          # scanning a certificate has no IQE account and
+                          # should not need one.
     "/v/",                # scan-to-verify: a client checks a report from the
                           # QR code on it, without an account. Open by design.
 )

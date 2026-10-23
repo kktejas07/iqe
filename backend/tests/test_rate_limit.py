@@ -184,3 +184,25 @@ def test_health_stays_unlimited():
     no health check."""
     codes = [http.get("/health").status_code for _ in range(80)]
     assert 429 not in codes
+
+
+def test_a_parameterised_path_counts_as_one_bucket():
+    """Keying the counter on the full request path looked right and was
+    useless for the case it mattered most. /api/v1/verify/{reference} is a
+    different path on every request, so an enumerator walking references got
+    a fresh allowance each time - defeating the limit that exists precisely
+    because the endpoint is enumerable.
+
+    Found by exercising the endpoint rather than by this file: the unit tests
+    all used fixed paths, where the bug is invisible.
+    """
+    limit = LIMITS["/api/v1/verify/"]
+    seen = [
+        ratelimit.check(_FakeRequest(f"/api/v1/verify/CERT-2026-{i:04d}"))
+        for i in range(limit.requests + 3)
+    ]
+    assert seen[0] is None
+    assert any(r is not None for r in seen), (
+        "walking distinct references got a fresh allowance each time"
+    )
+    assert seen.index(next(r for r in seen if r is not None)) == limit.requests

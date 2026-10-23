@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from beanie import init_beanie
 from fastapi import Depends
+from core import ratelimit
 from core.policy import enforce_policy
 from pymongo import AsyncMongoClient
 from core.config import settings
@@ -148,6 +149,20 @@ app = FastAPI(
     lifespan=lifespan,
     dependencies=[Depends(enforce_policy)],
 )
+
+@app.middleware("http")
+async def rate_limit(request, call_next):
+    """Covers the unauthenticated endpoints only - see core/ratelimit.py.
+
+    Registered before CORS so that CORS ends up the outer layer: a 429 that
+    reaches the browser without CORS headers is reported as a CORS failure,
+    and the person at the login screen is told nothing useful.
+    """
+    rejected = ratelimit.check(request)
+    if rejected is not None:
+        return rejected
+    return await call_next(request)
+
 
 configured_origins = [o.strip() for o in settings.allowed_origins if o and o.strip()]
 allow_all_origins = "*" in configured_origins

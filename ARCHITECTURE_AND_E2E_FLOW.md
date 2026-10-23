@@ -57,6 +57,7 @@ graph TB
 
     subgraph Gateway["2. Gateway & Authentication"]
         CORS["CORS middleware"]
+        RateLimit["Rate limiting<br/>(core/ratelimit.py)<br/>unauthenticated paths only"]
         JWTAuth["JWT Authentication / OWIN Forms Auth"]
         RBAC["RBAC policy table<br/>(core/policy.py, one app-level dependency)"]
     end
@@ -103,7 +104,7 @@ graph TB
     MobileApp --> CORS
     LegacyWeb --> JWTAuth
 
-    CORS --> JWTAuth --> RBAC
+    CORS --> RateLimit --> JWTAuth --> RBAC
     RBAC --> FastAPIServices
     LegacyWeb --> LegacyServices
 
@@ -117,12 +118,22 @@ graph TB
     LegacyServices --> LegacyPDF
 ```
 
-> **Not built.** Rate limiting and email notification (SendGrid / SMTP) appear
-> in earlier drafts of this diagram and in `core/config.py`, but neither is
-> implemented: `sendgrid_api_key` is read and never used, and there is no
-> rate-limiting middleware. They have been removed from the diagram rather
-> than drawn as if they existed. Redis is wired (`core/cache.py`) but the
-> application runs without it.
+> **Rate limiting** covers the unauthenticated paths only — login, refresh,
+> and the public `/v/` scan-to-verify link (`core/ratelimit.py`). Authenticated
+> routes are deliberately not limited: a number for those is a capacity
+> decision about real work, and picking one without measuring would break a
+> coordinator's bulk import to defend against a threat the token already
+> addresses. Counters live in process memory, so N workers means N times the
+> limit; for more than one host the limit belongs in the reverse proxy.
+>
+> **Email notification is not built.** `sendgrid_api_key` sits in
+> `core/config.py` and is never read. Sending needs a verified sender domain
+> and a decision about what is sent to whom — neither of which is a coding
+> task — and a notifier that silently drops messages is worse than none,
+> because the coordinator believes the inspector was told. Assignment is
+> currently communicated outside the system.
+>
+> Redis is wired (`core/cache.py`) but the application runs without it.
 
 ---
 

@@ -11,7 +11,7 @@
   }
 
   body {
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-inter, Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif);
     /* Inter: single-storey a and open digits */
     font-feature-settings: "cv11", "ss01";
     background-color: #f4f8fb;
@@ -70,7 +70,7 @@
 }
 
 .font-heading {
-  font-family: var(--font-heading), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-heading, var(--font-inter, Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif));
   letter-spacing: -0.015em;
   font-feature-settings: normal;
 }

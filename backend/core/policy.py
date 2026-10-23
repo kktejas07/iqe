@@ -171,6 +171,23 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/itps",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.TECHNICAL_MANAGER],
+        note="Inspection and Test Plans. Clients read them because the plan "
+             "is theirs - they imposed the hold points and are entitled to "
+             "see what was agreed. Writing is held to the people who agree "
+             "the plan with them.",
+    ),
+    Rule(
+        prefix="/inspection-calls",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR],
+        note="Calls against those points. Inspectors write because recording "
+             "attendance and its outcome is the inspector's own act, at the "
+             "point it happens, not something a coordinator transcribes later.",
+    ),
+    Rule(
         prefix="/risks",
         read=ALL_INTERNAL,
         write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.QC_AUDITOR],

@@ -940,6 +940,76 @@ class API {
   async completeInternalAudit(auditId: string, body: any) {
     return (await this.client.post(`/internal-audits/${auditId}/complete`, body)).data;
   }
+
+  // ---------------------------------------------------- inspection & test plans
+
+  async listITPs(params?: { job_id?: string }) {
+    return (await this.client.get("/itps/", { params })).data;
+  }
+
+  async getITP(itpId: string) {
+    return (await this.client.get(`/itps/${itpId}`)).data;
+  }
+
+  async createITP(data: any) {
+    return (await this.client.post("/itps/", data)).data;
+  }
+
+  async extractITP(body: { document_text: string; source?: string }) {
+    return (await this.client.post("/itps/extract", body)).data;
+  }
+
+  async approveITP(itpId: string) {
+    return (await this.client.post(`/itps/${itpId}/approve`)).data;
+  }
+
+  async confirmITPExtraction(itpId: string) {
+    return (await this.client.post(`/itps/${itpId}/confirm-extraction`)).data;
+  }
+
+  async listInspectionCalls(params?: {
+    itp_id?: string;
+    job_id?: string;
+    open_only?: boolean;
+  }) {
+    return (await this.client.get("/inspection-calls/", { params })).data;
+  }
+
+  async inspectionCallForecast(days = 14) {
+    return (await this.client.get("/inspection-calls/forecast", { params: { days } })).data;
+  }
+
+  async sweepInspectionCalls() {
+    return (await this.client.post("/inspection-calls/sweep")).data;
+  }
+
+  async raiseInspectionCall(data: any) {
+    return (await this.client.post("/inspection-calls/", data)).data;
+  }
+
+  async suggestInspectorForCall(callId: string) {
+    return (await this.client.get(`/inspection-calls/${callId}/suggest`)).data;
+  }
+
+  async assignInspectionCall(callId: string, personId: string) {
+    return (
+      await this.client.post(`/inspection-calls/${callId}/assign`, null, {
+        params: { person_id: personId },
+      })
+    ).data;
+  }
+
+  async attendInspectionCall(callId: string, body: any) {
+    return (await this.client.post(`/inspection-calls/${callId}/attend`, body)).data;
+  }
+
+  async waiveInspectionCall(callId: string, body: any) {
+    return (await this.client.post(`/inspection-calls/${callId}/waive`, body)).data;
+  }
+
+  async declineInspectionCall(callId: string, body: any) {
+    return (await this.client.post(`/inspection-calls/${callId}/decline`, body)).data;
+  }
 }
 
 export const api = new API();

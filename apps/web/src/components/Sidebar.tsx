@@ -401,7 +401,8 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/risks");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
-  const isQualityPlansActive = pathname.startsWith("/itps");
+  const isQualityPlansActive =
+    pathname.startsWith("/itps") || pathname.startsWith("/inspection-calls");
 
   // Automatically expand active sections
   useEffect(() => {
@@ -786,6 +787,25 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
                 {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">Quality Plans</span>}
               </div>
               {!isCollapsed && isQualityPlansActive && <ChevronRight className="w-3.5 h-3.5 text-white shrink-0" />}
+            </Link>
+            <Link
+              href="/inspection-calls"
+              title={isCollapsed ? "Inspection Calls" : undefined}
+              className={`mt-1 w-full flex items-center ${
+                isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+              } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                pathname.startsWith("/inspection-calls")
+                  ? "bg-gradient-to-r from-purple-600 to-brand-700 text-white shadow-xs border border-purple-400/30"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <PhoneCall className="w-4 h-4 text-purple-400 shrink-0" />
+                {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">Inspection Calls</span>}
+              </div>
+              {!isCollapsed && pathname.startsWith("/inspection-calls") && (
+                <ChevronRight className="w-3.5 h-3.5 text-white shrink-0" />
+              )}
             </Link>
           </div>
 

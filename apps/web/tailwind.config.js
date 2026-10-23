@@ -63,9 +63,9 @@ module.exports = {
         navyDark: '#001a2c',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-heading)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: [`var(--font-inter, Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif)`],
+        heading: [`var(--font-heading, var(--font-inter, Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif))`],
+        mono: [`var(--font-mono, 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace)`],
       },
       fontWeight: {
         // 800 read as shouty across 600+ labels; cap "extrabold" at bold

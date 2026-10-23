@@ -1,415 +1,769 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import {
-  Layers,
-  Search,
-  Filter,
-  CheckCircle2,
-  Clock,
-  ShieldCheck,
-  AlertTriangle,
-  Download,
-  BookOpen,
-  FileText,
-  Sliders,
-  ChevronRight,
-  Sparkles,
-  Eye,
-  FileSpreadsheet,
+  Layers, RefreshCw, Plus, X, CheckCircle2, AlertTriangle, Sparkles,
+  FileText, ShieldCheck, Eye,
 } from "@/components/icons";
+import { api } from "@/lib/api";
+import { toast } from "@/components/feedback";
+import { formatDate } from "@/lib/workPackageLifecycle";
+import {
+  Card, EmptyState, Metric, PageHeader, SkeletonRows, StatusPill, Tone,
+  buttonPrimary, buttonSecondary, inputClass,
+} from "@/components/ui";
 
-interface ITPActivity {
-  slNo: number;
-  activity: string;
-  referenceSpec: string;
-  checkMethod: string;
-  acceptanceCriteria: string;
-  subcon: "H" | "W" | "R" | "S";
-  contractor: "H" | "W" | "R" | "S";
-  tpiIQE: "H" | "W" | "R" | "S";
-  client: "H" | "W" | "R" | "S";
-  status: "Completed" | "Pending Witness" | "Hold Point Active";
-}
+/**
+ * Inspection and Test Plans.
+ *
+ * An ITP is the contract for what gets inspected: every row says what the
+ * activity is, what it is measured against, and who has to be there. The one
+ * distinction the screen exists to make visible is H against W — a hold point
+ * stops the contractor's work until IQE attends, a witness point does not.
+ * Everything here is arranged so that distinction is never ambiguous.
+ *
+ * Approval is a one-way door. After it the points are fixed, because changing
+ * an approved ITP silently changes what both parties agreed to inspect.
+ */
 
-interface ITPPlan {
-  id: string;
-  code: string;
-  title: string;
-  project: string;
-  rev: string;
-  client: string;
-  activitiesCount: number;
-  holdPointsCount: number;
-  witnessPointsCount: number;
-  activities: ITPActivity[];
-}
-
-const ITPS: ITPPlan[] = [
-  {
-    id: "itp-01",
-    code: "ITP-PH-EPC-001",
-    title: "Pharma Cleanroom Facility & HVAC Validation Plan",
-    project: "Schedule M Revised 2024 Compliance Upgrade",
-    rev: "Rev 1.0",
-    client: "Biogenix Lifesciences Pvt Ltd",
-    activitiesCount: 18,
-    holdPointsCount: 4,
-    witnessPointsCount: 8,
-    activities: [
-      {
-        slNo: 1,
-        activity: "Raw Material & Modular Cleanroom Wall/Ceiling Panel Test",
-        referenceSpec: "ISO 14644-4 / Schedule M",
-        checkMethod: "PIR Core Density, Fire Rating & Certificate Review",
-        acceptanceCriteria: "Factory Test Cert + Class 1 Fire Retardant",
-        subcon: "H",
-        contractor: "W",
-        tpiIQE: "W",
-        client: "R",
-        status: "Completed"
-      },
-      {
-        slNo: 2,
-        activity: "Concealed Work: Floor Epoxy Vapour Barrier & Rebar Coving",
-        referenceSpec: "DIN 18560 / IS 456",
-        checkMethod: "Moisture Content Meter (<4%) & Primer Pull-off Test",
-        acceptanceCriteria: "Pull-off > 1.5 MPa. Zero bubbles or un-bonded patches.",
-        subcon: "H",
-        contractor: "H",
-        tpiIQE: "H",
-        client: "W",
-        status: "Completed"
-      },
-      {
-        slNo: 3,
-        activity: "HEPA Filter Terminal Box PAO Integrity Leak Testing",
-        referenceSpec: "ISO 14644-3 / Schedule M F-05",
-        checkMethod: "Aerosol Photometer Upstream PAO Challenge",
-        acceptanceCriteria: "Downstream penetration < 0.01% (Zero bypass leak)",
-        subcon: "H",
-        contractor: "W",
-        tpiIQE: "H",
-        client: "W",
-        status: "Hold Point Active"
-      },
-      {
-        slNo: 4,
-        activity: "Air Velocity, ACPH & Cleanroom Room Pressure Differential",
-        referenceSpec: "Schedule M Annexure A / ISO 14644",
-        checkMethod: "Digital Anemometer + Magnehelic Gauge Calibration",
-        acceptanceCriteria: "Positive cascade: 15 Pa / 10 Pa between adjacent grades.",
-        subcon: "W",
-        contractor: "W",
-        tpiIQE: "W",
-        client: "H",
-        status: "Pending Witness"
-      }
-    ]
-  },
-  {
-    id: "itp-02",
-    code: "ITP-MCR-PIPING",
-    title: "Process Piping & High-Purity Water Systems",
-    project: "WFI & Pure Steam Distribution Loop",
-    rev: "Rev 2.0",
-    client: "Cipla Biotech SEZ",
-    activitiesCount: 14,
-    holdPointsCount: 3,
-    witnessPointsCount: 6,
-    activities: [
-      {
-        slNo: 1,
-        activity: "Orbital Weld Video-Borescope Inspection (100% of welds)",
-        referenceSpec: "ASME BPE Section MJ / AWS D18.1",
-        checkMethod: "Flexible 4mm Digital Video Endoscope",
-        acceptanceCriteria: "Full penetration, zero discoloration beyond Level 3.",
-        subcon: "H",
-        contractor: "W",
-        tpiIQE: "H",
-        client: "W",
-        status: "Completed"
-      },
-      {
-        slNo: 2,
-        activity: "Hydrostatic Pressure Test (1.5x Design Pressure)",
-        referenceSpec: "ASME B31.3 Chapter VI",
-        checkMethod: "Calibrated Pressure Gauges & Chart Recorder",
-        acceptanceCriteria: "Zero pressure drop over 2 hours hold time.",
-        subcon: "H",
-        contractor: "H",
-        tpiIQE: "H",
-        client: "W",
-        status: "Completed"
-      }
-    ]
-  },
-  {
-    id: "itp-03",
-    code: "ITP-IOCL-REACT",
-    title: "Heavy Reactor Fabrication & Pressure Vessel Inspection",
-    project: "Refinery Expansion Package",
-    rev: "Rev 3.0",
-    client: "Indian Oil Corporation Ltd (IOCL)",
-    activitiesCount: 22,
-    holdPointsCount: 6,
-    witnessPointsCount: 10,
-    activities: [
-      {
-        slNo: 1,
-        activity: "Plate Ultrasonic Testing (UT) for Laminations",
-        referenceSpec: "ASTM A578 Level II",
-        checkMethod: "Digital Flaw Detector with Dual Crystal Probe",
-        acceptanceCriteria: "Zero continuous defect indication > 25mm diameter.",
-        subcon: "H",
-        contractor: "W",
-        tpiIQE: "W",
-        client: "R",
-        status: "Completed"
-      },
-      {
-        slNo: 2,
-        activity: "Radiographic Examination (100% RT on Category A & B Welds)",
-        referenceSpec: "ASME Sec VIII Div 1 UW-51",
-        checkMethod: "Ir-192 Gamma Radiography / Film Density 2.0-4.0",
-        acceptanceCriteria: "Zero cracks, lack of penetration, or burn-through.",
-        subcon: "H",
-        contractor: "W",
-        tpiIQE: "H",
-        client: "W",
-        status: "Hold Point Active"
-      }
-    ]
-  }
+const INTERVENTIONS = [
+  { code: "H", label: "Hold", help: "Work stops until IQE attends" },
+  { code: "W", label: "Witness", help: "IQE attends; work continues either way" },
+  { code: "R", label: "Review", help: "Records reviewed, no attendance" },
+  { code: "M", label: "Monitor", help: "Surveillance only" },
 ];
 
+const INTERVENTION_TONE: Record<string, Tone> = {
+  H: "bad", W: "warn", R: "idle", M: "idle",
+};
+
+const INTERVENTION_LABEL: Record<string, string> = {
+  H: "Hold", W: "Witness", R: "Review", M: "Monitor",
+};
+
+const STATUS_TONE: Record<string, Tone> = {
+  DRAFT: "warn", APPROVED: "ok", SUPERSEDED: "idle", CLOSED: "idle",
+};
+
+/** A point as the create/extract form holds it before it is saved. */
+interface DraftPoint {
+  point_id: string;
+  activity: string;
+  discipline?: string | null;
+  intervention: string;
+  reference_document?: string | null;
+  reference_revision?: string | null;
+  acceptance_criteria?: string | null;
+  uncertain?: string[];
+}
+
+const BLANK_POINT: DraftPoint = {
+  point_id: "", activity: "", discipline: "", intervention: "W",
+  reference_document: "", reference_revision: "", acceptance_criteria: "",
+};
+
 export default function ITPsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedITP, setSelectedITP] = useState<ITPPlan>(ITPS[0]);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Record<string, any>>({});
 
-  const filteredITPs = ITPS.filter(
-    (i) =>
-      i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      i.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      i.project.toLowerCase().includes(searchTerm.toLowerCase())
+  const [adding, setAdding] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.listITPs();
+      setPlans(res?.data ?? []);
+    } catch {
+      toast.error("Could not load the plans");
+      setPlans([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const expand = async (itpId: string) => {
+    if (open === itpId) {
+      setOpen(null);
+      return;
+    }
+    setOpen(itpId);
+    if (!detail[itpId]) {
+      try {
+        const d = await api.getITP(itpId);
+        setDetail((prev) => ({ ...prev, [itpId]: d }));
+      } catch {
+        toast.error(`Could not load ${itpId}`);
+      }
+    }
+  };
+
+  const approve = async (itpId: string) => {
+    try {
+      await api.approveITP(itpId);
+      toast.success(`${itpId} approved. The points are now fixed.`);
+      setDetail((prev) => ({ ...prev, [itpId]: undefined }));
+      load();
+    } catch (e: any) {
+      // The refusals here are the point of the module, so they are shown in
+      // full rather than reduced to "failed".
+      toast.error(e?.response?.data?.detail ?? "Could not approve the plan");
+    }
+  };
+
+  const confirmExtraction = async (itpId: string) => {
+    try {
+      await api.confirmITPExtraction(itpId);
+      toast.success("Extraction confirmed. The plan can now be approved.");
+      setDetail((prev) => ({ ...prev, [itpId]: undefined }));
+      load();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Could not confirm");
+    }
+  };
+
+  const holdTotal = plans.reduce((n, p) => n + (p.hold_point_count ?? 0), 0);
+  const unconfirmed = plans.filter(
+    (p) => p.extracted_from_document && !p.extraction_confirmed_by,
+  ).length;
+  const drafts = plans.filter((p) => p.status === "DRAFT").length;
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+      <PageHeader
+        icon={Layers}
+        title="Inspection & Test Plans"
+        description="What gets inspected, what it is measured against, and who has to be there"
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <button onClick={load} className={buttonSecondary}>
+              <RefreshCw className="w-4 h-4" /> Refresh
+            </button>
+            <button onClick={() => setExtracting(true)} className={buttonSecondary}>
+              <Sparkles className="w-4 h-4" /> Read from document
+            </button>
+            <button onClick={() => setAdding(true)} className={buttonPrimary}>
+              <Plus className="w-4 h-4" /> New plan
+            </button>
+          </div>
+        }
+      />
+
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-x-8 gap-y-4">
+          <Metric value={plans.length} label="Plans" />
+          <Metric value={drafts} label="In draft" tone={drafts ? "warn" : undefined} />
+          <Metric
+            value={holdTotal}
+            label="Hold points"
+            sub="Work stops at each until IQE attends"
+            tone={holdTotal ? "bad" : undefined}
+          />
+          <Metric
+            value={unconfirmed}
+            label="Awaiting confirmation"
+            sub="Read from a document, not yet checked"
+            tone={unconfirmed ? "warn" : "ok"}
+          />
+        </div>
+      </Card>
+
+      {unconfirmed > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-900">
+            {unconfirmed === 1
+              ? "One plan was read out of a client document and nobody has checked it against the original yet."
+              : `${unconfirmed} plans were read out of client documents and nobody has checked them against the originals yet.`}{" "}
+            An ITP is contractual, so these cannot be approved until someone
+            confirms the reading.
+          </p>
+        </div>
+      )}
+
+      {loading ? (
+        <SkeletonRows rows={4} />
+      ) : plans.length === 0 ? (
+        <EmptyState
+          icon={Layers}
+          title="No inspection and test plans yet"
+          description="A plan can be keyed in by hand, or read out of the ITP the client issued and then checked against it."
+        />
+      ) : (
+        <div className="space-y-3">
+          {plans.map((p) => {
+            const needsConfirming =
+              p.extracted_from_document && !p.extraction_confirmed_by;
+            const d = detail[p.itp_id];
+            return (
+              <Card key={p.itp_id} className="overflow-hidden">
+                <button
+                  onClick={() => expand(p.itp_id)}
+                  className="w-full text-left p-4 hover:bg-slate-50 transition-colors"
+                >
+                  {/* Stacked below sm. Side by side at phone width left the
+                      title about 130px and truncated it to "Block …", and the
+                      title is the thing someone is scanning for. */}
+                  <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:gap-4">
+                    <div className="min-w-0 sm:flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs text-slate-500">
+                          {p.itp_id}
+                        </span>
+                        <StatusPill tone={STATUS_TONE[p.status] ?? "idle"}>{p.status === "DRAFT" ? "Draft" : "Approved"}</StatusPill>
+                        {p.revision && (
+                          <span className="text-xs text-slate-500">{p.revision}</span>
+                        )}
+                        {needsConfirming && (
+                          <StatusPill tone="warn">{"Unconfirmed reading"}</StatusPill>
+                        )}
+                      </div>
+                      <h3 className="mt-1.5 font-semibold text-slate-900">
+                        {p.title}
+                      </h3>
+                      <p className="text-sm text-slate-500 break-words">
+                        {p.job_id}
+                        {p.client_reference ? ` · ${p.client_reference}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm sm:shrink-0">
+                      <span className="text-slate-600">
+                        <span className="font-semibold text-slate-900">
+                          {p.point_count ?? 0}
+                        </span>{" "}
+                        {p.point_count === 1 ? "point" : "points"}
+                      </span>
+                      {(p.hold_point_count ?? 0) > 0 && (
+                        <StatusPill tone="bad">{`${p.hold_point_count} hold`}</StatusPill>
+                      )}
+                      {(p.witness_point_count ?? 0) > 0 && (
+                        <StatusPill tone="warn">{`${p.witness_point_count} witness`}</StatusPill>
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                {open === p.itp_id && (
+                  <div className="border-t border-slate-200 bg-slate-50/60 p-4 space-y-4">
+                    {p.extracted_from_document && (
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+                        <Sparkles className="w-4 h-4 text-[#0084bf] shrink-0" />
+                        <p className="text-sm text-slate-600 flex-1">
+                          Read out of{" "}
+                          <span className="font-medium text-slate-900">
+                            {p.extracted_from_document}
+                          </span>
+                          {p.extraction_confirmed_by
+                            ? ` · confirmed by ${p.extraction_confirmed_by}`
+                            : " · not yet checked against the original"}
+                        </p>
+                        {needsConfirming && (
+                          <button
+                            onClick={() => confirmExtraction(p.itp_id)}
+                            className={buttonSecondary}
+                          >
+                            <Eye className="w-4 h-4" /> I have checked it
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {!d ? (
+                      <SkeletonRows rows={3} />
+                    ) : (
+                      <PointsTable points={d.points ?? []} />
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      {p.status === "DRAFT" ? (
+                        <>
+                          <button
+                            onClick={() => approve(p.itp_id)}
+                            disabled={needsConfirming}
+                            className={`${buttonPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+                          >
+                            <ShieldCheck className="w-4 h-4" /> Approve plan
+                          </button>
+                          <p className="text-xs text-slate-500 max-w-md">
+                            {needsConfirming
+                              ? "Someone has to check these points against the original document first — approving a machine's reading unread would make that reading the contractual one."
+                              : "After approval the points are fixed — changing them would change what both parties agreed to inspect."}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          Approved by {p.approved_by} on{" "}
+                          {formatDate(p.approved_on)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {adding && (
+        <PlanForm
+          onClose={() => setAdding(false)}
+          onSaved={() => {
+            setAdding(false);
+            load();
+          }}
+        />
+      )}
+      {extracting && (
+        <ExtractForm
+          onClose={() => setExtracting(false)}
+          onSaved={() => {
+            setExtracting(false);
+            load();
+          }}
+        />
+      )}
+    </div>
   );
+}
 
-  const getBadge = (type: "H" | "W" | "R" | "S") => {
-    switch (type) {
-      case "H":
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-300">H (Hold)</span>;
-      case "W":
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">W (Witness)</span>;
-      case "R":
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border border-sky-300">R (Review)</span>;
-      default:
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">S (Surv)</span>;
+/* ------------------------------------------------------------------ points */
+
+function PointsTable({ points }: { points: any[] }) {
+  if (points.length === 0) {
+    return (
+      <p className="text-sm text-slate-500">This plan has no points yet.</p>
+    );
+  }
+  return (
+    <>
+      {/* Below sm the five columns collapse to one word per line and the
+          criteria run off the side, so the same rows are laid out as cards.
+          A squeezed table is not a smaller table, it is an unreadable one. */}
+      <div className="space-y-2 sm:hidden">
+        {points.map((pt) => (
+          <div
+            key={pt.point_id}
+            className="rounded-lg border border-slate-200 bg-white p-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-xs text-slate-500">
+                {pt.point_id}
+              </span>
+              <StatusPill tone={INTERVENTION_TONE[pt.intervention] ?? "idle"}>
+                {INTERVENTION_LABEL[pt.intervention] ?? pt.intervention}
+              </StatusPill>
+            </div>
+            <p className="mt-1.5 font-medium text-slate-900">{pt.activity}</p>
+            {pt.discipline && (
+              <p className="text-xs text-slate-500">{pt.discipline}</p>
+            )}
+            {pt.reference_document && (
+              <p className="mt-2 text-sm text-slate-600">
+                {pt.reference_document}
+                {pt.reference_revision ? ` · ${pt.reference_revision}` : ""}
+              </p>
+            )}
+            {pt.acceptance_criteria && (
+              <p className="mt-2 border-t border-slate-100 pt-2 text-sm text-slate-600">
+                {pt.acceptance_criteria}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th className="px-3 py-2 font-medium">Point</th>
+            <th className="px-3 py-2 font-medium">Activity</th>
+            <th className="px-3 py-2 font-medium">Reference</th>
+            <th className="px-3 py-2 font-medium">Acceptance criteria</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">IQE</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {points.map((pt) => (
+            <tr key={pt.point_id} className="align-top">
+              <td className="px-3 py-2 font-mono text-xs text-slate-500 whitespace-nowrap">
+                {pt.point_id}
+              </td>
+              <td className="px-3 py-2">
+                <p className="text-slate-900">{pt.activity}</p>
+                {pt.discipline && (
+                  <p className="text-xs text-slate-500">{pt.discipline}</p>
+                )}
+              </td>
+              <td className="px-3 py-2 text-slate-600">
+                {pt.reference_document ? (
+                  <>
+                    <span className="block">{pt.reference_document}</span>
+                    {pt.reference_revision && (
+                      <span className="text-xs text-slate-500">
+                        {pt.reference_revision}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )}
+              </td>
+              <td className="px-3 py-2 text-slate-600 max-w-xs">
+                {pt.acceptance_criteria || (
+                  <span className="text-slate-400">—</span>
+                )}
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <StatusPill tone={INTERVENTION_TONE[pt.intervention] ?? "idle"}>{INTERVENTION_LABEL[pt.intervention] ?? pt.intervention}</StatusPill>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    </>
+  );
+}
+
+/* -------------------------------------------------------------- point editor */
+
+function PointRows({
+  points,
+  setPoints,
+}: {
+  points: DraftPoint[];
+  setPoints: (p: DraftPoint[]) => void;
+}) {
+  const update = (i: number, patch: Partial<DraftPoint>) =>
+    setPoints(points.map((p, n) => (n === i ? { ...p, ...patch } : p)));
+
+  return (
+    <div className="space-y-3">
+      {points.map((pt, i) => {
+        const needsCriteria = pt.intervention === "H" && !pt.acceptance_criteria;
+        return (
+          <div
+            key={i}
+            className="rounded-lg border border-slate-200 p-3 space-y-3"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={pt.point_id}
+                onChange={(e) => update(i, { point_id: e.target.value })}
+                placeholder="4.3.2"
+                className={`${inputClass} w-24 font-mono`}
+              />
+              <input
+                value={pt.activity}
+                onChange={(e) => update(i, { activity: e.target.value })}
+                placeholder="Activity"
+                className={`${inputClass} flex-1 min-w-[12rem]`}
+              />
+              {points.length > 1 && (
+                <button
+                  onClick={() => setPoints(points.filter((_, n) => n !== i))}
+                  className="p-2 text-slate-400 hover:text-red-600"
+                  aria-label="Remove point"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {INTERVENTIONS.map((iv) => (
+                <button
+                  key={iv.code}
+                  onClick={() => update(i, { intervention: iv.code })}
+                  title={iv.help}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    pt.intervention === iv.code
+                      ? iv.code === "H"
+                        ? "bg-red-50 border-red-300 text-red-800"
+                        : "bg-[#0084bf]/10 border-[#0084bf] text-[#005f8a]"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {iv.code} · {iv.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-2">
+              <input
+                value={pt.discipline ?? ""}
+                onChange={(e) => update(i, { discipline: e.target.value })}
+                placeholder="Discipline"
+                className={inputClass}
+              />
+              <input
+                value={pt.reference_document ?? ""}
+                onChange={(e) => update(i, { reference_document: e.target.value })}
+                placeholder="Drawing / spec"
+                className={inputClass}
+              />
+              <input
+                value={pt.reference_revision ?? ""}
+                onChange={(e) => update(i, { reference_revision: e.target.value })}
+                placeholder="Revision"
+                className={inputClass}
+              />
+            </div>
+
+            <textarea
+              value={pt.acceptance_criteria ?? ""}
+              onChange={(e) => update(i, { acceptance_criteria: e.target.value })}
+              placeholder="Acceptance criteria — what releases this point"
+              rows={2}
+              className={inputClass}
+            />
+            {needsCriteria && (
+              <p className="flex items-start gap-2 text-xs text-amber-700">
+                <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                Work stops at a hold point, so what releases it has to be
+                written down.
+              </p>
+            )}
+            {pt.uncertain && pt.uncertain.length > 0 && (
+              <p className="text-xs text-amber-700">
+                Read uncertainly: {pt.uncertain.join(", ")} — check against the
+                original.
+              </p>
+            )}
+          </div>
+        );
+      })}
+      <button
+        onClick={() => setPoints([...points, { ...BLANK_POINT }])}
+        className={buttonSecondary}
+      >
+        <Plus className="w-4 h-4" /> Add point
+      </button>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- new plan */
+
+function PlanForm({
+  onClose,
+  onSaved,
+  initial,
+  source,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+  initial?: DraftPoint[];
+  source?: string;
+}) {
+  const [jobId, setJobId] = useState("");
+  const [title, setTitle] = useState("");
+  const [clientRef, setClientRef] = useState("");
+  const [revision, setRevision] = useState("");
+  const [points, setPoints] = useState<DraftPoint[]>(
+    initial && initial.length ? initial : [{ ...BLANK_POINT }],
+  );
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.createITP({
+        job_id: jobId,
+        title,
+        client_reference: clientRef || null,
+        revision: revision || null,
+        extracted_from_document: source || null,
+        points: points.map((p) => ({
+          ...p,
+          discipline: p.discipline || null,
+          reference_document: p.reference_document || null,
+          reference_revision: p.reference_revision || null,
+          acceptance_criteria: p.acceptance_criteria || null,
+        })),
+      });
+      toast.success("Plan saved as a draft");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Could not save the plan");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
-      {/* TOP HEADER CONTAINER (Identical to Bill Verification Format Shell) */}
-      <div className="bg-white text-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#003366] dark:text-sky-300 font-heading tracking-tight flex items-center gap-2">
-              <Layers className="w-6 h-6 text-[#0084bf]" />
-              <span>Inspection &amp; Test Plans (ITP)</span>
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[11px] font-bold font-mono">
-              Quality Assurance Matrix
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/pms-formats"
-              className="px-3.5 py-1.5 rounded-xl bg-[#0084bf] hover:bg-[#0073a8] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>PMS Formats Hub</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Sub-module Navigation Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-200">
-          <Link
-            href="/pms-formats"
-            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 hover:bg-slate-100 transition-all text-xs"
-          >
-            <BookOpen className="w-4 h-4 text-sky-600" />
-            <div>
-              <div className="font-extrabold text-slate-800">Formats</div>
-              <div className="text-[11px] text-slate-400">Audit &amp; Formats</div>
-            </div>
-          </Link>
-          <Link
-            href="/sops"
-            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 hover:bg-slate-100 transition-all text-xs"
-          >
-            <FileText className="w-4 h-4 text-emerald-600" />
-            <div>
-              <div className="font-extrabold text-slate-800">SOP&apos;s</div>
-              <div className="text-[11px] text-slate-400">Operating Procedures</div>
-            </div>
-          </Link>
-          <Link
-            href="/work-instructions"
-            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 hover:bg-slate-100 transition-all text-xs"
-          >
-            <CheckCircle2 className="w-4 h-4 text-amber-600" />
-            <div>
-              <div className="font-extrabold text-slate-800">Work Instructions</div>
-              <div className="text-[11px] text-slate-400">Technical Protocols</div>
-            </div>
-          </Link>
-          <Link
-            href="/itps"
-            className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-2.5 text-xs font-bold text-purple-900"
-          >
-            <Layers className="w-4 h-4 text-purple-600" />
-            <div>
-              <div className="font-extrabold text-purple-900">ITP&apos;s</div>
-              <div className="text-[11px] text-purple-700">Active Quality Plans</div>
-            </div>
-          </Link>
-        </div>
+    <Modal
+      title={source ? "Check and save the plan" : "New inspection & test plan"}
+      onClose={onClose}
+    >
+      {source && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          These points were read out of {source}. Check them against the
+          original before saving — the acceptance criteria is what a contractor
+          is held to.
+        </p>
+      )}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <input
+          value={jobId}
+          onChange={(e) => setJobId(e.target.value)}
+          placeholder="Job reference *"
+          className={inputClass}
+        />
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Plan title *"
+          className={inputClass}
+        />
+        <input
+          value={clientRef}
+          onChange={(e) => setClientRef(e.target.value)}
+          placeholder="Client's reference"
+          className={inputClass}
+        />
+        <input
+          value={revision}
+          onChange={(e) => setRevision(e.target.value)}
+          placeholder="Revision"
+          className={inputClass}
+        />
       </div>
 
-      {/* Main Content Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Side: Select ITP Register */}
-        <div className="lg:col-span-1 space-y-3">
-          <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <h3 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider mb-2">
-              Select Quality Plan (ITP)
-            </h3>
-            <div className="space-y-2">
-              {filteredITPs.map((plan) => {
-                const isSelected = selectedITP.id === plan.id;
-                return (
-                  <button
-                    key={plan.id}
-                    onClick={() => setSelectedITP(plan)}
-                    className={`w-full text-left p-3 rounded-xl transition-all border ${
-                      isSelected
-                        ? "bg-gradient-to-r from-[#0084bf]/15 to-[#00618e]/15 border-[#0084bf] shadow-xs"
-                        : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#0084bf]">
-                      <span>{plan.code}</span>
-                      <span className="text-slate-500">{plan.rev}</span>
-                    </div>
-                    <div className="font-extrabold text-xs text-slate-900 dark:text-white mt-1 leading-snug">
-                      {plan.title}
-                    </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                      {plan.project}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      <PointRows points={points} setPoints={setPoints} />
 
-          {/* ITP Summary Card */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs space-y-2">
-            <div className="text-slate-400 uppercase text-[11px] font-bold">Legend Matrix</div>
-            <div className="flex items-center justify-between">
-              <span><strong>H</strong>: Hold Point</span>
-              <span className="text-slate-400">Formal sign-off required</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span><strong>W</strong>: Witness Point</span>
-              <span className="text-slate-400">Physical testing witness</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span><strong>R</strong>: Review Point</span>
-              <span className="text-slate-400">MTC / Test cert review</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span><strong>S</strong>: Surveillance</span>
-              <span className="text-slate-400">Random site check</span>
-            </div>
-          </div>
+      <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+        <button onClick={onClose} className={buttonSecondary}>
+          Cancel
+        </button>
+        <button
+          onClick={save}
+          disabled={saving || !jobId || !title}
+          className={`${buttonPrimary} disabled:opacity-50`}
+        >
+          {saving ? "Saving…" : "Save as draft"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ----------------------------------------------------------------- extract */
+
+function ExtractForm({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [source, setSource] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState<any>(null);
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      const out = await api.extractITP({
+        document_text: text,
+        source: source || undefined,
+      });
+      setDraft(out);
+      if (!out.ok) toast.error(out.note);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Could not read the document");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (draft?.ok) {
+    return (
+      <PlanForm
+        onClose={onClose}
+        onSaved={onSaved}
+        initial={draft.points}
+        source={source || "a client document"}
+      />
+    );
+  }
+
+  return (
+    <Modal title="Read a plan out of a document" onClose={onClose}>
+      <p className="text-sm text-slate-600">
+        Paste the ITP table from the client&apos;s document. What comes back is
+        a draft for you to check — nothing is saved until you do, and the plan
+        cannot be approved until someone confirms the reading.
+      </p>
+      <input
+        value={source}
+        onChange={(e) => setSource(e.target.value)}
+        placeholder="Document reference, e.g. SHMIC/ITP/07 Rev C"
+        className={inputClass}
+      />
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={10}
+        placeholder="Paste the table here…"
+        className={`${inputClass} font-mono text-xs`}
+      />
+      {draft && !draft.ok && (
+        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {draft.note}
+        </p>
+      )}
+      <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+        <button onClick={onClose} className={buttonSecondary}>
+          Cancel
+        </button>
+        <button
+          onClick={run}
+          disabled={busy || !text.trim()}
+          className={`${buttonPrimary} disabled:opacity-50`}
+        >
+          {busy ? "Reading…" : "Read the table"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------- modal */
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 p-0 sm:p-4">
+      <div className="w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6 py-4">
+          <h2 className="font-semibold text-slate-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1 text-slate-400 hover:text-slate-600"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-
-        {/* Right Side: ITP Matrix Table */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div>
-                <span className="text-xs font-mono font-bold text-[#0084bf]">{selectedITP.code} &bull; {selectedITP.rev}</span>
-                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white font-heading mt-0.5">
-                  {selectedITP.title}
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Client: <strong className="text-slate-700 dark:text-slate-200">{selectedITP.client}</strong> &bull; Project: {selectedITP.project}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 text-[11px] font-bold font-mono">
-                  {selectedITP.holdPointsCount} Hold Points
-                </span>
-                <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 text-[11px] font-bold font-mono">
-                  {selectedITP.witnessPointsCount} Witness Points
-                </span>
-              </div>
-            </div>
-
-            {/* Matrix Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-extrabold uppercase text-slate-500 dark:text-slate-400">
-                    <th className="p-3 w-12 text-center">#</th>
-                    <th className="p-3">Activity &amp; Component</th>
-                    <th className="p-3">Reference Spec</th>
-                    <th className="p-3">Verification Method</th>
-                    <th className="p-3 text-center">Subcon</th>
-                    <th className="p-3 text-center">Contractor</th>
-                    <th className="p-3 text-center text-[#0084bf] font-bold">IQE TPI</th>
-                    <th className="p-3 text-center">Client</th>
-                    <th className="p-3 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {selectedITP.activities.map((act) => (
-                    <tr key={act.slNo} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 font-mono font-bold text-center text-slate-400">{act.slNo}</td>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white max-w-xs leading-snug">
-                        {act.activity}
-                        <div className="text-[11px] text-slate-400 font-normal mt-0.5">{act.acceptanceCriteria}</div>
-                      </td>
-                      <td className="p-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">{act.referenceSpec}</td>
-                      <td className="p-3 text-slate-600 dark:text-slate-300">{act.checkMethod}</td>
-                      <td className="p-3 text-center">{getBadge(act.subcon)}</td>
-                      <td className="p-3 text-center">{getBadge(act.contractor)}</td>
-                      <td className="p-3 text-center font-bold">{getBadge(act.tpiIQE)}</td>
-                      <td className="p-3 text-center">{getBadge(act.client)}</td>
-                      <td className="p-3 text-right">
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
-                          act.status === "Completed"
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                            : act.status === "Hold Point Active"
-                            ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 animate-pulse"
-                            : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                        }`}>
-                          {act.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <div className="p-4 sm:p-6 space-y-4">{children}</div>
       </div>
     </div>
   );

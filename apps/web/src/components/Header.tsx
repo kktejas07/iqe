@@ -698,7 +698,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               type="button"
               onClick={() => setActiveDropdown(activeDropdown === "qp" ? null : "qp")}
               className={`flex items-center gap-1 px-2.5 py-1.5 xl:px-3 xl:py-2 rounded-xl transition-all cursor-pointer ${
-              pathname.startsWith("/itps")
+              pathname.startsWith("/itps") || pathname.startsWith("/inspection-calls")
                 ? "bg-gradient-to-r from-purple-600 to-brand-700 text-white font-extrabold shadow-md"
                 : isDark
                 ? "text-purple-400 hover:bg-slate-800 font-extrabold"
@@ -733,17 +733,19 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                 </Link>
                 <Link
                   onClick={() => setActiveDropdown(null)}
-                  href="/itps#quality"
+                  href="/inspection-calls"
                   className={`group/item flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
-                    isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
+                    pathname.startsWith("/inspection-calls")
+                      ? isDark ? "bg-purple-950/70 text-white" : "bg-purple-50 text-purple-900"
+                      : isDark ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"
                   }`}
                 >
                   <div className="w-8 h-8 rounded-lg transition-transform duration-300 group-hover/item:scale-110 bg-brand-100 dark:bg-brand-950/80 text-brand-600 flex items-center justify-center shrink-0">
                     <Shield className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-bold text-xs">TPI Quality Assurance</div>
-                    <div className="text-[11px] text-slate-400 truncate">Conformity &amp; Inspection Matrix</div>
+                    <div className="font-bold text-xs">Inspection Calls</div>
+                    <div className="text-[11px] text-slate-400 truncate">Hold &amp; witness points called for attendance</div>
                   </div>
                 </Link>
               </div>
@@ -1321,11 +1323,11 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
                   ITP Matrix
                 </Link>
                 <Link
-                  href="/itps#quality"
+                  href="/inspection-calls"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block py-1 hover:text-[#0084bf] font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  TPI Quality QA
+                  Inspection Calls
                 </Link>
               </div>
               <div>

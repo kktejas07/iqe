@@ -73,6 +73,9 @@ graph TB
             InvMod["Invoice, AR / AP"]
             ReportMod["Reporting formats & Analytics"]
             QualityMod["Equipment, Complaints, Appeals, Evidence, Audit"]
+            ProviderMod["External providers (register, evaluation, consent)"]
+            RiskMod["Risk register & risk-based internal audit"]
+            VerifyMod["Public verification (open, rate limited)"]
             AIMod["AI assists (gated per work type)"]
         end
 
@@ -118,8 +121,19 @@ graph TB
     LegacyServices --> LegacyPDF
 ```
 
+> **Edition.** The quality-system modules were built against **ISO/IEC
+> 17020:2026**, published 27 March 2026; accreditations under the 2012
+> edition cease to be recognised on 27 March 2029. Clause references in code
+> comments elsewhere in this repository still cite 2012 numbering and have not
+> been rechecked against the 2026 text — the revision restructured the
+> standard, so treat those citations as indicative until someone with the
+> standard in hand confirms them.
+>
 > **Rate limiting** covers the unauthenticated paths only — login, refresh,
-> and the public `/v/` scan-to-verify link (`core/ratelimit.py`). Authenticated
+> the public `/v/` short link, and `/api/v1/verify/{reference}`
+> (`core/ratelimit.py`). The limiter keys on the matched rule prefix rather
+> than the request path, without which a parameterised endpoint gives an
+> enumerator a fresh allowance on every reference. Authenticated
 > routes are deliberately not limited: a number for those is a capacity
 > decision about real work, and picking one without measuring would break a
 > coordinator's bulk import to defend against a threat the token already
@@ -208,6 +222,15 @@ erDiagram
     ENQUIRY ||--o{ PROPOSAL_REVISION : "quoted as"
     ENQUIRY ||--o| JOB : "converts to on award"
     CLIENT ||--o{ JOB : "initiates"
+    SITE ||--o{ EXTERNAL_PROVIDER : "relies on"
+    EXTERNAL_PROVIDER ||--o{ PROVIDER_EVALUATION : "approved by"
+    EXTERNAL_PROVIDER ||--o{ PROVIDER_PERFORMANCE : "monitored by"
+    JOB ||--o{ SUBCONTRACT_CONSENT : "client agrees to"
+    EXTERNAL_PROVIDER ||--o{ SUBCONTRACT_CONSENT : "consented for"
+    SITE ||--o{ RISK : "maintains register of"
+    RISK ||--o{ RISK_REVIEW : "reassessed by"
+    RISK ||--o{ INTERNAL_AUDIT : "tested by"
+    CUSTOMER_COMPLAINT ||--o| RISK : "preventive half raised as"
     JOB ||--o{ SERVICE_ORDER : "contains"
     JOB ||--o{ CONTROL_NUMBER : "contains"
     JOB ||--o{ PURCHASE_ORDER : "contains"
@@ -264,6 +287,18 @@ erDiagram
 | **Visit Expense** | `EXP-XXXX` | Visit | Inspector travel, lodging, or meal claim |
 | **Invoice** | `INV-YYYY-XXXX` | Job / Visit | Financial invoice issued to client |
 | **Payment** | `PAY-YYYY-XXXX` | Invoice | Client payment settlement record |
+
+**Quality-system identifiers** (ISO/IEC 17020:2026, built October 2026):
+
+| Entity | ID Schema | Parent Reference | Defined in |
+| :--- | :--- | :--- | :--- |
+| **External Provider** | `PRV-YYYY-XXXX` | Site | `modules/providers/` |
+| **Provider Evaluation** | `PEV-YYYY-XXXX` | External Provider | `modules/providers/` |
+| **Provider Observation** | `PMR-YYYY-XXXX` | External Provider | `modules/providers/` |
+| **Subcontract Consent** | `PSC-YYYY-XXXX` | Job + External Provider | `modules/providers/` |
+| **Risk** | `RSK-YYYY-XXXX` | Site | `modules/risk/` |
+| **Risk Review** | `RVW-YYYY-XXXX` | Risk | `modules/risk/` |
+| **Internal Audit** | `IAU-YYYY-XXXX` | Site | `modules/risk/` |
 
 **Planned identifiers** (companion specs):
 

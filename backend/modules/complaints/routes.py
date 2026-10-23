@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 from core.auth import get_current_user
 from modules.complaints.service import ComplaintService
 
@@ -36,3 +36,18 @@ async def update_complaint(complaint_id: str, data: dict, user: dict = Depends(g
 @router.patch("/{complaint_id}/status")
 async def toggle_complaint_status(complaint_id: str, is_active: bool, user: dict = Depends(get_current_user)):
     return await ComplaintService.toggle_status(complaint_id, is_active, user.get("site_id", "SITE-01"))
+
+
+@router.post("/{complaint_id}/escalate-to-risk")
+async def escalate_to_risk(
+    complaint_id: str, body: dict = Body(...), user: dict = Depends(get_current_user)
+):
+    """Raise the preventive half of a complaint as a risk.
+
+    ISO/IEC 17020:2026 replaced preventive action with risk management, so
+    "stop this recurring" has nowhere to live on the complaint itself.
+    """
+    return await ComplaintService.escalate_to_risk(
+        complaint_id, body,
+        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+    )

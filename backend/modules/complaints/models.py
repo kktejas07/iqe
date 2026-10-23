@@ -32,7 +32,13 @@ class CustomerComplaint(Document):
     
     description: str                       # Detailed Complaint / Grievance Description
     root_cause: Optional[str] = None       # Root Cause Analysis (RCA)
-    proposed_action: Optional[str] = None  # Corrective & Preventive Action (CAPA)
+    #: The *corrective* action: what fixes this instance. The preventive half
+    #: of what used to be called CAPA no longer lives here - ISO/IEC
+    #: 17020:2026 replaced preventive action with risk and opportunity
+    #: management, so "make sure this does not happen again" belongs in the
+    #: risk register, where it gets an owner, a review date and a place in the
+    #: audit plan. See `raised_risk_id` and ComplaintService.escalate_to_risk.
+    proposed_action: Optional[str] = None
     action_by: Optional[str] = None
     resolution_notes: Optional[str] = None
     remarks: Optional[str] = None
@@ -44,6 +50,10 @@ class CustomerComplaint(Document):
     complaint_type: Optional[str] = "Quality"  # Quality, Dimensional, Delay, NDT Defect, Documentation
     status: str = "open"                       # open, in_progress, capa_implemented, closed
     responsible_party: Optional[str] = None
+    #: Set when the preventive half has been raised as a risk, so the link is
+    #: visible from the complaint and the same complaint cannot quietly raise
+    #: three near-identical risks.
+    raised_risk_id: Optional[str] = None
     is_active: bool = True
     
     created_by: Optional[str] = None

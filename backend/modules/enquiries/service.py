@@ -62,6 +62,9 @@ DEFAULT_CRITERIA: list[tuple[str, str, float]] = [
 #: override with a reason.
 GO_THRESHOLD_PCT = 60.0
 
+#: A zero here recommends no-go regardless of the total. See _weigh().
+DISQUALIFYING = {"SCOPE_FIT", "COMPETENCE", "IMPARTIALITY"}
+
 VALID_DECISIONS = {"go", "no_go"}
 
 
@@ -312,13 +315,27 @@ class EnquiryService:
         Unscored criteria count as zero rather than being dropped from the
         denominator: an unanswered "is there an impartiality conflict" should
         drag the recommendation down, not be quietly excused.
+
+        Three criteria are disqualifying rather than weighted. A weighted
+        average lets a zero be outvoted by six good scores, which is right for
+        a thin margin and wrong for these: an impartiality conflict is
+        forbidden by ISO/IEC 17020 cl. 4.1 however attractive the work, work
+        outside the scope of accreditation cannot be certified at all, and
+        with nobody competent the inspection cannot be performed. Those are
+        not things a high score elsewhere can compensate for, so a zero on any
+        of them recommends no-go whatever the total says.
         """
         total = sum(c.weight * (c.score or 0) for c in criteria)
         maximum = sum(c.weight * 5 for c in criteria)
         pct = (total / maximum * 100) if maximum else 0.0
-        return round(total, 2), round(maximum, 2), (
-            "go" if pct >= GO_THRESHOLD_PCT else "no_go"
+
+        blocked = any(
+            c.code in DISQUALIFYING and (c.score or 0) == 0 for c in criteria
         )
+        recommendation = (
+            "no_go" if blocked or pct < GO_THRESHOLD_PCT else "go"
+        )
+        return round(total, 2), round(maximum, 2), recommendation
 
     @staticmethod
     async def decide(

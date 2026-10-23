@@ -510,3 +510,43 @@ async def test_loss_analysis_keeps_the_two_gates_apart(db):
     assert theirs == {"UNDERCUT_BY_COMPETITOR"}
     # Each line says what could be done about it.
     assert all(r["remedy_hint"] for r in analysis["we_declined"])
+
+
+@pytest.mark.asyncio
+async def test_a_zero_on_a_disqualifying_criterion_outranks_the_total(db):
+    """An impartiality conflict is forbidden by ISO/IEC 17020 cl. 4.1 however
+    attractive the rest of the work is. A weighted average would let six good
+    scores outvote it, which is the wrong answer for a criterion that makes
+    the inspection impossible to perform or certify."""
+    for code in ("SCOPE_FIT", "COMPETENCE", "IMPARTIALITY"):
+        eq = await _enquiry()
+        await _to_pending(eq)
+        card = _scorecard(5)
+        for c in card:
+            if c["code"] == code:
+                c["score"] = 0
+        decision = await EnquiryService.decide(
+            eq.enquiry_id,
+            {"decision": "no_go", "criteria": card,
+             "reason_codes": ["OUTSIDE_ACCREDITATION"]},
+            SITE, USER,
+        )
+        # Everything else scored 5, so the total is high - and it still
+        # recommends no-go, which means no override reason was needed.
+        assert decision["recommendation"] == "no_go", f"{code} did not disqualify"
+        assert decision["weighted_score"] / decision["max_score"] > 0.6
+
+
+@pytest.mark.asyncio
+async def test_a_zero_on_a_weighted_criterion_does_not_disqualify_on_its_own(db):
+    """The counterpart: a weak commercial position is a trade-off, not a bar."""
+    eq = await _enquiry()
+    await _to_pending(eq)
+    card = _scorecard(5)
+    for c in card:
+        if c["code"] == "COMMERCIAL":
+            c["score"] = 0
+    decision = await EnquiryService.decide(
+        eq.enquiry_id, {"decision": "go", "criteria": card}, SITE, USER
+    )
+    assert decision["recommendation"] == "go"

@@ -239,9 +239,11 @@ erDiagram
     INVOICE ||--o{ PAYMENT : "receives"
 ```
 
-> Entities above the `VISIT` block that do not yet exist in code — `ENQUIRY` gating,
-> `WORK_PACKAGE`, `ASSIGNMENT`, `CERTIFICATION`, `PERSON` and the authorization chain — are
-> **(planned)**; see the companion specs. `VISIT_ASSIGNMENT` is superseded by `ASSIGNMENT`,
+> Every entity in this diagram now exists in code. `ENQUIRY` gating,
+> `GO_NO_GO_DECISION` and `PROPOSAL_REVISION` were the last outstanding ones and were
+> built in October 2026 (`modules/enquiries/`); `WORK_PACKAGE`, `ASSIGNMENT`,
+> `CERTIFICATION`, `PERSON` and the authorization chain were built earlier in the same
+> period. `VISIT_ASSIGNMENT` is superseded by `ASSIGNMENT`,
 > which attaches to the work package rather than the visit so that one assignment can span
 > several visits.
 

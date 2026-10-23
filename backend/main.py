@@ -26,6 +26,9 @@ from modules.purchase_orders.models import PurchaseOrder
 from modules.payments.models import Payment
 from modules.enquiries.models import Enquiry, GoNoGoDecision, ProposalRevision
 from modules.enquiries.reason_codes import ReasonCode
+from modules.providers.models import (
+    EvaluationRecord, ExternalProvider, PerformanceRecord, SubcontractConsent,
+)
 from modules.complaints.models import CustomerComplaint
 from modules.documents.models import Document as DocModel
 from modules.analytics.models import AnalyticsEvent
@@ -41,6 +44,7 @@ from modules.visits.routes import router as visits_router
 from modules.invoices.routes import router as invoices_router
 from modules.purchase_orders.routes import router as purchase_orders_router
 from modules.payments.routes import router as payments_router
+from modules.providers.routes import router as providers_router
 from modules.enquiries.routes import (
     router as enquiries_router,
     proposals as proposals_router,
@@ -106,7 +110,9 @@ async def lifespan(app: FastAPI):
             Competency, InspectorRate, Associate, Job, ServiceOrder,
             ControlNumber, Visit, ManufacturerVisitLocation, Invoice,
             PurchaseOrder, Payment, Enquiry, GoNoGoDecision, ProposalRevision,
-            ReasonCode, CustomerComplaint, DocModel,
+            ReasonCode, ExternalProvider, EvaluationRecord,
+            PerformanceRecord, SubcontractConsent,
+            CustomerComplaint, DocModel,
             AnalyticsEvent, AccountReceivable, AccountPayable, ConstructionBillVerificationRecord,
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
             Certification, BillingTerms,
@@ -214,6 +220,7 @@ app.include_router(payments_router, prefix="/api/v1")
 app.include_router(enquiries_router, prefix="/api/v1")
 app.include_router(proposals_router, prefix="/api/v1")
 app.include_router(pipeline_router, prefix="/api/v1")
+app.include_router(providers_router, prefix="/api/v1")
 app.include_router(complaints_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")

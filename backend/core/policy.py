@@ -171,6 +171,16 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/providers",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.QC_AUDITOR],
+        note="The register of externally provided services (ISO/IEC 17020:2026). "
+             "Any internal role may read it - an inspector about to rely on a "
+             "subcontractor needs to see whether they are approved. Approving "
+             "one is a technical judgement about competence and accreditation, "
+             "so writing is held to the same roles that authorise personnel.",
+    ),
+    Rule(
         prefix="/proposals",
         read=ALL_INTERNAL,
         write=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE],

@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from beanie import Document
+from pydantic import Field
 
 
 class UserLogin(Document):
@@ -16,8 +17,8 @@ class UserLogin(Document):
     inspector_code: Optional[str] = None
     is_active: bool = True
     is_password_update: bool = False
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "users"

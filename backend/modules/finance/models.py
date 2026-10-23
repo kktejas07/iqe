@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 from beanie import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AccountReceivable(Document):
@@ -14,7 +14,7 @@ class AccountReceivable(Document):
     invoice_number: Optional[str] = None
     job_id: Optional[str] = None
     po_number: Optional[str] = None
-    entry_date: datetime = datetime.now()
+    entry_date: datetime = Field(default_factory=datetime.now)
     due_date: datetime
     payment_terms_days: int = 30  # Default 30-day payment cycle
     amount: float = 0.0
@@ -26,8 +26,8 @@ class AccountReceivable(Document):
     payment_mode: Optional[str] = None
     transaction_ref: Optional[str] = None
     remarks: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "accounts_receivable"
@@ -41,7 +41,7 @@ class AccountPayable(Document):
     vendor_type: str = "manufacturer"  # manufacturer, sub_contractor, inspector
     invoice_id: Optional[str] = None
     po_number: Optional[str] = None
-    entry_date: datetime = datetime.now()
+    entry_date: datetime = Field(default_factory=datetime.now)
     due_date: datetime
     payment_terms_days: int = 30  # Default 30-day payment cycle
     amount: float = 0.0
@@ -53,8 +53,8 @@ class AccountPayable(Document):
     payment_mode: Optional[str] = None
     transaction_ref: Optional[str] = None
     remarks: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "accounts_payable"

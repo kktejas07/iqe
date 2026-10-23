@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from beanie import Document
+from pydantic import Field
 
 
 class ManufacturerUnit(Document):
@@ -20,7 +21,7 @@ class ManufacturerUnit(Document):
     custom_category: Optional[str] = None
     notes: Optional[str] = None
     is_active: bool = True
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "manufacturer_units"
@@ -45,8 +46,8 @@ class Manufacturer(Document):
     is_overseas: bool = False
     total_units: int = 0
     is_active: bool = True
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "manufacturers"

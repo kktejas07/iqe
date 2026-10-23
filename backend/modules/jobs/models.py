@@ -4,7 +4,7 @@ from datetime import datetime
 from beanie import Document
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SOWItem(BaseModel):
@@ -22,7 +22,7 @@ class AssignmentHistoryEntry(BaseModel):
     inspector_name: str
     certifications: list[str] = []
     experience_years: int = 10
-    submitted_at: datetime = datetime.now()
+    submitted_at: datetime = Field(default_factory=datetime.now)
     status: str = "pending_client_approval"  # pending_client_approval, approved_by_client, rejected_by_client
     client_remarks: Optional[str] = None
     decided_at: Optional[datetime] = None
@@ -87,8 +87,8 @@ class Job(Document):
     requires_finance: bool = True
     tags: list[str] = []
     created_by: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "jobs"

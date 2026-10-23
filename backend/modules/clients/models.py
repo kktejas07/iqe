@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from beanie import Document
+from pydantic import Field
 
 
 class ClientUnit(Document):
@@ -25,7 +26,7 @@ class ClientUnit(Document):
     custom_category: Optional[str] = None
     notes: Optional[str] = None
     is_active: bool = True
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "client_units"
@@ -47,8 +48,8 @@ class Client(Document):
     phone: Optional[str] = None
     total_units: int = 0
     is_active: bool = True
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "clients"

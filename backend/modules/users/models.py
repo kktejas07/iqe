@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from beanie import Document
+from pydantic import Field
 
 
 class Competency(Document):
@@ -26,7 +27,7 @@ class Competency(Document):
     dcs_plc_scada: bool = False; onshore: bool = False; offshore: bool = False
     civil_infrastructure: bool = False; others: bool = False
     others_text: Optional[str] = None
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     class Settings: name = "competencies"
 
 
@@ -37,7 +38,7 @@ class InspectorRate(Document):
     travel_charges_per_hour: float = 0.0; travel_charges_lumsum: float = 0.0
     mileage_per_km: float = 0.0; mileage_beyond_50km: float = 0.0
     other_charges: float = 0.0; is_active: bool = True
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     class Settings: name = "inspector_rates"
 
 
@@ -48,5 +49,5 @@ class Associate(Document):
     mileage_per_km: float = 0.0; cost: float = 0.0
     bank_account: Optional[str] = None; ifsc_code: Optional[str] = None
     pan: Optional[str] = None; aadhar: Optional[str] = None
-    is_active: bool = True; created_at: datetime = datetime.now()
+    is_active: bool = True; created_at: datetime = Field(default_factory=datetime.now)
     class Settings: name = "associates"

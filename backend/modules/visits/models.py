@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 from beanie import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Expense(BaseModel):
@@ -115,8 +115,8 @@ class Visit(Document):
     payment_due_date: Optional[datetime] = None
     
     created_by: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "visits"
@@ -130,7 +130,7 @@ class ManufacturerVisitLocation(Document):
     sub_manufacturer_details: Optional[str] = None
     contact_no: Optional[str] = None
     cost: float = 0.0
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "manufacturer_visit_locations"

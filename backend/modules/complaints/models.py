@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 from beanie import Document
+from pydantic import Field
 
 
 class CustomerComplaint(Document):
@@ -46,8 +47,8 @@ class CustomerComplaint(Document):
     is_active: bool = True
     
     created_by: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "complaints"

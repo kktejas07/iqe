@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from beanie import Document
+from pydantic import Field
 
 class Document(Document):
     document_id: str; site_id: str; category: Optional[str] = None
@@ -9,5 +10,5 @@ class Document(Document):
     revision_date: Optional[datetime] = None; responsibility: Optional[str] = None
     retention_period: Optional[str] = None; is_active: bool = True
     created_by: Optional[str] = None
-    created_at: datetime = datetime.now(); updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now); updated_at: datetime = Field(default_factory=datetime.now)
     class Settings: name = "documents"

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 from beanie import Document
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Reassignment(BaseModel):
@@ -10,7 +10,7 @@ class Reassignment(BaseModel):
     new_control_number_id: str
     changed_by: str
     reason: Optional[str] = None
-    changed_on: datetime = datetime.now()
+    changed_on: datetime = Field(default_factory=datetime.now)
 
 
 class ControlNumber(Document):
@@ -59,8 +59,8 @@ class ControlNumber(Document):
     is_active: bool = True
     reassignment_history: list[Reassignment] = []
     created_by: Optional[str] = None
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "control_numbers"

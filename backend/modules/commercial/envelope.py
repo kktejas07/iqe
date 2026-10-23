@@ -31,6 +31,7 @@ from modules.commercial.models import (
     MOVES_PERIOD,
     MOVES_VALUE,
     Amendment,
+    OrderRole,
     AmendmentStatus,
     AmendmentType,
     EnvelopeState,
@@ -102,6 +103,8 @@ async def compute(
     committed: float = 0.0,
     invoiced: float = 0.0,
     work_outstanding: bool = False,
+    call_off_count: int = 0,
+    parent_remaining: Optional[float] = None,
     now: Optional[datetime] = None,
 ) -> EnvelopeState:
     """Work out where `order` stands.
@@ -182,9 +185,20 @@ async def compute(
     if renewal.expires and (renewal.expired or renewal.within_lead_time):
         at_risk = max(0.0, committed - invoiced)
 
+    role = getattr(order, "order_role", None) or OrderRole.STANDALONE.value
+
     usable = True
     blocked: Optional[str] = None
-    if renewal.expired:
+    if role == OrderRole.FRAMEWORK.value:
+        # A framework is a container. Work raised directly against one would
+        # consume the ceiling without appearing in any call-off, which is the
+        # exact invisibility this structure exists to prevent.
+        usable = False
+        blocked = (
+            "this is a framework - work is drawn against a call-off under it, "
+            "not against the framework itself"
+        )
+    elif renewal.expired:
         usable = False
         blocked = (
             f"the order lapsed on {effective_until:%d %b %Y}"
@@ -218,6 +232,19 @@ async def compute(
             f"{at_risk:,.0f} of committed work is not yet invoiced against an "
             f"order that is closing."
         )
+    # The binding constraint on a call-off may be the framework above it
+    # rather than its own ceiling. Reporting only the local figure is what
+    # lets a framework be exhausted while every call-off looks healthy.
+    if parent_remaining is not None and parent_remaining < remaining:
+        notes.append(
+            f"The framework above this has {parent_remaining:,.0f} left, "
+            f"less than this call-off's own {remaining:,.0f} - the "
+            f"framework is the binding constraint."
+        )
+    if role == OrderRole.FRAMEWORK.value and call_off_count:
+        notes.append(
+            f"{call_off_count} call-off(s) draw against this framework."
+        )
     if not notes:
         notes.append(renewal.note)
 
@@ -243,5 +270,9 @@ async def compute(
         will_expire_underspent=underspent,
         unbilled_at_risk=round(at_risk, 2),
         amendment_count=len(live),
+        order_role=role,
+        parent_so_id=getattr(order, "parent_so_id", None),
+        call_off_count=call_off_count,
+        parent_remaining=parent_remaining,
         note=" ".join(notes),
     )

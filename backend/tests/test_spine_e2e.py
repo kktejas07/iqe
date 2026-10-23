@@ -39,7 +39,8 @@ from modules.work_packages.service import WorkPackageService  # noqa: E402
 from modules.work_types.models import WorkTypeDefinition  # noqa: E402
 from modules.work_types.service import WorkTypeService  # noqa: E402
 from core.audit import AuditEntry  # noqa: E402
-from core.sequences import Sequence  # noqa: E402
+from core.sequences import Sequence
+from modules.ncr.models import NCR  # noqa: E402
 
 SITE = "SITE-01"
 USER = "USR-TEST"
@@ -72,6 +73,7 @@ async def db():
             Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
             Authorization, ImpartialityDeclaration, Assignment, Certification,
             Invoice, BillingTerms,
+            NCR,
         ],
     )
     yield client
@@ -438,3 +440,105 @@ async def test_self_certification_is_allowed_when_the_work_type_permits_it(db):
     )
     issued = await CertificationService.issue(cert.certification_id, "EMP-00009", SITE, USER)
     assert issued.status == "issued"
+
+
+@pytest.mark.asyncio
+async def test_an_open_major_nonconformity_blocks_the_certificate(db):
+    """The NCR gate, exercised through the real certification path.
+
+    `Certification.ncr_ids` used to be a list of strings pointing at nothing,
+    so a certificate could carry references that resolved to no record. Now an
+    open critical or major nonconformity stops issue outright: certifying over
+    one would state that the work conformed while IQE's own record says it did
+    not.
+    """
+    from modules.ncr.service import NCRService
+
+    await seed_job()
+    await WorkTypeService.seed_catalogue(SITE, USER)
+    wp = await WorkPackageService.create(
+        {"job_id": "JOB-2026-0001", "work_type_code": "BOQ_RECON", "title": "Measure"},
+        SITE, USER,
+    )
+    cert = await CertificationService.create(
+        {
+            "work_package_id": wp.work_package_id,
+            "line_items": [{"line_id": "L1", "description": "X", "rate": 10.0,
+                            "claimed_quantity": 5.0, "certified_quantity": 5.0}],
+        },
+        SITE, USER,
+    )
+
+    ncr = await NCRService.raise_ncr(
+        {"job_id": "JOB-2026-0001", "work_package_id": wp.work_package_id,
+         "title": "Quantities overstated against the measured length",
+         "description": "Claimed run exceeds the measured run.",
+         "severity": "MAJOR",
+         "objective_evidence": "Tape measurement of 41.2m against 48.0m claimed.",
+         "requirement_source": "BOQ item 4.2", "requirement_revision": "Rev 2"},
+        SITE, "EMP-00006",
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        await CertificationService.issue(
+            cert.certification_id, "EMP-00001", SITE, USER
+        )
+    assert exc.value.status_code == 409
+    assert ncr["ncr_id"] in exc.value.detail
+    assert "says it did not" in exc.value.detail
+
+    # Closed, and the certificate issues - still carrying nothing open.
+    await NCRService.propose_disposition(
+        ncr["ncr_id"], {"disposition": "REWORK", "note": "Re-measure and re-claim."},
+        SITE, "SUGUNA-QA",
+    )
+    await NCRService.accept_disposition(ncr["ncr_id"], {}, SITE, USER)
+    await NCRService.submit_for_verification(
+        ncr["ncr_id"], {"note": "Re-measured."}, SITE, "SUGUNA-QA"
+    )
+    await NCRService.verify(
+        ncr["ncr_id"], {"accepted": True, "note": "Agreed at 41.2m."},
+        SITE, "EMP-00006",
+    )
+
+    issued = await CertificationService.issue(
+        cert.certification_id, "EMP-00001", SITE, USER
+    )
+    assert issued.status == "issued"
+    assert issued.ncr_ids == []
+
+
+@pytest.mark.asyncio
+async def test_a_minor_nonconformity_is_carried_onto_the_certificate(db):
+    """It does not block - a departure that does not affect fitness for
+    purpose is something the client should see, not a reason to withhold the
+    certificate."""
+    from modules.ncr.service import NCRService
+
+    await seed_job()
+    await WorkTypeService.seed_catalogue(SITE, USER)
+    wp = await WorkPackageService.create(
+        {"job_id": "JOB-2026-0001", "work_type_code": "BOQ_RECON", "title": "Measure"},
+        SITE, USER,
+    )
+    cert = await CertificationService.create(
+        {
+            "work_package_id": wp.work_package_id,
+            "line_items": [{"line_id": "L1", "description": "X", "rate": 10.0,
+                            "claimed_quantity": 5.0, "certified_quantity": 5.0}],
+        },
+        SITE, USER,
+    )
+    ncr = await NCRService.raise_ncr(
+        {"job_id": "JOB-2026-0001", "work_package_id": wp.work_package_id,
+         "title": "Measurement sheets unsigned",
+         "description": "Sheets not countersigned by the site engineer.",
+         "severity": "MINOR"},
+        SITE, "EMP-00006",
+    )
+
+    issued = await CertificationService.issue(
+        cert.certification_id, "EMP-00001", SITE, USER
+    )
+    assert issued.status == "issued"
+    assert issued.ncr_ids == [ncr["ncr_id"]]

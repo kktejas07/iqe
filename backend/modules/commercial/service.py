@@ -41,6 +41,7 @@ from modules.commercial.models import (
     MOVES_VALUE,
     NEEDS_AN_END_DATE,
     Amendment,
+    OrderRole,
     AmendmentStatus,
     AmendmentType,
     TermType,
@@ -133,14 +134,64 @@ class CommercialService:
         return order
 
     @staticmethod
+    async def _call_offs(so_id: str, site_id: str) -> list:
+        from modules.service_orders.models import ServiceOrder
+
+        rows = await ServiceOrder.find(
+            ServiceOrder.site_id == site_id,
+            ServiceOrder.parent_so_id == so_id,
+        ).to_list()
+        return [r for r in rows if r.is_active]
+
+    @staticmethod
     async def state(so_id: str, site_id: str = "SITE-01", now=None):
-        """Where this order stands, computed fresh."""
+        """Where this order stands, computed fresh.
+
+        A framework's consumption is its call-offs' - what they have carved
+        out, and what they have billed. Computing it from work packages
+        raised directly against the framework would read zero on a framework
+        that is fully committed, which is the failure this structure exists
+        to prevent.
+        """
         order = await CommercialService.get_order(so_id, site_id)
+        role = getattr(order, "order_role", None) or OrderRole.STANDALONE.value
+
+        if role == OrderRole.FRAMEWORK.value:
+            children = await CommercialService._call_offs(so_id, site_id)
+            # What the call-offs have carved out of the framework, whether or
+            # not they have spent it. A framework fully carved up cannot take
+            # another call-off even with nothing yet invoiced.
+            committed = round(sum(float(c.amount or 0.0) for c in children), 2)
+            invoiced = 0.0
+            outstanding = False
+            for child in children:
+                invoiced += await CommercialService._invoiced(child.so_id, site_id)
+                outstanding = outstanding or await CommercialService._work_outstanding(
+                    child.so_id, site_id
+                )
+            return await compute(
+                order, committed=committed, invoiced=round(invoiced, 2),
+                work_outstanding=outstanding, call_off_count=len(children),
+                now=now,
+            )
+
+        parent_remaining = None
+        parent_id = getattr(order, "parent_so_id", None)
+        if parent_id:
+            try:
+                parent_state = await CommercialService.state(parent_id, site_id, now=now)
+                parent_remaining = parent_state.remaining
+            except Exception as e:  # noqa: BLE001 - reported, not hidden
+                logger.warning(
+                    "Could not read framework %s for %s: %s", parent_id, so_id, e
+                )
+
         return await compute(
             order,
             committed=await CommercialService._committed(so_id, site_id),
             invoiced=await CommercialService._invoiced(so_id, site_id),
             work_outstanding=await CommercialService._work_outstanding(so_id, site_id),
+            parent_remaining=parent_remaining,
             now=now,
         )
 
@@ -424,6 +475,173 @@ class CommercialService:
             "data": [r.model_dump(exclude={"id"}) for r in rows],
         }
 
+    # ------------------------------------------------------- the framework
+
+    @staticmethod
+    async def open_call_off(
+        parent_so_id: str, payload: dict, site_id: str, user_id: str
+    ) -> dict:
+        """Carve a call-off out of a framework.
+
+        Refused where it would not fit, or would outlive the framework. Both
+        are the same mistake: a call-off is a slice of the parent agreement,
+        and a slice larger than the cake, or one that outlasts it, is not
+        covered by anything.
+        """
+        from modules.service_orders.models import ServiceOrder
+
+        parent = await CommercialService.get_order(parent_so_id, site_id)
+        role = getattr(parent, "order_role", None)
+        if role != OrderRole.FRAMEWORK.value:
+            raise HTTPException(
+                409,
+                f"{parent_so_id} is not a framework, so nothing can be called "
+                f"off it. Only a framework carries a ceiling for others to "
+                f"draw against.",
+            )
+
+        amount = float(payload.get("amount") or 0.0)
+        if amount <= 0:
+            raise HTTPException(400, "A call-off needs a value")
+
+        state = await CommercialService.state(parent_so_id, site_id)
+        if state.renewal and state.renewal.expired:
+            raise HTTPException(
+                409,
+                f"{parent_so_id} lapsed on "
+                f"{state.effective_valid_until:%d %b %Y}. A call-off under a "
+                f"lapsed framework is covered by nothing.",
+            )
+        if amount > state.remaining:
+            raise HTTPException(
+                409,
+                f"{amount:,.0f} does not fit: {parent_so_id} has "
+                f"{state.remaining:,.0f} left of its "
+                f"{state.effective_ceiling:,.0f} ceiling, across "
+                f"{state.call_off_count} existing call-off(s). Either reduce "
+                f"this call-off or have the client authorise a value increase "
+                f"on the framework.",
+            )
+
+        valid_until = payload.get("valid_until")
+        parent_until = state.effective_valid_until
+        if parent_until and valid_until and valid_until > parent_until:
+            raise HTTPException(
+                409,
+                f"This call-off would run to {valid_until:%d %b %Y}, past the "
+                f"framework's {parent_until:%d %b %Y}. Work after that date is "
+                f"covered by nothing - extend the framework first.",
+            )
+        # Inherited rather than left open: a call-off with no end date under a
+        # framework that has one would look indefinite on its own screen.
+        if parent_until and not valid_until:
+            valid_until = parent_until
+
+        so_id = await next_identifier(ServiceOrder, "so_id", site_id, "SO")
+        order = ServiceOrder(
+            so_id=so_id, site_id=site_id,
+            job_id=payload.get("job_id") or parent.job_id,
+            so_number=payload.get("so_number") or f"{parent.so_number}/CO-{state.call_off_count + 1}",
+            so_type=parent.so_type,
+            client_id=parent.client_id, client_name=parent.client_name,
+            client_unit_id=parent.client_unit_id,
+            manufacturer_id=payload.get("manufacturer_id") or parent.manufacturer_id,
+            manufacturer_name=payload.get("manufacturer_name") or parent.manufacturer_name,
+            amount=amount, currency=parent.currency,
+            so_date=payload.get("so_date") or datetime.now(),
+            order_role=OrderRole.CALL_OFF.value,
+            parent_so_id=parent_so_id,
+            term_type=state.term_type,
+            valid_from=payload.get("valid_from") or datetime.now(),
+            valid_until=valid_until,
+            renewal_lead_days=getattr(parent, "renewal_lead_days", None),
+            project_number=payload.get("project_number"),
+            project_name=payload.get("project_name"),
+            created_by=user_id,
+        )
+        await order.insert()
+
+        await audit.record(
+            "service_order", so_id, AuditAction.CREATE,
+            actor={"user_id": user_id}, site_id=site_id,
+            note=f"Call-off against {parent_so_id}",
+            context={"parent_so_id": parent_so_id, "amount": amount,
+                     "framework_remaining_after": state.remaining - amount},
+        )
+        out = order.model_dump(exclude={"id"})
+        out["framework_remaining_after"] = round(state.remaining - amount, 2)
+        return out
+
+    @staticmethod
+    async def make_framework(
+        so_id: str, payload: dict, site_id: str, user_id: str
+    ) -> dict:
+        """Turn an order into a framework.
+
+        Refused once work has been raised against it: those packages would
+        become invisible, counted against nothing, which is precisely the
+        condition a framework exists to make impossible.
+        """
+        order = await CommercialService.get_order(so_id, site_id)
+        if getattr(order, "parent_so_id", None):
+            raise HTTPException(
+                409, f"{so_id} is itself a call-off and cannot hold call-offs"
+            )
+        committed = await CommercialService._committed(so_id, site_id)
+        if committed > 0:
+            raise HTTPException(
+                409,
+                f"{so_id} already has {committed:,.0f} of work raised directly "
+                f"against it. Making it a framework now would leave those "
+                f"packages counted against nothing. Move them to a call-off "
+                f"first.",
+            )
+        order.order_role = OrderRole.FRAMEWORK.value
+        order.updated_at = datetime.now()
+        await order.save()
+        await audit.record(
+            "service_order", so_id, AuditAction.UPDATE,
+            actor={"user_id": user_id}, site_id=site_id,
+            note="Converted to a framework",
+        )
+        state = await CommercialService.state(so_id, site_id)
+        return {"so_id": so_id, "state": state.model_dump()}
+
+    @staticmethod
+    async def framework_view(so_id: str, site_id: str = "SITE-01") -> dict:
+        """A framework and everything drawn against it, in one read."""
+        state = await CommercialService.state(so_id, site_id)
+        if state.order_role != OrderRole.FRAMEWORK.value:
+            raise HTTPException(409, f"{so_id} is not a framework")
+
+        children = await CommercialService._call_offs(so_id, site_id)
+        rows = []
+        for child in children:
+            child_state = await CommercialService.state(child.so_id, site_id)
+            rows.append({
+                "so_id": child.so_id,
+                "so_number": child.so_number,
+                "project_name": child.project_name,
+                "ceiling": child_state.effective_ceiling,
+                "consumed": child_state.consumed,
+                "percent_consumed": child_state.percent_consumed,
+                "valid_until": child_state.effective_valid_until,
+                "usable": child_state.usable,
+                "blocked_because": child_state.blocked_because,
+            })
+        return {
+            "framework": state.model_dump(),
+            "call_offs": rows,
+            "note": (
+                f"{len(rows)} call-off(s) have carved "
+                f"{state.committed:,.0f} out of the "
+                f"{state.effective_ceiling:,.0f} ceiling, leaving "
+                f"{state.remaining:,.0f}. The framework's figure is what "
+                f"binds: a call-off with room of its own cannot spend what "
+                f"the framework above it no longer has."
+            ),
+        }
+
     # ------------------------------------------------------- the enforcement
 
     @staticmethod
@@ -457,6 +675,16 @@ class CommercialService:
             blockers.append(
                 f"it would take committed work {over:,.0f} past the "
                 f"{state.effective_ceiling:,.0f} ceiling"
+            )
+            remedies.append(AmendmentType.VALUE_INCREASE.value)
+
+        # The framework above is the binding constraint when it has less
+        # room than this call-off does. Checking only the local ceiling is
+        # how a framework gets exhausted while every call-off looks healthy.
+        if state.parent_remaining is not None and float(amount or 0) > state.parent_remaining:
+            blockers.append(
+                f"the framework above it ({state.parent_so_id}) has only "
+                f"{state.parent_remaining:,.0f} left"
             )
             remedies.append(AmendmentType.VALUE_INCREASE.value)
 

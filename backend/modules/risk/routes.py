@@ -71,3 +71,34 @@ async def complete_audit(
 ):
     site_id, user_id = _ctx(user)
     return await AuditPlanService.complete_audit(audit_id, body, site_id, user_id)
+
+
+# ---------------------------------------------------------- impartiality
+
+@router.get("/impartiality/exposure")
+async def impartiality_exposure(
+    window_days: int = 365, user: dict = Depends(get_current_user)
+):
+    """Client revenue concentration crossed with inspector dependence.
+
+    Both halves of this already existed in the system and nothing joined
+    them, which is why no screen could show the condition an assessor asks
+    about by name.
+    """
+    from modules.risk.impartiality import ImpartialityExposure
+
+    site_id = user.get("site_id", "SITE-01")
+    return await ImpartialityExposure.compute(site_id, window_days=window_days)
+
+
+@router.get("/impartiality/proposals")
+async def impartiality_proposals(
+    window_days: int = 365, user: dict = Depends(get_current_user)
+):
+    """Register entries the exposure suggests. Proposed, never written."""
+    from modules.risk.impartiality import ImpartialityExposure
+
+    site_id = user.get("site_id", "SITE-01")
+    return await ImpartialityExposure.propose_risks(
+        site_id, window_days=window_days
+    )

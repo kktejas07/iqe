@@ -47,6 +47,10 @@ from modules.payments.routes import router as payments_router
 from modules.providers.routes import router as providers_router
 from modules.risk.models import InternalAudit, Risk, RiskReview
 from modules.risk.routes import audits as internal_audits_router, router as risks_router
+from modules.ncr.models import NCR
+from modules.ncr.routes import router as ncr_router
+from modules.rates.models import RateCard, RateFloor
+from modules.rates.routes import router as rates_router
 from modules.commercial.models import Amendment
 from modules.commercial.routes import router as commercial_router
 from modules.itp.models import InspectionCall, InspectionTestPlan
@@ -121,7 +125,7 @@ async def lifespan(app: FastAPI):
             PerformanceRecord, SubcontractConsent,
             Risk, RiskReview, InternalAudit,
             InspectionTestPlan, InspectionCall,
-            Amendment,
+            Amendment, RateCard, RateFloor, NCR,
             CustomerComplaint, DocModel,
             AnalyticsEvent, AccountReceivable, AccountPayable, ConstructionBillVerificationRecord,
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
@@ -236,6 +240,8 @@ app.include_router(internal_audits_router, prefix="/api/v1")
 app.include_router(verification_router, prefix="/api/v1")
 app.include_router(itps_router, prefix="/api/v1")
 app.include_router(commercial_router, prefix="/api/v1")
+app.include_router(rates_router, prefix="/api/v1")
+app.include_router(ncr_router, prefix="/api/v1")
 app.include_router(inspection_calls_router, prefix="/api/v1")
 app.include_router(complaints_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")

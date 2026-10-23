@@ -171,6 +171,25 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/ncrs",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.TECHNICAL_MANAGER,
+               Role.INSPECTOR, Role.QC_AUDITOR],
+        note="Nonconformities. Clients read because a finding against their "
+             "contractor is theirs to act on, and a concession against their "
+             "specification is theirs to grant. Inspectors write because "
+             "raising one is the inspector's own act at the point of "
+             "inspection.",
+    ),
+    Rule(
+        prefix="/rates",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.FINANCE],
+        note="Rate cards and the floor. Not client-readable: another "
+             "client's card and IQE's own cost base are both in here. "
+             "Writing is finance, because the floor is a cost question.",
+    ),
+    Rule(
         prefix="/commercial",
         read=ALL_INTERNAL + [Role.CLIENT],
         write=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE],

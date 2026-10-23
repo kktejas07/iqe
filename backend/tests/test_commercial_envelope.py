@@ -564,3 +564,190 @@ async def test_the_check_reports_every_blocker_at_once(db):
     check = await CommercialService.check_draw("SO-2026-0001", 0.5 * LAKH, SITE)
     assert len(check["blockers"]) == 2
     assert set(check["suggested_amendments"]) == {"RENEWAL", "VALUE_INCREASE"}
+
+
+# ---------------------------------------------- frameworks and call-offs
+
+async def _framework(amount=50 * LAKH, runs_days=730, so_id="SO-2026-0100"):
+    order = await _order(so_id=so_id, amount=amount, starts_days_ago=30,
+                         runs_days=runs_days)
+    await CommercialService.make_framework(so_id, {}, SITE, USER)
+    return order
+
+
+@pytest.mark.asyncio
+async def test_a_framework_takes_no_work_directly(db):
+    """Work raised against the framework would consume the ceiling without
+    appearing in any call-off - the exact invisibility this prevents."""
+    await _framework()
+    state = await CommercialService.state("SO-2026-0100", SITE)
+    assert state.usable is False
+    assert "drawn against a call-off under it" in state.blocked_because
+
+
+@pytest.mark.asyncio
+async def test_an_order_with_work_on_it_cannot_become_a_framework(db):
+    """Those packages would be left counted against nothing."""
+    await _order(amount=10 * LAKH)
+    await _package("SO-2026-0001", 2 * LAKH, "WP-2026-0001")
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.make_framework("SO-2026-0001", {}, SITE, USER)
+    assert "counted against nothing" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_call_offs_carve_the_framework_up(db):
+    await _framework(amount=50 * LAKH)
+    first = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 12 * LAKH, "project_name": "Block B"},
+        SITE, USER,
+    )
+    assert first["parent_so_id"] == "SO-2026-0100"
+    assert first["order_role"] == "CALL_OFF"
+    assert first["framework_remaining_after"] == 38 * LAKH
+
+    await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 8 * LAKH}, SITE, USER
+    )
+    state = await CommercialService.state("SO-2026-0100", SITE)
+    assert state.committed == 20 * LAKH
+    assert state.remaining == 30 * LAKH
+    assert state.call_off_count == 2
+
+
+@pytest.mark.asyncio
+async def test_a_call_off_larger_than_the_framework_is_refused(db):
+    """A slice larger than the cake is covered by nothing."""
+    await _framework(amount=10 * LAKH)
+    await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 7 * LAKH}, SITE, USER
+    )
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.open_call_off(
+            "SO-2026-0100", {"amount": 5 * LAKH}, SITE, USER
+        )
+    assert e.value.status_code == 409
+    assert "does not fit" in e.value.detail
+    assert "value increase on the framework" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_a_call_off_cannot_outlive_its_framework(db):
+    """Work after the framework's end date is covered by nothing."""
+    await _framework(runs_days=200)
+    parent = await CommercialService.state("SO-2026-0100", SITE)
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.open_call_off(
+            "SO-2026-0100",
+            {"amount": 1 * LAKH,
+             "valid_until": parent.effective_valid_until + timedelta(days=30)},
+            SITE, USER,
+        )
+    assert "covered by nothing" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_a_call_off_inherits_the_frameworks_end_date(db):
+    """Left open it would look indefinite on its own screen."""
+    await _framework(runs_days=200)
+    parent = await CommercialService.state("SO-2026-0100", SITE)
+    out = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 1 * LAKH}, SITE, USER
+    )
+    assert out["valid_until"] == parent.effective_valid_until
+
+
+@pytest.mark.asyncio
+async def test_nothing_can_be_called_off_a_lapsed_framework(db):
+    await _order(so_id="SO-2026-0100", amount=10 * LAKH,
+                 starts_days_ago=800, runs_days=365)
+    await CommercialService.make_framework("SO-2026-0100", {}, SITE, USER)
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.open_call_off(
+            "SO-2026-0100", {"amount": 1 * LAKH}, SITE, USER
+        )
+    assert "covered by nothing" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_a_framework_counts_its_call_offs_invoices_not_its_own(db):
+    """A framework's consumption is its call-offs'."""
+    await _framework(amount=50 * LAKH)
+    child = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 12 * LAKH, "job_id": "JOB-CALLOFF"},
+        SITE, USER,
+    )
+    await Invoice(
+        invoice_id="INV-2026-0001", job_id="JOB-CALLOFF", site_id=SITE,
+        invoice_number="IQE/2026/0001", grand_total=4 * LAKH, status="issued",
+    ).insert()
+
+    state = await CommercialService.state("SO-2026-0100", SITE)
+    assert state.invoiced == 4 * LAKH
+    # Carved out is still the binding figure: 12 lakh is committed even
+    # though only 4 has been billed.
+    assert state.consumed == 12 * LAKH
+    assert child["so_id"] is not None
+
+
+@pytest.mark.asyncio
+async def test_the_framework_binds_even_when_the_call_off_has_room(db):
+    """The failure this exists to prevent: every call-off looks healthy while
+    the framework behind them is exhausted."""
+    await _framework(amount=10 * LAKH)
+    big = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 9 * LAKH, "job_id": "JOB-BIG"}, SITE, USER
+    )
+    small = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 1 * LAKH, "job_id": "JOB-SMALL"}, SITE, USER
+    )
+    # The small call-off has a lakh of its own room, and the framework has
+    # none.
+    state = await CommercialService.state(small["so_id"], SITE)
+    assert state.remaining == 1 * LAKH
+    assert state.parent_remaining == 0.0
+    assert "framework is the binding constraint" in state.note
+
+    check = await CommercialService.check_draw(small["so_id"], 0.5 * LAKH, SITE)
+    assert check["allowed"] is False
+    assert "framework above it" in check["blockers"][0]
+    assert big["so_id"] is not None
+
+
+@pytest.mark.asyncio
+async def test_the_framework_view_shows_everything_drawn_against_it(db):
+    await _framework(amount=50 * LAKH)
+    await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 12 * LAKH, "project_name": "Block B"},
+        SITE, USER,
+    )
+    await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 8 * LAKH, "project_name": "Block C"},
+        SITE, USER,
+    )
+    out = await CommercialService.framework_view("SO-2026-0100", SITE)
+    assert len(out["call_offs"]) == 2
+    assert {r["project_name"] for r in out["call_offs"]} == {"Block B", "Block C"}
+    assert out["framework"]["remaining"] == 30 * LAKH
+    assert "cannot spend what the framework above it no longer has" in out["note"]
+
+
+@pytest.mark.asyncio
+async def test_a_call_off_cannot_itself_hold_call_offs(db):
+    await _framework(amount=50 * LAKH)
+    child = await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 12 * LAKH}, SITE, USER
+    )
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.make_framework(child["so_id"], {}, SITE, USER)
+    assert "is itself a call-off" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_calling_off_a_non_framework_is_refused(db):
+    await _order(amount=10 * LAKH)
+    with pytest.raises(HTTPException) as e:
+        await CommercialService.open_call_off(
+            "SO-2026-0001", {"amount": 1 * LAKH}, SITE, USER
+        )
+    assert "is not a framework" in e.value.detail

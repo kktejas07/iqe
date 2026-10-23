@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -21,6 +22,9 @@ from modules.work_types.models import WorkTypeDefinition
 
 VALID_DEDUCTION_REASONS = {r.value for r in DeductionReason}
 
+
+
+logger = logging.getLogger(__name__)
 
 async def _next_certification_id(site_id: str) -> str:
     """CERT-YYYY-NNNN, allocated atomically. See core/sequences.py."""
@@ -266,6 +270,47 @@ class CertificationService:
                     f"work type '{wp.work_type_code if wp else 'unknown'}' if that is "
                     "your accredited practice.",
                 )
+
+        # Open nonconformities of critical or major severity. Refused rather
+        # than noted: a certificate issued over these states that the work
+        # conformed, while IQE's own record says it did not. Minors and
+        # observations do not block - a departure that does not affect fitness
+        # for purpose is reported on the certificate, not a reason to withhold
+        # it.
+        #
+        # ncr_ids on this model used to be a list of strings pointing at
+        # nothing, so this is the first point at which those references mean
+        # anything.
+        try:
+            from modules.ncr.service import NCRService
+
+            gate = await NCRService.open_against(
+                site_id, work_package_id=cert.work_package_id
+            )
+        except Exception as e:  # noqa: BLE001 - reported, not swallowed
+            logger.warning(
+                "NCR gate skipped for %s: %s", certification_id, e
+            )
+            gate = None
+
+        if gate and not gate["may_certify"]:
+            listed = ", ".join(
+                f"{n['ncr_id']} ({n['severity'].lower()})" for n in gate["blocking"]
+            )
+            raise HTTPException(
+                409,
+                f"{certification_id} cannot be issued while {listed} "
+                f"{'is' if len(gate['blocking']) == 1 else 'are'} open. A "
+                f"certificate issued over an open critical or major "
+                f"nonconformity states that the work conformed when IQE's own "
+                f"record says it did not. Close or disposition "
+                f"{'it' if len(gate['blocking']) == 1 else 'them'} first.",
+            )
+        if gate:
+            # Whatever is open and not blocking is carried onto the
+            # certificate, because a minor departure is something the client
+            # needs to see rather than something to leave unmentioned.
+            cert.ncr_ids = [n["ncr_id"] for n in gate["open"]]
 
         cert.status = CertificationStatus.ISSUED.value
         cert.certified_by_person_id = certified_by_person_id

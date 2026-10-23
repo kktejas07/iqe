@@ -51,6 +51,30 @@ class TermType(str, Enum):
 EXPIRES = {TermType.FIXED_PERIOD}
 
 
+class OrderRole(str, Enum):
+    """How an order relates to the others.
+
+    The structure most third-party inspection work actually has is a
+    framework: one agreement with a client carrying a ceiling and a term,
+    drawn against by many call-offs across sites and years. Modelled as flat
+    orders, every call-off looks healthy while the framework behind them is
+    exhausted - which is discovered when the client refuses the invoice.
+    """
+
+    #: An order that stands alone. The default, and most small work.
+    STANDALONE = "STANDALONE"
+    #: Carries the ceiling and the term; no work is done directly against it.
+    FRAMEWORK = "FRAMEWORK"
+    #: Draws against a framework. Has its own ceiling, inside the parent's.
+    CALL_OFF = "CALL_OFF"
+
+
+#: Work is done against these. A framework is a container, and a work package
+#: raised directly against one would consume the ceiling without appearing in
+#: any call-off - the exact invisibility this structure exists to prevent.
+TAKES_WORK = {OrderRole.STANDALONE, OrderRole.CALL_OFF}
+
+
 class AmendmentType(str, Enum):
     #: More money on the same scope. Scenario: a work package would take the
     #: order past its ceiling.
@@ -197,4 +221,16 @@ class EnvelopeState(BaseModel):
     unbilled_at_risk: float = 0.0
 
     amendment_count: int = 0
+
+    #: Where this order sits in a framework, if it is in one.
+    order_role: str = OrderRole.STANDALONE.value
+    parent_so_id: Optional[str] = None
+    #: Framework only: what its call-offs have carved out and used.
+    call_off_count: int = 0
+    #: Call-off only: how much room is left in the parent, which may be less
+    #: than this order's own remaining. The binding constraint is whichever
+    #: is smaller, and reporting only the local figure is what lets a
+    #: framework be exhausted invisibly.
+    parent_remaining: Optional[float] = None
+
     note: str = ""

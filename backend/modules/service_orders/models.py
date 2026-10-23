@@ -40,6 +40,13 @@ class ServiceOrder(Document):
     # keeping, because "is this the fourth year of the same arrangement" is a
     # question people ask.
     succeeds_so_id: Optional[str] = None
+
+    # Framework structure. A FRAMEWORK carries the ceiling and the term and
+    # takes no work directly; CALL_OFF orders draw against it and name it in
+    # parent_so_id. Consumption rolls up, so a framework cannot be exhausted
+    # while each call-off under it still looks healthy.
+    order_role: Optional[str] = None
+    parent_so_id: Optional[str] = None
     po_items: list[POItem] = []
     project_number: Optional[str] = None; project_name: Optional[str] = None
     comments: Optional[str] = None

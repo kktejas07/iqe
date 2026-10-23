@@ -38,6 +38,32 @@ async def can_draw(
     return await CommercialService.check_draw(so_id, amount, site_id)
 
 
+@router.post("/orders/{so_id}/framework")
+async def make_framework(
+    so_id: str, data: dict = Body(default={}),
+    user: dict = Depends(get_current_user),
+):
+    """Turn an order into a framework that call-offs draw against."""
+    site_id, user_id = _ctx(user)
+    return await CommercialService.make_framework(so_id, data, site_id, user_id)
+
+
+@router.get("/orders/{so_id}/framework")
+async def framework_view(so_id: str, user: dict = Depends(get_current_user)):
+    """A framework and everything drawn against it."""
+    site_id, _ = _ctx(user)
+    return await CommercialService.framework_view(so_id, site_id)
+
+
+@router.post("/orders/{so_id}/call-offs")
+async def open_call_off(
+    so_id: str, data: dict = Body(...), user: dict = Depends(get_current_user)
+):
+    """Carve a call-off out of a framework."""
+    site_id, user_id = _ctx(user)
+    return await CommercialService.open_call_off(so_id, data, site_id, user_id)
+
+
 @router.post("/orders/{so_id}/successor")
 async def successor(
     so_id: str, data: dict = Body(default={}),

@@ -82,6 +82,12 @@ class EvidenceService:
         captured_at: Optional[datetime] = None,
         location: Optional[str] = None,
         job_id: Optional[str] = None,
+        client_capture_id: Optional[str] = None,
+        capture_sha256: Optional[str] = None,
+        captured_latitude: Optional[float] = None,
+        captured_longitude: Optional[float] = None,
+        captured_accuracy_m: Optional[float] = None,
+        captured_device: Optional[str] = None,
         site_id: str = "SITE-01",
         user_id: str = "USR-001",
     ) -> Evidence:
@@ -94,6 +100,18 @@ class EvidenceService:
             raise HTTPException(400, f"Invalid kind '{kind}'. Expected one of: {sorted(VALID_KINDS)}")
         if not file or not file.filename:
             raise HTTPException(400, "No file provided")
+
+        # Idempotency first, before the file is read or anything is written.
+        # A queued upload that timed out mid-flight retries with the same key;
+        # returning the existing record is what stops one photograph becoming
+        # four over a bad afternoon.
+        if client_capture_id:
+            existing = await Evidence.find_one(
+                Evidence.client_capture_id == client_capture_id,
+                Evidence.site_id == site_id,
+            )
+            if existing is not None:
+                return existing
 
         content = await file.read()
         if not content:
@@ -141,6 +159,20 @@ class EvidenceService:
             content_type=content_type,
             size_bytes=len(content),
             sha256=digest,
+            client_capture_id=client_capture_id,
+            capture_sha256=capture_sha256,
+            # Compared here and the answer stored, because the question is
+            # about a moment - did these bytes reach us as they left the
+            # phone - not about the file as it stands now.
+            capture_verified=(
+                None if not capture_sha256
+                else capture_sha256.lower() == digest.lower()
+            ),
+            captured_latitude=captured_latitude,
+            captured_longitude=captured_longitude,
+            captured_accuracy_m=captured_accuracy_m,
+            captured_device=captured_device,
+            uploaded_at=datetime.now(),
             caption=caption,
             captured_at=captured_at,
             captured_by_person_id=captured_by_person_id,

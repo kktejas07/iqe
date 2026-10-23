@@ -1,14 +1,14 @@
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import api from "@iqeapp/api-client";
+import api from "../../api/client";
 
 export default function CoordinatorDashboard() {
   const router = useRouter();
   const [jobs, setJobs] = useState<any[]>([]);
 
   useEffect(() => {
-    api.listJobs({ per_page: 20 }).then((res) => setJobs(res.data || []));
+    api.listJobs({ per_page: 20 }).then((res: any) => setJobs(res.data || []));
   }, []);
 
   return (

@@ -23,14 +23,33 @@ async def attach_evidence(
     captured_at: Optional[datetime] = Form(None),
     location: Optional[str] = Form(None),
     job_id: Optional[str] = Form(None),
+    # Offline capture. A phone on a site has no signal, so these describe the
+    # moment of capture rather than the moment of upload.
+    client_capture_id: Optional[str] = Form(None),
+    capture_sha256: Optional[str] = Form(None),
+    captured_latitude: Optional[float] = Form(None),
+    captured_longitude: Optional[float] = Form(None),
+    captured_accuracy_m: Optional[float] = Form(None),
+    captured_device: Optional[str] = Form(None),
     user: dict = Depends(get_current_user),
 ):
-    """Attach a photograph, certificate or measurement sheet to a record."""
+    """Attach a photograph, certificate or measurement sheet to a record.
+
+    Safe to retry: an upload carrying a `client_capture_id` the server has
+    already stored returns that record rather than creating a second one, so
+    a queue draining after a bad connection cannot duplicate evidence.
+    """
     item = await EvidenceService.attach(
         file, entity_type, entity_id,
         kind=kind, section=section, caption=caption,
         captured_by_person_id=captured_by_person_id, captured_at=captured_at,
         location=location, job_id=job_id,
+        client_capture_id=client_capture_id,
+        capture_sha256=capture_sha256,
+        captured_latitude=captured_latitude,
+        captured_longitude=captured_longitude,
+        captured_accuracy_m=captured_accuracy_m,
+        captured_device=captured_device,
         site_id=user.get("site_id", "SITE-01"),
         user_id=user.get("user_id", "USR-001"),
     )

@@ -83,6 +83,32 @@ jobs:
         # which typechecks but fails to prerender.
         run: npm run build
 
+  mobile:
+    name: Mobile typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - run: npm ci
+
+      - name: Typecheck
+        # The app had never been typechecked before October 2026 and did not
+        # install at all: it declared workspace packages that do not exist and
+        # React 19 against React Native 0.76, which peer-requires React 18.
+        # This job is here so that cannot happen again unnoticed.
+        run: npx tsc --noEmit
+
   guards:
     name: Repository guards
     runs-on: ubuntu-latest

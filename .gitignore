@@ -47,3 +47,7 @@ Thumbs.db
 # Real connection strings - never commit. Use connections.config.template.
 IQEApp.Web/connections.config
 **/connections.config
+
+# Mobile
+apps/mobile/node_modules
+apps/mobile/.expo

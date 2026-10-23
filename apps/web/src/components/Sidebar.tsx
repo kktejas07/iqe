@@ -31,7 +31,8 @@ import {
   HardHat,
   Receipt,
   CreditCard,
-  Table, Boxes, FileCheck, Users, UserCheck, Gauge
+  Table, Boxes, FileCheck, Users, UserCheck, Gauge,
+  Camera, Scale, History
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -214,6 +215,13 @@ const operationsSubModules: SubModuleItem[] = [
     color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40",
   },
   {
+    name: "Evidence & Checks",
+    subtitle: "Photographs, Certificates, Readiness",
+    href: "/evidence",
+    icon: Camera,
+    color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40",
+  },
+  {
     name: "Public Authenticator",
     subtitle: "QR Certificate Verification",
     href: "/verify",
@@ -282,6 +290,27 @@ const sopsSubModules: SubModuleItem[] = [
     icon: Award,
     color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
   },
+  {
+    name: "Appeals",
+    subtitle: "Challenges to Issued Decisions",
+    href: "/appeals",
+    icon: Scale,
+    color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40",
+  },
+  {
+    name: "Equipment Register",
+    subtitle: "Instruments & Calibration Status",
+    href: "/equipment",
+    icon: Gauge,
+    color: "text-sky-600 bg-sky-100 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800/40",
+  },
+  {
+    name: "Audit Trail",
+    subtitle: "Who Changed What, and When",
+    href: "/audit",
+    icon: History,
+    color: "text-slate-600 bg-slate-100 dark:bg-slate-900/80 dark:text-slate-300 border-slate-200 dark:border-slate-700/40",
+  },
 ];
 
 const generalNavItems = [
@@ -321,6 +350,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/proposed-assignments") ||
     pathname.startsWith("/logsheet") ||
     pathname.startsWith("/control-numbers") ||
+    pathname.startsWith("/evidence") ||
     pathname.startsWith("/verify");
 
   const isFinanceActive =
@@ -333,7 +363,10 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
   const isSopsActive =
     pathname.startsWith("/sops") ||
     pathname.startsWith("/tpi-process-flow") ||
-    pathname.startsWith("/complaints");
+    pathname.startsWith("/complaints") ||
+    pathname.startsWith("/appeals") ||
+    pathname.startsWith("/equipment") ||
+    pathname.startsWith("/audit");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
   const isQualityPlansActive = pathname.startsWith("/itps");

@@ -675,6 +675,126 @@ class API {
       { params: { client_id } },
     )).data;
   }
+
+  // ---- Equipment & calibration (ISO/IEC 17020 cl. 6.2) ----
+  async getEquipment(params?: { status?: string; work_type_code?: string; due_within_days?: number }) {
+    return (await this.client.get("/equipment", { params })).data;
+  }
+
+  async getCalibrationDue(horizon_days = 30) {
+    return (await this.client.get("/equipment/calibration-due", { params: { horizon_days } })).data;
+  }
+
+  async registerEquipment(data: any) {
+    return (await this.client.post("/equipment", data)).data;
+  }
+
+  async getEquipmentItem(equipmentId: string) {
+    return (await this.client.get(`/equipment/${equipmentId}`)).data;
+  }
+
+  async recordCalibration(equipmentId: string, data: any) {
+    return (await this.client.post(`/equipment/${equipmentId}/calibration`, data)).data;
+  }
+
+  async getCalibrationHistory(equipmentId: string) {
+    return (await this.client.get(`/equipment/${equipmentId}/calibration`)).data;
+  }
+
+  async setEquipmentStatus(equipmentId: string, status: string, reason?: string) {
+    return (await this.client.patch(`/equipment/${equipmentId}/status`, null, {
+      params: { status, reason },
+    })).data;
+  }
+
+  // ---- Appeals (cl. 7.6) ----
+  async getAppeals(params?: { status?: string; entity_type?: string; entity_id?: string }) {
+    return (await this.client.get("/appeals", { params })).data;
+  }
+
+  async getAppealSummary() {
+    return (await this.client.get("/appeals/summary")).data;
+  }
+
+  async raiseAppeal(data: any) {
+    return (await this.client.post("/appeals", data)).data;
+  }
+
+  async assignAppealReviewers(appealId: string, reviewer_person_ids: string[]) {
+    return (await this.client.post(`/appeals/${appealId}/reviewers`, { reviewer_person_ids })).data;
+  }
+
+  async decideAppeal(appealId: string, status: string, outcome: string, decided_by: string, remedy_reference?: string) {
+    return (await this.client.post(`/appeals/${appealId}/decide`, {
+      outcome, decided_by, remedy_reference,
+    }, { params: { status } })).data;
+  }
+
+  // ---- Audit trail ----
+  async searchAudit(params?: { entity_type?: string; action?: string; actor_user_id?: string; page?: number; per_page?: number }) {
+    return (await this.client.get("/audit", { params })).data;
+  }
+
+  async getEntityHistory(entityType: string, entityId: string) {
+    return (await this.client.get(`/audit/${entityType}/${entityId}`)).data;
+  }
+
+  // ---- Evidence ----
+  async getEvidence(entityType: string, entityId: string, include_withdrawn = false) {
+    return (await this.client.get(`/evidence/${entityType}/${entityId}`, {
+      params: { include_withdrawn },
+    })).data;
+  }
+
+  async getJobEvidence(jobId: string) {
+    return (await this.client.get(`/evidence/job/${jobId}`)).data;
+  }
+
+  async attachEvidence(entityType: string, entityId: string, file: File, meta: Record<string, string> = {}) {
+    const form = new FormData();
+    form.append("file", file);
+    Object.entries(meta).forEach(([k, v]) => v && form.append(k, v));
+    return (await this.client.post(`/evidence/${entityType}/${entityId}`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })).data;
+  }
+
+  async verifyEvidence(evidenceId: string) {
+    return (await this.client.get(`/evidence/item/${evidenceId}/verify`)).data;
+  }
+
+  async withdrawEvidence(evidenceId: string, reason: string) {
+    return (await this.client.patch(`/evidence/item/${evidenceId}/withdraw`, null, {
+      params: { reason },
+    })).data;
+  }
+
+  evidenceFileUrl(evidenceId: string) {
+    return `${API_BASE}/api/v1/evidence/item/${evidenceId}/file`;
+  }
+
+  // ---- Work-package assists ----
+  async getAssistsAvailable(workPackageId: string) {
+    return (await this.client.get(`/ai-assist/${workPackageId}/available`)).data;
+  }
+
+  async runValidation(workPackageId: string) {
+    return (await this.client.get(`/ai-assist/${workPackageId}/validate`)).data;
+  }
+
+  async runAnomalyScan(workPackageId: string, sensitivity = 2.0) {
+    return (await this.client.get(`/ai-assist/${workPackageId}/anomalies`, {
+      params: { sensitivity },
+    })).data;
+  }
+
+  async generateChecklist(workPackageId: string) {
+    return (await this.client.get(`/ai-assist/${workPackageId}/checklist`)).data;
+  }
+
+  async draftReport(workPackageId: string) {
+    return (await this.client.post(`/ai-assist/${workPackageId}/draft-report`)).data;
+  }
 }
 
 export const api = new API();

@@ -28,6 +28,8 @@ from datetime import datetime
 from typing import Any, Optional
 
 from core import llm
+from modules.assignments.service import AssignmentService
+from modules.people.service import PeopleService
 from modules.visits.models import Visit
 
 #: Thresholds for the deterministic checks. Stated in the response so a flag
@@ -221,8 +223,6 @@ class AIService:
         now carries the same gate an actual assignment would.
         """
         if work_package_id:
-            from modules.assignments.service import AssignmentService
-
             recommendation = await AssignmentService.recommend(
                 work_package_id, site_id=site_id, top_n=5
             )
@@ -240,8 +240,6 @@ class AIService:
         # Without a work package there is no competence requirement to check
         # against, so the honest answer is the deployable pool rather than a
         # ranking that implies a judgement nothing supports.
-        from modules.people.service import PeopleService
-
         pool = await PeopleService.deployable_pool(site_id)
         people = pool.get("data", pool) if isinstance(pool, dict) else pool
         return [

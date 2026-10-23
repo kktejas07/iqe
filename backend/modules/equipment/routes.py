@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Body, Depends
 
 from core.auth import get_current_user
-from modules.equipment.service import EquipmentService
+from modules.equipment.service import EquipmentService, calibration_state, is_usable
 
 router = APIRouter(prefix="/equipment", tags=["Equipment"])
 
@@ -38,8 +38,6 @@ async def register_equipment(data: dict = Body(...), user: dict = Depends(get_cu
 
 @router.get("/{equipment_id}")
 async def get_equipment(equipment_id: str, user: dict = Depends(get_current_user)):
-    from modules.equipment.service import calibration_state, is_usable
-
     item = await EquipmentService.get(equipment_id, user.get("site_id", "SITE-01"))
     usable, reason = is_usable(item)
     return {

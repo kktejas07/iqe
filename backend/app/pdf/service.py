@@ -132,6 +132,10 @@ def render_html(form_code: str, payload: Dict[str, Any], is_blank: bool = False,
 def render_pdf(form_code: str, payload: Optional[Dict[str, Any]] = None, is_blank: bool = False, is_draft: bool = False,
                qr_url: Optional[str] = None, client_id: Optional[str] = None) -> bytes:
     try:
+        # Deferred because it costs ~2.5s to import and binds to the system
+        # cairo/pango libraries. Paying that at startup would slow every
+        # process that never renders a PDF, and would stop the API booting at
+        # all on a host without those libraries. Not a cycle workaround.
         import weasyprint
     except Exception as e:
         raise RuntimeError(f"WeasyPrint is not available: {e}")

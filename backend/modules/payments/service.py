@@ -1,4 +1,6 @@
 from fastapi import HTTPException
+from modules.invoices.models import Invoice
+from modules.jobs.models import Job
 from modules.payments.models import Payment
 from datetime import datetime
 
@@ -16,12 +18,10 @@ class PaymentService:
         data["site_id"] = site_id; data["created_by"] = user_id
         payment = Payment(**data)
         await payment.insert()
-        from modules.invoices.models import Invoice
         inv = await Invoice.find_one(Invoice.invoice_id == data.get("invoice_id"), Invoice.site_id == site_id)
         if inv:
             inv.status = "paid"
             inv.updated_at = datetime.now()
-            from modules.jobs.models import Job
             await Job.find(Job.site_id == site_id).update({"$set": {"status": "closed"}})
             await inv.save()
         return payment

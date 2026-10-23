@@ -237,11 +237,15 @@ _STATIC_FALLBACK: dict[str, FormatSpec] = {}
 
 
 def _load_static_fallback() -> None:
-    """Imported inside the function on purpose.
+    """Imported inside the function on purpose - but not for the reason an
+    earlier version of this comment claimed.
 
-    modules.reporting will import this module once reports render from routes.
-    A module-level import here would close that cycle, so the dependency is
-    taken at call time instead.
+    There is no import cycle here: modules.reporting.models imports nothing
+    from app.pdf. The deferral earns its place differently. This is a
+    load-once cache, and the import sits inside the try so that a registry
+    that fails to import degrades to the generic renderer rather than taking
+    the whole PDF subsystem down with it. A module-level import could not
+    fail that way.
     """
     if _STATIC_FALLBACK:
         return

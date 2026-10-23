@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import HTTPException
 from modules.control_numbers.models import ControlNumber, Reassignment
+from modules.visits.models import Visit
 from datetime import datetime
 
 
@@ -206,6 +207,5 @@ class ControlNumberService:
         cn.updated_at = datetime.now()
         await cn.save()
 
-        from modules.visits.models import Visit
         await Visit.find(Visit.control_number_id == cn_id).update({"$set": {"control_number_id": new_cn_id}})
         return {"message": "Reassignment successful", "control_number": cn.dict()}

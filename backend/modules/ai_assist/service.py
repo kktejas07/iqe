@@ -32,7 +32,9 @@ from fastapi import HTTPException
 
 from core import llm
 from core.config import settings
+from modules.assignments.models import Assignment
 from modules.certifications.models import Certification
+from modules.evidence.models import Evidence, EvidenceStatus
 from modules.work_packages.models import WorkPackage
 from modules.work_types.models import AIAssist, WorkTypeDefinition
 
@@ -84,9 +86,6 @@ class AIAssistService:
 
         blocking: list[str] = []
         advisory: list[str] = []
-
-        from modules.assignments.models import Assignment
-        from modules.evidence.models import Evidence, EvidenceStatus
 
         assignments = await Assignment.find(
             Assignment.work_package_id == work_package_id,

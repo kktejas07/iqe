@@ -73,12 +73,29 @@ export function toneFor(status?: string | null): Tone {
 }
 
 /** Turns snake_case or SCREAMING_CASE into something a person reads. */
+/** Acronyms that must not be title-cased. The PDF renderer has carried this
+ *  list since the formats were built; without the same list here the same
+ *  value reads "NDT Service" in a generated report and "Ndt Service" on the
+ *  screen beside it, which makes the screen look like the careless one. */
+const ACRONYMS = new Set([
+  "NCR", "BOQ", "RA", "QC", "QA", "SAT", "FAT", "GMP", "URS", "ITP", "UOM",
+  "ID", "PO", "NDT", "UT", "RT", "MT", "PT", "HVAC", "IQE", "TPI", "WHO",
+  "PMI", "MTC", "NABL", "UKAS", "AQL", "CAPA", "IRN", "IVR", "EVR", "FIR",
+  "SOW", "LOI", "QTN", "EPC", "AI", "PDF", "ISO", "IEC", "DPR", "CV",
+]);
+
 export function humanise(value?: string | null): string {
   if (!value) return "";
   return value
     .replace(/[_-]+/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      const upper = word.toUpperCase();
+      if (ACRONYMS.has(upper)) return upper;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
 
 export function StatusPill({

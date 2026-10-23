@@ -305,6 +305,20 @@ const sopsSubModules: SubModuleItem[] = [
     color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
   },
   {
+    name: "External Providers",
+    subtitle: "Subcontractors & Calibration Labs",
+    href: "/providers",
+    icon: Building2,
+    color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40",
+  },
+  {
+    name: "Risk Register",
+    subtitle: "Risks, Controls & Audit Plan",
+    href: "/risks",
+    icon: Shield,
+    color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40",
+  },
+  {
     name: "Appeals",
     subtitle: "Challenges to Issued Decisions",
     href: "/appeals",
@@ -382,7 +396,9 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/complaints") ||
     pathname.startsWith("/appeals") ||
     pathname.startsWith("/equipment") ||
-    pathname.startsWith("/audit");
+    pathname.startsWith("/audit") ||
+    pathname.startsWith("/providers") ||
+    pathname.startsWith("/risks");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
   const isQualityPlansActive = pathname.startsWith("/itps");

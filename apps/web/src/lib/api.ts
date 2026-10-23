@@ -866,6 +866,80 @@ class API {
   async getLossAnalysis() {
     return (await this.client.get("/pipeline/loss-analysis")).data;
   }
+
+  // ---- External providers (ISO/IEC 17020:2026) ----
+  async getProviders(params?: { category?: string; status?: string; usable_only?: boolean }) {
+    return (await this.client.get("/providers/", { params })).data;
+  }
+
+  async getProviderReviewDue(horizon_days = 60) {
+    return (await this.client.get("/providers/review-due", { params: { horizon_days } })).data;
+  }
+
+  async registerProvider(data: any) {
+    return (await this.client.post("/providers/", data)).data;
+  }
+
+  async getProvider(providerId: string) {
+    return (await this.client.get(`/providers/${providerId}`)).data;
+  }
+
+  async evaluateProvider(providerId: string, body: any) {
+    return (await this.client.post(`/providers/${providerId}/evaluate`, body)).data;
+  }
+
+  async recordProviderPerformance(providerId: string, body: any) {
+    return (await this.client.post(`/providers/${providerId}/performance`, body)).data;
+  }
+
+  async setProviderStatus(providerId: string, status: string, reason: string) {
+    return (await this.client.patch(`/providers/${providerId}/status`, null, {
+      params: { status, reason },
+    })).data;
+  }
+
+  async recordSubcontractConsent(body: any) {
+    return (await this.client.post("/providers/consent", body)).data;
+  }
+
+  async checkMaySubcontract(jobId: string, providerId: string, service?: string) {
+    return (await this.client.get(`/providers/check/${jobId}/${providerId}`, {
+      params: service ? { service } : undefined,
+    })).data;
+  }
+
+  // ---- Risk register and risk-based internal audit ----
+  async getRisks(params?: { category?: string; status?: string; material_only?: boolean }) {
+    return (await this.client.get("/risks/", { params })).data;
+  }
+
+  async getOverdueRisks() {
+    return (await this.client.get("/risks/overdue")).data;
+  }
+
+  async createRisk(data: any) {
+    return (await this.client.post("/risks/", data)).data;
+  }
+
+  async getRisk(riskId: string) {
+    return (await this.client.get(`/risks/${riskId}`)).data;
+  }
+
+  async reviewRisk(riskId: string, body: any) {
+    return (await this.client.post(`/risks/${riskId}/review`, body)).data;
+  }
+
+  async getAuditPlan(slots = 4) {
+    return (await this.client.get("/internal-audits/plan", { params: { slots } })).data;
+  }
+
+  async planInternalAudit(body: any) {
+    return (await this.client.post("/internal-audits/", body)).data;
+  }
+
+  async completeInternalAudit(auditId: string, body: any) {
+    return (await this.client.post(`/internal-audits/${auditId}/complete`, body)).data;
+  }
 }
 
 export const api = new API();

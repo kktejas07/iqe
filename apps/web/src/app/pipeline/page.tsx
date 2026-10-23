@@ -135,22 +135,30 @@ export default function PipelinePage() {
               {STAGES.filter((s) => byStatus[s.status]).map((s) => {
                 const row = byStatus[s.status];
                 return (
-                  <div key={s.status} className="flex items-center gap-3">
-                    <span className="w-44 shrink-0 text-sm text-slate-600 dark:text-slate-400">
+                  // On a phone the four fixed columns leave the bar about
+                  // 26px wide - it vanished, and the money ran off the edge.
+                  // Below sm the bar takes its own full-width line under the
+                  // label, which is the only arrangement where a funnel
+                  // actually reads at 390px.
+                  <div
+                    key={s.status}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1 sm:py-0"
+                  >
+                    <span className="order-1 min-w-0 flex-1 text-sm text-slate-600 sm:w-44 sm:flex-none dark:text-slate-400">
                       {s.label}
                     </span>
-                    <div className="h-5 flex-1 overflow-hidden rounded-md bg-slate-100 dark:bg-slate-800">
+                    <span className="order-2 shrink-0 text-right text-sm font-medium tabular-nums text-slate-900 sm:order-3 sm:w-10 dark:text-white">
+                      {row.count}
+                    </span>
+                    <span className="order-3 shrink-0 text-right text-xs tabular-nums text-slate-400 sm:order-4 sm:w-28">
+                      {row.value ? formatINR(row.value) : ""}
+                    </span>
+                    <div className="order-4 h-5 w-full overflow-hidden rounded-md bg-slate-100 sm:order-2 sm:w-auto sm:flex-1 dark:bg-slate-800">
                       <div
                         className="h-full rounded-md bg-[#0084bf]/80"
                         style={{ width: `${(row.count / peak) * 100}%` }}
                       />
                     </div>
-                    <span className="w-10 shrink-0 text-right text-sm font-medium tabular-nums text-slate-900 dark:text-white">
-                      {row.count}
-                    </span>
-                    <span className="w-28 shrink-0 text-right text-xs tabular-nums text-slate-400">
-                      {row.value ? formatINR(row.value) : ""}
-                    </span>
                   </div>
                 );
               })}

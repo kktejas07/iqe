@@ -56,22 +56,23 @@ graph TB
     end
 
     subgraph Gateway["2. Gateway & Authentication"]
-        CORS["CORS & Rate Limiting"]
+        CORS["CORS middleware"]
         JWTAuth["JWT Authentication / OWIN Forms Auth"]
-        RBAC["Role-Based Access Control (RBAC)"]
+        RBAC["RBAC policy table<br/>(core/policy.py, one app-level dependency)"]
     end
 
     subgraph BackendServices["3. Application & Service Layer"]
-        subgraph FastAPIServices["FastAPI Async Micro-Modules (Python 3.12)"]
-            AuthMod["Auth Module"]
-            UserMod["User & Role Module"]
-            ClientMod["Client & Site Module"]
-            JobMod["Job & Service Order Module"]
-            VisitMod["Visit Processing Module"]
-            QCMod["QC & Inspection Module"]
-            InvMod["Invoice & Payment Module"]
-            ReportMod["Report & Analytics Module"]
-            AIMod["AI & Vision Module"]
+        subgraph FastAPIServices["FastAPI modular monolith (Python 3.12)<br/>38 modules, one process, shared models"]
+            AuthMod["Auth & Policy"]
+            PeopleMod["People, Competence, Authorization"]
+            ClientMod["Client & Site"]
+            JobMod["Job & Work Package"]
+            AssignMod["Assignment (eligibility gate + ranking)"]
+            CertMod["Certification & Control Numbers"]
+            InvMod["Invoice, AR / AP"]
+            ReportMod["Reporting formats & Analytics"]
+            QualityMod["Equipment, Complaints, Appeals, Evidence, Audit"]
+            AIMod["AI assists (gated per work type)"]
         end
 
         subgraph LegacyServices["Legacy Services (.NET 4.8 / C#)"]
@@ -83,15 +84,19 @@ graph TB
     end
 
     subgraph DataStorage["4. Data & Storage Layer"]
-        PrimaryDB[("Relational DB<br/>SQL Server / Azure SQL<br/>Core Entities & SPs")]
-        DocDB[("Document DB<br/>MongoDB Atlas<br/>Job Collections & Audit Logs")]
-        BlobStore["Object Storage<br/>Azure Blob / Local FileStorage<br/>Inspection Photos & PDF Invoices"]
+        DocDB[("MongoDB<br/>pymongo AsyncMongoClient + Beanie ODM<br/>every FastAPI collection")]
+        PrimaryDB[("SQL Server / Azure SQL<br/>legacy only — the FastAPI services<br/>never connect to it")]
+        LocalDisk["Local disk: ./uploads<br/>evidence, attachments, generated PDFs"]
     end
 
-    subgraph External["5. External Services & AI Integrations"]
-        SendGrid["SendGrid / Azure SMTP<br/>(Email Notifications)"]
-        PDFEng["PDF Generation Engine<br/>(iText7 / Syncfusion / Spire.PDF)"]
-        AIService["AI Engine<br/>(LangChain / Vision API / RAG)"]
+    subgraph External["5. External Services"]
+        AzureAI["Azure OpenAI chat completions<br/>(direct HTTPS call, core/llm.py)<br/>no client sent when unconfigured"]
+        LegacyPDF["iText7 / Syncfusion / Spire.PDF<br/>(legacy stack only)"]
+    end
+
+    subgraph InProcess["6. In-process, not external services"]
+        WeasyPrint["WeasyPrint + Jinja2<br/>HTML to PDF, new formats"]
+        ReportLab["ReportLab<br/>older report builders"]
     end
 
     WebApp --> CORS
@@ -100,20 +105,24 @@ graph TB
 
     CORS --> JWTAuth --> RBAC
     RBAC --> FastAPIServices
-    RBAC --> LegacyServices
+    LegacyWeb --> LegacyServices
 
-    FastAPIServices --> PrimaryDB
     FastAPIServices --> DocDB
-    FastAPIServices --> BlobStore
+    FastAPIServices --> LocalDisk
     LegacyServices --> PrimaryDB
-    LegacyServices --> BlobStore
 
-    FastAPIServices --> SendGrid
-    FastAPIServices --> PDFEng
-    FastAPIServices --> AIService
-    LegacyServices --> SendGrid
-    LegacyServices --> PDFEng
+    FastAPIServices --> WeasyPrint
+    FastAPIServices --> ReportLab
+    AIMod -.->|"only when an endpoint<br/>and key are configured"| AzureAI
+    LegacyServices --> LegacyPDF
 ```
+
+> **Not built.** Rate limiting and email notification (SendGrid / SMTP) appear
+> in earlier drafts of this diagram and in `core/config.py`, but neither is
+> implemented: `sendgrid_api_key` is read and never used, and there is no
+> rate-limiting middleware. They have been removed from the diagram rather
+> than drawn as if they existed. Redis is wired (`core/cache.py`) but the
+> application runs without it.
 
 ---
 
@@ -123,15 +132,20 @@ IQE supports both a modernized decoupled architecture and the existing legacy en
 
 | Architecture Layer | Modern Stack (Target) | Legacy Stack (Operational) |
 | :--- | :--- | :--- |
-| **Frontend UI** | Next.js 14 (App Router, React 18, Tailwind CSS, TypeScript, Zustand) | ASP.NET MVC 5 (Razor, Bootstrap 5, jQuery, Dropzone.js, jsTree) |
-| **Mobile Client** | React Native (WatermelonDB offline sync, Camera, Native GPS) | N/A (Responsive Web) |
-| **Backend API** | FastAPI (Python 3.12, Async, Pydantic v2 schemas) | ASP.NET Web API 2 / MVC 5 Controllers (.NET Framework 4.8) |
-| **Data Access** | Motor (Async Mongo), SQLAlchemy / asyncpg | Dapper ORM (Stored Procedures), Entity Framework 6 |
-| **Primary Data Stores** | MongoDB Atlas + SQL Server | SQL Server (`IQEIMS_DEV` / `IQEIMS`) |
-| **File Storage** | Azure Blob Storage + Local Disk | Azure Blob Storage + Physical `D:\IQEApp\FileStorage\` |
-| **PDF Processing** | Python ReportLab / WeasyPrint / iText7 | iTextSharp, iText7, Syncfusion.Pdf, Spire.PDF |
-| **Authentication** | Bearer JWT (HS256 / RS256) + RBAC Middleware | OWIN Katana Cookie Auth + Forms Authentication + CustomAuthorize Filter |
-| **AI / Intelligence** | LangChain, OpenAI Vision / Gemini RAG pipelines | Built-in analytics & static reporting |
+| **Frontend UI** | Next.js 15 (App Router, React 19, Tailwind CSS 3.4, TypeScript) | ASP.NET MVC 5 (Razor, Bootstrap 5, jQuery, Dropzone.js, jsTree) |
+| **Mobile Client** | Expo / React Native 0.76 — 11 screens for inspector and coordinator, `expo-camera` and `expo-location`. No offline sync layer is built. | N/A (Responsive Web) |
+| **Backend API** | FastAPI (Python 3.12, async, Pydantic v2 schemas) | ASP.NET Web API 2 / MVC 5 Controllers (.NET Framework 4.8) |
+| **Data Access** | `pymongo.AsyncMongoClient` + Beanie ODM. Not Motor, and no SQL driver: the FastAPI services hold no connection to SQL Server. | Dapper ORM (Stored Procedures), Entity Framework 6 |
+| **Primary Data Stores** | MongoDB only | SQL Server (`IQEIMS_DEV` / `IQEIMS`) |
+| **File Storage** | Local disk, `./uploads`, path-validated on write | Azure Blob Storage + Physical `D:\IQEApp\FileStorage\` |
+| **PDF Processing** | WeasyPrint + Jinja2 for the inspection formats; ReportLab in the older report builders. Both run in-process. | iTextSharp, iText7, Syncfusion.Pdf, Spire.PDF |
+| **Authentication** | Bearer JWT (HS256) + a single RBAC policy table applied as an app-level dependency | OWIN Katana Cookie Auth + Forms Authentication + CustomAuthorize Filter |
+| **AI / Intelligence** | Direct Azure OpenAI chat-completions call. The deterministic assists (completeness, outliers, checklist) use no model at all. No LangChain, no RAG, no vision. | Built-in analytics & static reporting |
+
+> **"Micro-Modules" was never accurate.** The FastAPI side is a modular
+> monolith: 38 modules in one process, one database, and 63 cross-module model
+> imports. The modules are a code-organisation boundary, not a deployment one.
+> Splitting them would mean untangling those imports first.
 
 ---
 
@@ -140,7 +154,7 @@ IQE supports both a modernized decoupled architecture and the existing legacy en
 ```mermaid
 graph LR
     subgraph Layer1["Presentation Layer"]
-        NextJS["Next.js Web / React Native"]
+        NextJS["Next.js 15 web / Expo mobile"]
     end
 
     subgraph Layer2["API Router & Middleware"]
@@ -154,16 +168,16 @@ graph LR
     end
 
     subgraph Layer4["Data Access & Persistence"]
-        Dapper["Dapper / Mongo Repositories"]
-        DB["SQL Server / MongoDB Atlas / Azure Storage"]
+        Beanie["Beanie Documents (no repository layer)"]
+        DB["MongoDB + local disk"]
     end
 
     NextJS --> API
     API --> Middleware
     Middleware --> Services
     Services --> DomainModels
-    Services --> Dapper
-    Dapper --> DB
+    Services --> Beanie
+    Beanie --> DB
 ```
 
 ---
@@ -364,7 +378,7 @@ flowchart TD
 1. **Client Selection**: Select existing client (`client_id`) and client unit.
 2. **Job Container Creation**: System creates root `Job` document (`job_id`: e.g. `JOB-2026-0001`).
 3. **Service Order Setup**: Attach contract terms, scope of inspection, client PO (`po_id`), and manufacturer unit.
-4. **Document Attachment**: Upload client spec sheets or standards to Azure Blob Storage / file storage.
+4. **Document Attachment**: Upload client spec sheets or standards to `./uploads` on the application host. Object storage is not wired.
 
 #### Phase 2b: Work Package Breakdown & Officer Assignment — **(planned)**
 1. **Decomposition**: The Service Order scope is broken into `WorkPackage` records (`WP-YYYY-XXXX`), each carrying a `work_type_code` — code inspection, BOQ reconciliation, bill verification, GMP compliance, vendor audit, expediting, SAT, deputation.
@@ -377,7 +391,7 @@ flowchart TD
 1. **Control Number Generation**: Split Service Order into actionable control numbers (`control_number_id`).
 2. **Inspector Matching**: Match technician competencies (`competency_id`), location proximity, and calendar availability. **(Planned: superseded by the gated assignment engine in Phase 2b — competence becomes a precondition rather than one weighted factor among several.)**
 3. **Visit Creation**: Schedule visit (`visit_id`), allocating estimated mandays, start date, and target execution site.
-4. **Push Notification**: Automated email (SendGrid) and mobile push notification sent to assigned inspector.
+4. **Notification**: **(not built)** Neither email nor mobile push is implemented. `sendgrid_api_key` exists in `core/config.py` and is never read; assignment is currently communicated outside the system.
 
 #### Phase 4: Inspector Field Execution & Offline Data Sync
 1. **Visit Acceptance**: Inspector confirms schedule via React Native app or mobile browser.
@@ -386,11 +400,11 @@ flowchart TD
    - Executes inspection checklists.
    - Captures high-res photos (`photo_id`) with timestamps and watermark overlay.
    - Logs daily expenses (`expense_id`) and attaches receipt scans.
-4. **Offline Resilience**: If offline, data is cached in WatermelonDB / local storage and auto-synced upon network restoration via background worker.
+4. **Offline Resilience**: **(not built)** The Expo app has no offline store and no sync worker — it calls the API directly and fails when the site has no signal, which on a construction site is most of the time. This is the largest single gap between this document and the code.
 
 #### Phase 5: Quality Control (QC) & AI Verification
 1. **QC Dispatch**: Submitted visit transitions to `UNDER_QC` status.
-2. **AI Assistance (Optional)**: AI Vision engine scans photos for clarity, barcode correctness, and missing documentation.
+2. **AI Assistance (Optional)**: What is built is `modules/ai_assist`, gated on the work type's declared `ai_assists`. Completeness, outlier and checklist assists are deterministic and use no model; report drafting and document extraction call Azure OpenAI and return a plain error when it is unconfigured. There is no vision model and no photo analysis.
 3. **QC Review**: Auditor inspects report details, photos, and compliance findings.
 4. **Approval / Revision**: If flaws exist, return to inspector with remarks; otherwise approve visit to `QC_APPROVED`.
 
@@ -427,7 +441,7 @@ sequenceDiagram
     participant Web as Web / Mobile UI
     participant API as FastAPI Backend
     participant DB as Database (SQL/Mongo)
-    participant Storage as Azure Blob Storage
+    participant Storage as Local disk (./uploads)
     participant Ext as Email / PDF Engine
 
     Coordinator->>Web: Create Job & Service Order

@@ -171,6 +171,24 @@ MATRIX: list[Rule] = [
              "technical manager view for go/no-go input.",
     ),
     Rule(
+        prefix="/risks",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.QC_AUDITOR],
+        note="The risk and opportunity register (ISO/IEC 17020:2026, which "
+             "replaced preventive action with it). Readable by any internal "
+             "role, because a risk nobody can see is one nobody raises "
+             "against; owned and scored by the quality function.",
+    ),
+    Rule(
+        prefix="/internal-audits",
+        read=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.QC_AUDITOR],
+        write=[Role.ADMIN, Role.QC_AUDITOR],
+        note="Internal audit, now planned from the register rather than a "
+             "calendar. Narrower than the register itself: an audit in "
+             "progress names the areas suspected of weakness, which is not "
+             "something to circulate before it is concluded.",
+    ),
+    Rule(
         prefix="/providers",
         read=ALL_INTERNAL,
         write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.QC_AUDITOR],

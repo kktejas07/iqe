@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  FileText, RefreshCw, X, AlertTriangle, Clock, TrendingUp, ShieldAlert,
+  FileText, RefreshCw, X, AlertTriangle, Clock, TrendingUp, ShieldAlert, Plus,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
@@ -66,6 +66,8 @@ export default function ContractsPage() {
   const [amending, setAmending] = useState<any>(null);
   const [deciding, setDeciding] = useState<any>(null);
   const [amendments, setAmendments] = useState<any[]>([]);
+  const [framework, setFramework] = useState<any>(null);
+  const [callingOff, setCallingOff] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,6 +78,18 @@ export default function ContractsPage() {
       ]);
       setSweep(s);
       setAmendments(a?.data ?? []);
+
+      // Frameworks are listed in their own right rather than discovered
+      // through the sweep. A healthy framework at 88% is exactly the one
+      // worth seeing - the next call-off is the one that does not fit - and
+      // walking only the flagged orders would mean it never appeared.
+      try {
+        const fws = await api.listFrameworks();
+        const first = (fws?.data ?? [])[0];
+        setFramework(first ? await api.frameworkView(first.so_id) : null);
+      } catch {
+        setFramework(null);
+      }
     } catch {
       toast.error("Could not load the commercial position");
       setSweep(null);
@@ -234,6 +248,24 @@ export default function ContractsPage() {
               <AmendmentRow key={a.amendment_id} amendment={a} />
             ))}
         </div>
+      )}
+
+      {framework && (
+        <FrameworkSection
+          data={framework}
+          onCallOff={() => setCallingOff(true)}
+        />
+      )}
+
+      {callingOff && framework && (
+        <CallOffForm
+          framework={framework.framework}
+          onClose={() => setCallingOff(false)}
+          onDone={() => {
+            setCallingOff(false);
+            load();
+          }}
+        />
       )}
 
       {amending && (
@@ -765,5 +797,250 @@ function Modal({
         <div className="p-4 sm:p-6 space-y-4">{children}</div>
       </div>
     </div>
+  );
+}
+
+/* --------------------------------------------------- frameworks & call-offs */
+
+/**
+ * A framework and everything drawn against it.
+ *
+ * The point of showing them together is the thing neither shows alone: a
+ * call-off can have room of its own while the framework above it has none,
+ * and the framework is what binds. Listing call-offs on their own is how a
+ * framework gets exhausted while every child still looks healthy.
+ */
+function FrameworkSection({
+  data,
+  onCallOff,
+}: {
+  data: any;
+  onCallOff: () => void;
+}) {
+  const f = data.framework;
+  const pct = Math.min(100, f.percent_consumed ?? 0);
+  const exhausted = (f.remaining ?? 0) <= 0;
+
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="font-semibold text-slate-900">Framework</h2>
+          <p className="text-sm text-slate-500 max-w-2xl">
+            One agreement carrying the ceiling and the term, drawn against by
+            call-offs. The framework&apos;s figure is what binds — a call-off
+            with room of its own cannot spend what the framework no longer
+            has.
+          </p>
+        </div>
+        <button
+          onClick={onCallOff}
+          disabled={exhausted}
+          className={`${buttonPrimary} shrink-0 disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          <Plus className="w-4 h-4" /> New call-off
+        </button>
+      </div>
+
+      <Card
+        className={`p-4 ${exhausted ? "border-l-4 border-l-rose-500" : "border-l-4 border-l-[#0084bf]"}`}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-slate-500">{f.so_id ?? ""}</span>
+          <StatusPill tone="info">Framework</StatusPill>
+          <span className="text-xs text-slate-500">
+            {f.call_off_count} call-off{f.call_off_count === 1 ? "" : "s"}
+          </span>
+        </div>
+
+        <div className="mt-3 max-w-md">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+            <span className="text-slate-600">
+              {formatINR(f.consumed)} of {formatINR(f.effective_ceiling)} carved out
+            </span>
+            <span className={exhausted ? "text-rose-600 font-medium" : "text-slate-500"}>
+              {formatINR(f.remaining)} left
+            </span>
+          </div>
+          <div className="mt-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${
+                exhausted ? "bg-rose-500" : pct >= 85 ? "bg-amber-500" : "bg-[#0084bf]"
+              }`}
+              style={{ width: `${Math.max(2, pct)}%` }}
+            />
+          </div>
+        </div>
+
+        {f.effective_valid_until && (
+          <p className="mt-2 text-sm text-slate-500">
+            Runs to {formatDate(f.effective_valid_until)}
+          </p>
+        )}
+        {exhausted && (
+          <p className="mt-2 text-sm text-rose-700">
+            Fully carved up. No further call-off can be opened until the client
+            authorises a value increase on the framework.
+          </p>
+        )}
+      </Card>
+
+      {data.call_offs?.length > 0 && (
+        <div className="space-y-2 sm:pl-6">
+          {data.call_offs.map((c: any) => {
+            const cpct = Math.min(100, c.percent_consumed ?? 0);
+            return (
+              <Card key={c.so_id} className="p-3.5">
+                <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0 lg:flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs text-slate-500">
+                        {c.so_id}
+                      </span>
+                      {!c.usable && c.blocked_because && (
+                        <StatusPill tone="bad">Blocked</StatusPill>
+                      )}
+                    </div>
+                    <p className="font-medium text-slate-900 break-words">
+                      {c.project_name ?? c.so_number}
+                    </p>
+                    {!c.usable && c.blocked_because && (
+                      <p className="text-sm text-rose-700 break-words">
+                        {c.blocked_because}
+                      </p>
+                    )}
+                  </div>
+                  <div className="lg:w-64 shrink-0">
+                    <div className="flex items-baseline justify-between gap-2 text-sm">
+                      <span className="text-slate-600">
+                        {formatINR(c.consumed)} of {formatINR(c.ceiling)}
+                      </span>
+                      <span className="text-slate-500 tabular-nums">
+                        {cpct.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          cpct >= 85 ? "bg-amber-500" : "bg-[#0084bf]"
+                        }`}
+                        style={{ width: `${Math.max(2, cpct)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-600">
+        {data.note}
+      </p>
+    </section>
+  );
+}
+
+function CallOffForm({
+  framework: f,
+  onClose,
+  onDone,
+}: {
+  framework: any;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [amount, setAmount] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [jobId, setJobId] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const value = Number(amount || 0);
+  const overruns = value > (f.remaining ?? 0);
+
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const out = await api.openCallOff(f.so_id, {
+        amount: value,
+        project_name: projectName || undefined,
+        job_id: jobId || undefined,
+        valid_until: validUntil ? new Date(validUntil).toISOString() : undefined,
+      });
+      toast.success(
+        `${out.so_id} opened — ${formatINR(out.framework_remaining_after)} left on the framework`,
+      );
+      onDone();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Could not open the call-off");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      title="Open a call-off"
+      subtitle={`${f.so_id} · ${formatINR(f.remaining)} left`}
+      onClose={onClose}
+    >
+      <p className="text-sm text-slate-600">
+        A call-off is a slice of the framework. It inherits the client, the
+        term and the end date, and it cannot be larger than what is left or
+        run past the framework&apos;s own expiry.
+      </p>
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="Value *"
+        className={inputClass}
+      />
+      {overruns && (
+        <p className="flex items-start gap-2 text-sm text-rose-700">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          {formatINR(value)} does not fit — the framework has{" "}
+          {formatINR(f.remaining)} left. A slice larger than the cake is
+          covered by nothing.
+        </p>
+      )}
+      <input
+        value={projectName}
+        onChange={(e) => setProjectName(e.target.value)}
+        placeholder="What it covers"
+        className={inputClass}
+      />
+      <input
+        value={jobId}
+        onChange={(e) => setJobId(e.target.value)}
+        placeholder="Job reference"
+        className={inputClass}
+      />
+      <input
+        type="date"
+        value={validUntil}
+        onChange={(e) => setValidUntil(e.target.value)}
+        className={inputClass}
+      />
+      <p className="text-xs text-slate-500">
+        Leave the end date blank to inherit the framework&apos;s
+        {f.effective_valid_until ? ` (${formatDate(f.effective_valid_until)})` : ""}.
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+        <button onClick={onClose} className={buttonSecondary}>
+          Cancel
+        </button>
+        <button
+          onClick={submit}
+          disabled={busy || !value || overruns}
+          className={`${buttonPrimary} disabled:opacity-50`}
+        >
+          {busy ? "Opening…" : "Open it"}
+        </button>
+      </div>
+    </Modal>
   );
 }

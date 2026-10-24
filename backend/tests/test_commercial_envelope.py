@@ -751,3 +751,35 @@ async def test_calling_off_a_non_framework_is_refused(db):
             "SO-2026-0001", {"amount": 1 * LAKH}, SITE, USER
         )
     assert "is not a framework" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_frameworks_are_listed_whether_or_not_anything_is_wrong(db):
+    """A healthy framework at 88% is exactly the one worth seeing, because
+    the next call-off is the one that does not fit. Finding frameworks only
+    through the sweep would mean it never appeared anywhere."""
+    await _framework(amount=50 * LAKH, so_id="SO-2026-0100")
+    await CommercialService.open_call_off(
+        "SO-2026-0100", {"amount": 44 * LAKH}, SITE, USER
+    )
+    await _order(so_id="SO-2026-0200", amount=5 * LAKH)   # not a framework
+
+    out = await CommercialService.list_frameworks(SITE)
+    assert out["total"] == 1
+    row = out["data"][0]
+    assert row["so_id"] == "SO-2026-0100"
+    assert row["percent_consumed"] == 88.0
+    assert row["remaining"] == 6 * LAKH
+    assert row["exhausted"] is False
+    assert row["call_off_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_the_fullest_framework_is_listed_first(db):
+    await _framework(amount=10 * LAKH, so_id="SO-2026-0100")
+    await _framework(amount=10 * LAKH, so_id="SO-2026-0300")
+    await CommercialService.open_call_off(
+        "SO-2026-0300", {"amount": 9 * LAKH}, SITE, USER
+    )
+    out = await CommercialService.list_frameworks(SITE)
+    assert [r["so_id"] for r in out["data"]] == ["SO-2026-0300", "SO-2026-0100"]

@@ -608,6 +608,41 @@ class CommercialService:
         return {"so_id": so_id, "state": state.model_dump()}
 
     @staticmethod
+    async def list_frameworks(site_id: str = "SITE-01") -> dict:
+        """Every framework, whether or not anything is wrong with it.
+
+        Discovering frameworks only through the sweep would mean a healthy
+        one never appeared anywhere - and a framework at 88% with nothing yet
+        flagged is exactly the one worth seeing, because the next call-off is
+        the one that does not fit.
+        """
+        from modules.service_orders.models import ServiceOrder
+
+        rows = await ServiceOrder.find(
+            ServiceOrder.site_id == site_id,
+            ServiceOrder.order_role == OrderRole.FRAMEWORK.value,
+        ).to_list()
+        out = []
+        for order in rows:
+            if not order.is_active:
+                continue
+            state = await CommercialService.state(order.so_id, site_id)
+            out.append({
+                "so_id": order.so_id,
+                "so_number": order.so_number,
+                "client_name": order.client_name,
+                "effective_ceiling": state.effective_ceiling,
+                "committed": state.committed,
+                "remaining": state.remaining,
+                "percent_consumed": state.percent_consumed,
+                "call_off_count": state.call_off_count,
+                "valid_until": state.effective_valid_until,
+                "exhausted": state.remaining <= 0,
+            })
+        out.sort(key=lambda r: -r["percent_consumed"])
+        return {"total": len(out), "data": out}
+
+    @staticmethod
     async def framework_view(so_id: str, site_id: str = "SITE-01") -> dict:
         """A framework and everything drawn against it, in one read."""
         state = await CommercialService.state(so_id, site_id)

@@ -38,6 +38,13 @@ async def can_draw(
     return await CommercialService.check_draw(so_id, amount, site_id)
 
 
+@router.get("/frameworks")
+async def list_frameworks(user: dict = Depends(get_current_user)):
+    """Every framework, whether or not anything is wrong with it."""
+    site_id, _ = _ctx(user)
+    return await CommercialService.list_frameworks(site_id)
+
+
 @router.post("/orders/{so_id}/framework")
 async def make_framework(
     so_id: str, data: dict = Body(default={}),

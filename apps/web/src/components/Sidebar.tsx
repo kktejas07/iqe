@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ChevronDown,
   Shield,
+  AlertTriangle,
   FileSpreadsheet,
   CheckSquare,
   Pill,
@@ -246,6 +247,13 @@ const operationsSubModules: SubModuleItem[] = [
 
 const financeSubModules: SubModuleItem[] = [
   {
+    name: "Rate Cards & Floors",
+    subtitle: "Pricing, Discounts & the Rate Floor",
+    href: "/rates",
+    icon: Receipt,
+    color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40",
+  },
+  {
     name: "Contracts & Amendments",
     subtitle: "Order Ceilings, Periods & Renewals",
     href: "/contracts",
@@ -317,6 +325,20 @@ const sopsSubModules: SubModuleItem[] = [
     href: "/providers",
     icon: Building2,
     color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40",
+  },
+  {
+    name: "Nonconformities",
+    subtitle: "Findings, Dispositions & Closure",
+    href: "/ncrs",
+    icon: AlertTriangle,
+    color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40",
+  },
+  {
+    name: "Impartiality Exposure",
+    subtitle: "Revenue Concentration & Inspector Ties",
+    href: "/impartiality",
+    icon: Shield,
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40",
   },
   {
     name: "Risk Register",
@@ -392,6 +414,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
 
   const isFinanceActive =
     pathname.startsWith("/contracts") ||
+    pathname.startsWith("/rates") ||
     pathname.startsWith("/invoices") ||
     pathname.startsWith("/accounts-receivable") ||
     pathname.startsWith("/accounts-payable") ||
@@ -406,7 +429,9 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/equipment") ||
     pathname.startsWith("/audit") ||
     pathname.startsWith("/providers") ||
-    pathname.startsWith("/risks");
+    pathname.startsWith("/risks") ||
+    pathname.startsWith("/ncrs") ||
+    pathname.startsWith("/impartiality");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
   const isQualityPlansActive =

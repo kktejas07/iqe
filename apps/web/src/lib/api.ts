@@ -1052,6 +1052,132 @@ class API {
   async rejectAmendment(amendmentId: string, body: any) {
     return (await this.client.post(`/commercial/amendments/${amendmentId}/reject`, body)).data;
   }
+
+  // ------------------------------------------------------------ frameworks
+
+  async makeFramework(soId: string, body: any = {}) {
+    return (await this.client.post(`/commercial/orders/${soId}/framework`, body)).data;
+  }
+
+  async listFrameworks() {
+    return (await this.client.get("/commercial/frameworks")).data;
+  }
+
+  async frameworkView(soId: string) {
+    return (await this.client.get(`/commercial/orders/${soId}/framework`)).data;
+  }
+
+  async openCallOff(soId: string, body: any) {
+    return (await this.client.post(`/commercial/orders/${soId}/call-offs`, body)).data;
+  }
+
+  // ----------------------------------------------------------- rate cards
+
+  async listRateCards(params?: { client_id?: string; status?: string }) {
+    return (await this.client.get("/rates/cards", { params })).data;
+  }
+
+  async getRateCard(cardId: string) {
+    return (await this.client.get(`/rates/cards/${cardId}`)).data;
+  }
+
+  async createRateCard(body: any) {
+    return (await this.client.post("/rates/cards", body)).data;
+  }
+
+  async activateRateCard(cardId: string, body: any = {}) {
+    return (await this.client.post(`/rates/cards/${cardId}/activate`, body)).data;
+  }
+
+  async expiringRateCards(days = 45) {
+    return (await this.client.get("/rates/cards/expiring", { params: { days } })).data;
+  }
+
+  async listRateFloors() {
+    return (await this.client.get("/rates/floors")).data;
+  }
+
+  async setRateFloor(body: any) {
+    return (await this.client.put("/rates/floors", body)).data;
+  }
+
+  async resolveRate(params: {
+    work_type_code: string;
+    client_id?: string;
+    discipline?: string;
+  }) {
+    return (await this.client.get("/rates/resolve", { params })).data;
+  }
+
+  async checkRate(body: {
+    work_type_code: string;
+    rate: number;
+    client_id?: string;
+    discipline?: string;
+  }) {
+    return (await this.client.post("/rates/check", body)).data;
+  }
+
+  // ---------------------------------------------------------------- NCRs
+
+  async listNCRs(params?: {
+    status?: string;
+    job_id?: string;
+    severity?: string;
+    open_only?: boolean;
+  }) {
+    return (await this.client.get("/ncrs/", { params })).data;
+  }
+
+  async getNCR(ncrId: string) {
+    return (await this.client.get(`/ncrs/${ncrId}`)).data;
+  }
+
+  async raiseNCR(body: any) {
+    return (await this.client.post("/ncrs/", body)).data;
+  }
+
+  async ncrGate(params?: { job_id?: string; work_package_id?: string }) {
+    return (await this.client.get("/ncrs/gate", { params })).data;
+  }
+
+  async proposeNCRDisposition(ncrId: string, body: any) {
+    return (await this.client.post(`/ncrs/${ncrId}/disposition`, body)).data;
+  }
+
+  async acceptNCRDisposition(ncrId: string, body: any = {}) {
+    return (await this.client.post(`/ncrs/${ncrId}/accept`, body)).data;
+  }
+
+  async submitNCRForVerification(ncrId: string, body: any) {
+    return (await this.client.post(`/ncrs/${ncrId}/submit`, body)).data;
+  }
+
+  async verifyNCR(ncrId: string, body: any) {
+    return (await this.client.post(`/ncrs/${ncrId}/verify`, body)).data;
+  }
+
+  async voidNCR(ncrId: string, body: any) {
+    return (await this.client.post(`/ncrs/${ncrId}/void`, body)).data;
+  }
+
+  // -------------------------------------------------------- impartiality
+
+  async impartialityExposure(windowDays = 365) {
+    return (
+      await this.client.get("/risks/impartiality/exposure", {
+        params: { window_days: windowDays },
+      })
+    ).data;
+  }
+
+  async impartialityProposals(windowDays = 365) {
+    return (
+      await this.client.get("/risks/impartiality/proposals", {
+        params: { window_days: windowDays },
+      })
+    ).data;
+  }
 }
 
 export const api = new API();

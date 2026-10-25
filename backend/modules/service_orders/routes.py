@@ -5,6 +5,7 @@ from modules.service_orders.service import ServiceOrderService
 router = APIRouter(prefix="/service-orders", tags=["Service Orders"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list(job_id: str = "", page: int = 1, per_page: int = 25, user: dict = Depends(get_current_user)):
     return await ServiceOrderService.list(user["site_id"], job_id, page, per_page)
@@ -27,4 +28,4 @@ async def create(data: dict, user: dict = Depends(get_current_user)):
 
 @router.put("/{so_id}")
 async def update(so_id: str, data: dict, user: dict = Depends(get_current_user)):
-    return await ServiceOrderService.update(so_id, data)
+    return await ServiceOrderService.update(so_id, data, user.get("site_id", "SITE-01"))

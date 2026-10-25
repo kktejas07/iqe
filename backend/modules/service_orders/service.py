@@ -21,14 +21,23 @@ class ServiceOrderService:
 
     @staticmethod
     async def create(data: dict, site_id: str, user_id: str):
-        existing = await ServiceOrder.find_one(ServiceOrder.so_id == data["so_id"], ServiceOrder.site_id == site_id)
-        if existing: raise HTTPException(400, "Service Order ID already exists")
+        so_id = data.get("so_id")
+        if not so_id:
+            so_id = await ServiceOrderService.get_next_number(data.get("so_type", "SO"), site_id)
+            data["so_id"] = so_id
+        else:
+            existing = await ServiceOrder.find_one(ServiceOrder.so_id == so_id, ServiceOrder.site_id == site_id)
+            if existing: raise HTTPException(400, "Service Order ID already exists")
+        if not data.get("so_number"):
+            data["so_number"] = so_id
+        if "items" in data and "po_items" not in data:
+            data["po_items"] = data.pop("items")
         so = ServiceOrder(**data, site_id=site_id, created_by=user_id)
         await so.insert()
         return so
 
     @staticmethod
-    async def update(so_id: str, data: dict):
+    async def update(so_id: str, data: dict, site_id: str = "SITE-01"):
         so = await ServiceOrder.find_one(ServiceOrder.so_id == so_id, ServiceOrder.site_id == site_id)
         if not so: raise HTTPException(404, "Service Order not found")
         for k, v in data.items():

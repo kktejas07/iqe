@@ -32,9 +32,20 @@ export default function LoginPage() {
     }
   }
 
-  const fillDemo = (u: string, p: string) => {
+  const fillDemo = async (u: string, p: string) => {
     setUsername(u);
     setPassword(p);
+    setError("");
+    setLoading(true);
+    try {
+      await api.login(u, p);
+      router.push("/dashboard");
+    } catch {
+      setError("Invalid credentials. Check username or password.");
+      setErrorKey((k) => k + 1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

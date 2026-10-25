@@ -8,6 +8,7 @@ from modules.work_types.service import WorkTypeService
 router = APIRouter(prefix="/work-types", tags=["Work Types"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_work_types(
     search: str = "",

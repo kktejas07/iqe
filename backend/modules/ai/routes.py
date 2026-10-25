@@ -49,3 +49,23 @@ async def suggest_inspector(job_type: str = "inspection", location: str = "",
             work_package_id or None,
         )
     }
+
+from pydantic import BaseModel
+from typing import Optional
+
+class CopilotPayload(BaseModel):
+    action: str = "boq_variance_audit"
+    query: Optional[str] = ""
+    context: Optional[dict] = None
+
+@router.post("/copilot-action")
+async def copilot_action(payload: CopilotPayload, user: dict = Depends(get_current_user)):
+    return await ai_service.execute_copilot_action(
+        payload.action, payload.query, payload.context, user.get("site_id", "SITE-01")
+    )
+
+@router.post("/copilot-action/", include_in_schema=False)
+async def copilot_action_slash(payload: CopilotPayload, user: dict = Depends(get_current_user)):
+    return await ai_service.execute_copilot_action(
+        payload.action, payload.query, payload.context, user.get("site_id", "SITE-01")
+    )

@@ -5,6 +5,7 @@ from modules.jobs.service import JobService
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list(search: str = "", status: str = "", page: int = 1, per_page: int = 100, user: dict = Depends(get_current_user)):
     return await JobService.list(user.get("site_id", "SITE-01"), search, status, page, per_page)
@@ -44,6 +45,7 @@ async def get(job_id: str, include: str = "", user: dict = Depends(get_current_u
     return await JobService.get(job_id, user.get("site_id", "SITE-01"), include)
 
 
+@router.post("", include_in_schema=False)
 @router.post("/")
 async def create(data: dict, user: dict = Depends(get_current_user)):
     return await JobService.create(data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-01"))

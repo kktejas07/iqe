@@ -104,7 +104,7 @@ export default function JobsPage() {
   async function loadSowTemplates() {
     try {
       const res = await api.getSOWTemplates();
-      setSowTemplates(res || []);
+      setSowTemplates(Array.isArray(res) ? res : (res?.templates || []));
     } catch (e) {
       console.warn("Failed to load SOW templates", e);
     }

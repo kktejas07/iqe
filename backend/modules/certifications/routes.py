@@ -8,6 +8,7 @@ from modules.certifications.service import CertificationService
 router = APIRouter(prefix="/certifications", tags=["Certifications"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_certifications(
     work_package_id: str = "",

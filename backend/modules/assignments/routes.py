@@ -8,6 +8,7 @@ from modules.assignments.service import AssignmentService
 router = APIRouter(prefix="/assignments", tags=["Assignments"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_assignments(
     work_package_id: str = "",

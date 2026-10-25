@@ -16,6 +16,7 @@ def _ctx(user: dict) -> tuple[str, str]:
     return user.get("site_id", "SITE-01"), user.get("user_id", "USR-001")
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_enquiries(
     status: str = "",

@@ -6,6 +6,7 @@ from modules.clients.service import ClientService
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_clients(
     search: str = "", 

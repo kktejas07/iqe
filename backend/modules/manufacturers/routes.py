@@ -6,6 +6,7 @@ from modules.manufacturers.service import ManufacturerService
 router = APIRouter(prefix="/manufacturers", tags=["Manufacturers"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_manufacturers(
     search: str = "", 

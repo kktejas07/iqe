@@ -80,6 +80,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
   const quickMenuRef = useRef<HTMLDivElement>(null);
   const themeMenuRef = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   // Close all menus when navigating
   useEffect(() => {
@@ -104,6 +105,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
       if (quickMenuRef.current && !quickMenuRef.current.contains(target)) setShowQuickMenu(false);
       if (themeMenuRef.current && !themeMenuRef.current.contains(target)) setShowThemeMenu(false);
       if (searchBoxRef.current && !searchBoxRef.current.contains(target)) setSearchResults(null);
+      if (navRef.current && !navRef.current.contains(target)) setActiveDropdown(null);
     };
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -148,9 +150,9 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
   };
 
   return (
-    <header className={`w-full ${isDark ? "bg-[#001a2c]/95 backdrop-blur-md border-slate-800 text-white" : "bg-white/90 backdrop-blur-md border-slate-200/90 text-slate-800"} border-b sticky top-0 z-50 transition-all duration-300 ${scrolled ? "header-scrolled" : "shadow-sm"}`}>
+    <header className={`w-full ${isDark ? "bg-[#001a2c]/95 backdrop-blur-md border-slate-800 text-white" : "bg-white/90 backdrop-blur-md border-slate-200/90 text-slate-800"} border-b sticky top-0 z-[100] transition-all duration-300 ${scrolled ? "header-scrolled" : "shadow-sm"}`}>
       {/* Top Header Branding & Primary Navigation Row */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 overflow-hidden">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* IQE Brand Logo (Official Q & Globe Logo + Title) */}
         <Link href="/dashboard" className="flex items-center gap-3 group min-w-0 shrink" aria-label="Ideal Quality Engineers (I) Pvt Ltd - home">
           <IQELogo className="w-11 h-11 shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500 ease-spring drop-shadow-sm" />
@@ -164,7 +166,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
         </Link>
 
         {/* Top Navigation Menu (ADMIN, ANALYTICS, PMS FORMATES, QMS) - [HOME, SALES, OPERATIONS, FINANCE are hidden as requested] */}
-        <nav className="hidden shrink-0 lg:flex items-center gap-0.5 xl:gap-1 text-xs font-extrabold uppercase tracking-wider whitespace-nowrap">
+        <nav ref={navRef} className="hidden shrink-0 lg:flex items-center gap-0.5 xl:gap-1 text-xs font-extrabold uppercase tracking-wider whitespace-nowrap">
           {/* ADMIN Dropdown */}
           <div className="relative group/dd" onMouseEnter={() => setActiveDropdown("admin")} onMouseLeave={() => setActiveDropdown(null)}>
             <button
@@ -181,7 +183,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className={`w-3.5 h-3.5 ${isDark ? "text-slate-300" : "text-[#0084bf]"} transition-transform duration-300 group-hover/dd:rotate-180`} />
             </button>
             {activeDropdown === "admin" && (
-              <div className={`absolute top-full left-0 w-56 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-1.5 z-50 capitalize normal-case text-xs space-y-1`}>
+              <div className={`absolute top-full left-0 w-56 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-1.5 z-[110] capitalize normal-case text-xs space-y-1`}>
                 <Link onClick={() => setActiveDropdown(null)} href="/clients" className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-sky-50 text-[#00618e]"} font-bold`}>
                   <Building2 className="w-4 h-4 text-[#0084bf]" /> Clients &amp; Corporate Details
                 </Link>
@@ -234,7 +236,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className={`w-3.5 h-3.5 ${isDark ? "text-slate-300" : "text-[#0084bf]"} transition-transform duration-300 group-hover/dd:rotate-180`} />
             </button>
             {activeDropdown === "operations" && (
-              <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
+              <div className={`absolute top-full left-0 w-72 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Field Operations</span>
                   <span className="text-blue-500 font-bold">8 Tools</span>
@@ -325,7 +327,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
             </button>
             {activeDropdown === "formats" && (
-              <div className={`absolute top-full left-0 w-88 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
+              <div className={`absolute top-full left-0 w-88 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Inspection Formats</span>
                   <span className="text-sky-500 font-bold">10 Formats</span>
@@ -515,7 +517,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
             </button>
             {activeDropdown === "finance" && (
-              <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1`}>
+              <div className={`absolute top-full left-0 w-72 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Finance &amp; Contracts</span>
                   <span className="text-amber-600 font-bold">5 Modules</span>
@@ -576,7 +578,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
             </button>
             {activeDropdown === "sops" && (
-              <div className={`absolute top-full left-0 w-72 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
+              <div className={`absolute top-full left-0 w-72 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1.5`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Standard Operating Procedures</span>
                   <span className="text-emerald-600 font-bold">SOP Hub</span>
@@ -636,7 +638,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
             </button>
             {activeDropdown === "wi" && (
-              <div className={`absolute top-full left-0 w-80 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
+              <div className={`absolute top-full left-0 w-80 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1.5`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Field Execution Protocols</span>
                   <span className="text-amber-600 font-bold">WI Library</span>
@@ -709,7 +711,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover/dd:rotate-180" />
             </button>
             {activeDropdown === "qp" && (
-              <div className={`absolute top-full left-0 w-80 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-50 capitalize normal-case text-xs space-y-1.5`}>
+              <div className={`absolute top-full left-0 w-80 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-2 z-[110] capitalize normal-case text-xs space-y-1.5`}>
                 <div className="px-3 py-1 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-800/80 mb-1 flex items-center justify-between">
                   <span>Inspection &amp; Test Plans (ITP)</span>
                   <span className="text-purple-600 font-bold">QA Plans</span>
@@ -768,7 +770,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <ChevronDown className={`w-3.5 h-3.5 ${isDark ? "text-slate-300" : "text-[#0084bf]"} transition-transform duration-300 group-hover/dd:rotate-180`} />
             </button>
             {activeDropdown === "qms" && (
-              <div className={`absolute top-full left-0 w-56 origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-1.5 z-50 capitalize normal-case text-xs space-y-1`}>
+              <div className={`absolute top-full left-0 w-56 max-h-[85vh] overflow-y-auto origin-top-left animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900"} border rounded-2xl shadow-2xl p-1.5 z-[110] capitalize normal-case text-xs space-y-1`}>
                 <Link onClick={() => setActiveDropdown(null)} href="/complaints" className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl ${isDark ? "hover:bg-slate-800 text-slate-100" : "hover:bg-amber-50 text-amber-800"} font-bold`}>
                   <Award className="w-4 h-4 text-[#e35f14]" /> Customer Complaints &amp; Feedback
                 </Link>
@@ -803,7 +805,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
             </button>
 
             {showQuickMenu && (
-              <div role="menu" className={`absolute right-0 top-12 w-56 origin-top-right animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-800"} border rounded-2xl shadow-2xl p-1.5 z-50`}>
+              <div role="menu" className={`absolute right-0 top-12 w-56 origin-top-right animate-dropdown-in ${isDark ? "bg-[#001a2c] border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-800"} border rounded-2xl shadow-2xl p-1.5 z-[110]`}>
                 <Link
                   href="/jobs/new"
                   onClick={() => setShowQuickMenu(false)}
@@ -845,7 +847,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
               <span className="hidden 2xl:inline">{THEME_LABELS[theme]}</span>
             </button>
             {showThemeMenu && changeTheme && (
-              <div role="menu" className="absolute right-0 top-11 w-56 origin-top-right animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 z-50 text-xs space-y-0.5">
+              <div role="menu" className="absolute right-0 top-11 w-56 origin-top-right animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 z-[110] text-xs space-y-0.5">
                 <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Appearance</div>
                 {([
                   { id: "iqe-brand", label: "IQE Brand", swatch: "from-[#0084bf] to-[#e35f14]" },
@@ -917,7 +919,7 @@ export function Header({ theme = "iqe-brand", changeTheme }: HeaderProps) {
           </form>
 
           {searchResults && (
-            <div className="absolute top-10 left-0 w-full origin-top animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-50 max-h-80 overflow-y-auto">
+            <div className="absolute top-10 left-0 w-full origin-top animate-dropdown-in bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 z-[110] max-h-80 overflow-y-auto">
               <div className="flex items-center justify-between px-2 mb-1 pb-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                   {searchResults.length} result{searchResults.length === 1 ? "" : "s"}

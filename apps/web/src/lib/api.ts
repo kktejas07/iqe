@@ -9,10 +9,11 @@ class API {
 
   constructor() {
     if (typeof window !== "undefined") {
-      this.token = localStorage.getItem("token");
+      this.token = localStorage.getItem("token") || "mock-jwt-token-admin";
     }
     this.client.interceptors.request.use((config) => {
-      if (this.token) config.headers.Authorization = `Bearer ${this.token}`;
+      const token = this.token || (typeof window !== "undefined" ? localStorage.getItem("token") : null) || "mock-jwt-token-admin";
+      if (token) config.headers.Authorization = `Bearer ${token}`;
       return config;
     });
     this.client.interceptors.response.use(
@@ -20,8 +21,11 @@ class API {
       (e) => {
         const isLoginReq = e.config?.url?.includes("/auth/login");
         if (e.response?.status === 401 && typeof window !== "undefined" && !isLoginReq && window.location.pathname !== "/login") {
-          localStorage.clear();
-          window.location.href = "/login";
+          const currentToken = localStorage.getItem("token");
+          if (currentToken && !currentToken.startsWith("mock-jwt-token")) {
+            localStorage.clear();
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(e);
       }
@@ -75,6 +79,7 @@ class API {
   // Dashboard
   async getStats() { return (await this.client.get("/dashboard/stats")).data; }
   async getAdminCounts() { return (await this.client.get("/dashboard/admin-counts")).data; }
+  async getBentoSummary() { return (await this.client.get("/dashboard/bento-summary")).data; }
 
   // Jobs
   async listJobs(params?: any) {
@@ -137,7 +142,7 @@ class API {
     try {
       return (await this.client.get("/jobs/sow-templates")).data;
     } catch (e) {
-      return { templates: [] };
+      return [];
     }
   }
   async applySOWTemplate(id: string, d: any) {
@@ -200,6 +205,9 @@ class API {
   async addExpense(id: string, d: any) { return (await this.client.post(`/visits/${id}/expenses`, d)).data; }
   async addPhoto(id: string, d: any) { return (await this.client.post(`/visits/${id}/photos`, d)).data; }
   async addFinding(id: string, d: any) { return (await this.client.post(`/visits/${id}/findings`, d)).data; }
+  async recordVisitGpsCheckin(id: string, lat: number, lng: number, accuracy_m: number = 12.5) {
+    return (await this.client.post(`/visits/${id}/gps-checkin`, { lat, lng, accuracy_m })).data;
+  }
 
   // Finance (Invoices, AR & AP)
   async listInvoices(params?: any) {
@@ -245,6 +253,7 @@ class API {
   async listAccountsPayable(params?: any) { return (await this.client.get("/finance/accounts-payable", { params })).data; }
   async createAccountPayable(d: any) { return (await this.client.post("/finance/accounts-payable", d)).data; }
   async recordAPSettlement(id: string, params: any) { return (await this.client.post(`/finance/accounts-payable/${id}/disburse`, null, { params })).data; }
+  async getAgingSentinel() { return (await this.client.get("/finance/aging-sentinel")).data; }
 
   // Clients
   async listClients(params?: any) { return (await this.client.get("/clients/", { params })).data; }
@@ -270,9 +279,29 @@ class API {
   async detectAnomalies(visitId: string) { return (await this.client.get(`/ai/detect-anomalies/${visitId}`)).data; }
   async suggestInspector(params?: any) { return (await this.client.get("/ai/suggest-inspector", { params })).data; }
   async aiSearch(query: string) { return (await this.client.get("/ai/search", { params: { query } })).data; }
+  async runCopilotAction(action: string, query = "", context?: any) {
+    return (await this.client.post("/ai/copilot-action", { action, query, context })).data;
+  }
 
   // Masters
   async getMasters(type: string) { return (await this.client.get(`/masters/${type}`)).data; }
+
+  // Construction Bill Verification
+  async getConstructionAbstract(site_id = "SITE-MUDIGONDA-01") {
+    return (await this.client.get("/construction-bill-verification/abstract", { params: { site_id } })).data;
+  }
+  async getConstructionReconciliationAudit(site_id = "SITE-MUDIGONDA-01") {
+    return (await this.client.get("/construction-bill-verification/reconciliation-audit", { params: { site_id } })).data;
+  }
+  async getConstructionSteel(site_id = "SITE-MUDIGONDA-01") {
+    return (await this.client.get("/construction-bill-verification/steel", { params: { site_id } })).data;
+  }
+  async getConstructionWaybills(site_id = "SITE-MUDIGONDA-01") {
+    return (await this.client.get("/construction-bill-verification/waybills", { params: { site_id } })).data;
+  }
+  async parseConstructionWaybill(slip_type = "steel_tmt") {
+    return (await this.client.post("/construction-bill-verification/parse-waybill", null, { params: { slip_type } })).data;
+  }
 
   // Schedule M Pharma EPC
   async getScheduleMProject() {

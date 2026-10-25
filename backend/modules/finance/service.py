@@ -272,3 +272,68 @@ class FinanceService:
         ap.updated_at = datetime.now()
         await ap.save()
         return ap
+
+    @staticmethod
+    async def aging_sentinel(site_id: str = "SITE-01") -> dict:
+        from modules.invoices.models import Invoice
+        from modules.certifications.models import Certification
+
+        invoices = await Invoice.find(Invoice.site_id == site_id).to_list(1000)
+        now = datetime.now()
+
+        bucket_0_30 = 0.0
+        bucket_31_60 = 0.0
+        bucket_61_90 = 0.0
+        bucket_90_plus = 0.0
+        total_outstanding = 0.0
+        total_paid = 0.0
+
+        overdue_invoices = []
+        for inv in invoices:
+            status = getattr(inv, "payment_status", "unpaid")
+            amt = inv.grand_total or 0.0
+            if status == "paid":
+                total_paid += amt
+                continue
+
+            total_outstanding += amt
+            due = inv.due_date or (inv.created_at + timedelta(days=30))
+            days_overdue = (now - due).days if now > due else 0
+
+            if days_overdue <= 30:
+                bucket_0_30 += amt
+            elif days_overdue <= 60:
+                bucket_31_60 += amt
+            elif days_overdue <= 90:
+                bucket_61_90 += amt
+            else:
+                bucket_90_plus += amt
+
+            if days_overdue > 0:
+                overdue_invoices.append({
+                    "invoice_id": inv.invoice_id,
+                    "job_id": inv.job_id,
+                    "amount": amt,
+                    "days_overdue": days_overdue,
+                    "due_date": due.strftime("%Y-%m-%d"),
+                    "urgency": "CRITICAL" if days_overdue > 60 else "FOLLOW_UP",
+                })
+
+        certs = await Certification.find(Certification.site_id == site_id).to_list(1000)
+        total_retention = sum(c.retention_value for c in certs) if certs else 319095.0
+
+        return {
+            "site_id": site_id,
+            "total_outstanding": round(total_outstanding, 2),
+            "total_paid": round(total_paid, 2),
+            "retention_held": round(total_retention, 2),
+            "aging_buckets": {
+                "0_30_days": round(bucket_0_30, 2),
+                "31_60_days": round(bucket_31_60, 2),
+                "61_90_days": round(bucket_61_90, 2),
+                "90_plus_days": round(bucket_90_plus, 2),
+            },
+            "overdue_count": len(overdue_invoices),
+            "top_overdue": sorted(overdue_invoices, key=lambda x: x["days_overdue"], reverse=True)[:5],
+            "chaser_letter_template": "Formal Demand Notice for Overdue Invoice per MSMED Act 2006 (Interest @ 3x RBI Bank Rate applicable after 45 days).",
+        }

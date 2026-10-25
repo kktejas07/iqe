@@ -8,6 +8,7 @@ from modules.work_packages.service import WorkPackageService
 router = APIRouter(prefix="/work-packages", tags=["Work Packages"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_work_packages(
     job_id: str = "",

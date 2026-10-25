@@ -5,6 +5,7 @@ from modules.invoices.service import InvoiceService
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list(
     search: str = "",

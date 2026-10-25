@@ -12,7 +12,7 @@ from modules.verification.service import VerificationService
 router = APIRouter(prefix="/verify", tags=["Public verification"])
 
 
-@router.get("/{reference}")
+@router.get("/{reference:path}")
 async def verify(reference: str, site_id: str = ""):
     """Does IQE stand behind this document right now?
 

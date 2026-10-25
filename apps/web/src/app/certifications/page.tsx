@@ -1,8 +1,10 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   FileCheck, Search, RefreshCw, X, AlertTriangle, CheckCircle2, ChevronRight,
+  ShieldCheck, ArrowUpRight,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
@@ -51,6 +53,7 @@ export default function CertificationsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [unbilledOnly, setUnbilledOnly] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [qrModalCert, setQrModalCert] = useState<Certification | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -275,6 +278,7 @@ export default function CertificationsPage() {
                   <th className="px-4 py-3 text-right">Deducted</th>
                   <th className="px-4 py-3 text-right">Net payable</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Verification</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -348,11 +352,23 @@ export default function CertificationsPage() {
                             </div>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setQrModalCert(c);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-[#0084bf] hover:text-white text-[#0084bf] dark:text-sky-300 text-xs font-bold border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>QR Seal</span>
+                          </button>
+                        </td>
                       </tr>
 
                       {open && (
                         <tr className="bg-slate-50/60 dark:bg-slate-800/30">
-                          <td colSpan={7} className="px-4 py-4">
+                          <td colSpan={8} className="px-4 py-4">
                             {c.dispute_note && (
                               <p className="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
                                 Disputed: {c.dispute_note}
@@ -441,6 +457,80 @@ export default function CertificationsPage() {
           Showing {visible.length} of {certs.length}. Select a row to see the measured lines
           behind the figures.
         </p>
+      )}
+
+      {/* Cryptographic Digital QR Verification Modal */}
+      {qrModalCert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-[#001a2c] text-white border border-[#0084bf]/50 shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-heading font-bold text-base text-white">Cryptographic Certificate Seal</h3>
+              </div>
+              <button
+                onClick={() => setQrModalCert(null)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center space-y-3 py-2">
+              <div className="p-3 bg-white rounded-2xl shadow-lg border border-slate-200">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                    typeof window !== "undefined"
+                      ? `${window.location.origin}/verify?ref=${qrModalCert.certification_id}`
+                      : `http://localhost:3000/verify?ref=${qrModalCert.certification_id}`
+                  )}`}
+                  alt="QR Verification Seal"
+                  className="w-44 h-44"
+                />
+              </div>
+              <div className="text-center">
+                <span className="font-mono font-black text-sm text-sky-300 block">
+                  {qrModalCert.certification_id}
+                </span>
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  Scan to verify document validity &amp; ISO/IEC 17020 compliance
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs rounded-2xl bg-white/5 p-3.5 border border-white/10">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Net Certified:</span>
+                <span className="font-mono font-bold text-white">
+                  {formatCurrency(qrModalCert.net_payable_value, qrModalCert.currency)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Work Package:</span>
+                <span className="font-mono text-slate-200">{qrModalCert.work_package_id}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Status:</span>
+                <span className="font-bold text-emerald-400 uppercase">{qrModalCert.status}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Issuing Authority:</span>
+                <span className="text-slate-200">Ideal Quality Engineers</span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                href={`/verify?ref=${qrModalCert.certification_id}`}
+                target="_blank"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0084bf] to-[#00618e] hover:from-[#0075ab] hover:to-[#00527a] text-white text-xs font-bold transition-all shadow-glow-blue flex items-center justify-center gap-1.5"
+              >
+                <span>Open Public Verification Page</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

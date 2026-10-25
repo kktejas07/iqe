@@ -320,12 +320,13 @@ async def main() -> int:
                              "not look like a development one")
     args = parser.parse_args()
 
+    db_name = getattr(settings, "database_name", settings.mongodb_db_name)
     client = AsyncMongoClient(settings.mongodb_url)
-    db = client[settings.database_name]
+    db = client[db_name]
     if not args.force and not any(
-        hint in settings.database_name.lower() for hint in ("dev", "test", "local", "iqe")
+        hint in db_name.lower() for hint in ("dev", "test", "local", "iqe")
     ):
-        print(f"Refusing to touch '{settings.database_name}'. Pass --force if you mean it.")
+        print(f"Refusing to touch '{db_name}'. Pass --force if you mean it.")
         return 1
 
     await init_beanie(
@@ -335,8 +336,7 @@ async def main() -> int:
             Job, AuditEntry, Sequence,
         ],
     )
-    print(f"{'Wiping' if args.wipe else 'Seeding'} pre-sales in "
-          f"'{settings.database_name}'\n")
+    print(f"{'Wiping' if args.wipe else 'Seeding'} pre-sales in '{db_name}'\n")
     await (wipe() if args.wipe else seed())
     return 0
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  UserCheck, RefreshCw, X, ShieldCheck, AlertTriangle, CheckCircle2, Search,
+  UserCheck, RefreshCw, X, ShieldCheck, AlertTriangle, CheckCircle2, Search, Sparkles,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
@@ -214,12 +214,44 @@ export default function AssignmentsPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => openRecommendations(wp)}
-                  className="shrink-0 rounded-xl bg-[#0084bf] px-3.5 py-2 text-sm font-semibold text-white shadow-glow-blue hover:bg-[#0075ab]"
-                >
-                  Find officers
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={async () => {
+                      setAssigning(wp.work_package_id);
+                      try {
+                        const recs = await api.recommendOfficers(wp.work_package_id, 1);
+                        if (recs?.recommendations?.[0]) {
+                          const best = recs.recommendations[0];
+                          await api.assignOfficer({
+                            work_package_id: wp.work_package_id,
+                            person_id: best.person_id,
+                            method: "ai_recommended",
+                          });
+                          toast.success(`⚡ Smart Dispatched ${best.full_name} (${Math.round(best.score * 100)}% fit, ISO 17020 impartial)`);
+                          load();
+                        } else {
+                          toast.error("No eligible impartial inspector found.");
+                        }
+                      } catch (err: any) {
+                        toast.error(err?.response?.data?.detail || "Dispatch failed");
+                      } finally {
+                        setAssigning(null);
+                      }
+                    }}
+                    disabled={assigning === wp.work_package_id}
+                    className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs px-3 py-2 shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                    <span>Auto-Dispatch</span>
+                  </button>
+
+                  <button
+                    onClick={() => openRecommendations(wp)}
+                    className="shrink-0 rounded-xl bg-[#0084bf] px-3.5 py-2 text-sm font-semibold text-white shadow-glow-blue hover:bg-[#0075ab]"
+                  >
+                    Find officers
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -293,15 +325,20 @@ function RecommendationPanel({
           </div>
         ) : !rec ? null : (
           <>
-            {/* The gate, stated plainly */}
-            <p className="mb-4 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
-              {rec.eligible_count} of {rec.pool_size} people can do this work.
-              {rec.required_authorization_types?.length > 0 && (
-                <> It needs authorization for {rec.required_authorization_types.join(", ")}.</>
-              )}{" "}
-              Anyone not authorized, conflicted or already committed is excluded, not
-              ranked lower.
-            </p>
+            {/* The ISO 17020 gate, stated plainly */}
+            <div className="mb-4 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 p-3 text-xs text-blue-950 dark:text-blue-200 border border-blue-200 dark:border-blue-800 space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-[#0084bf] dark:text-sky-300">
+                <ShieldCheck className="h-4 w-4" />
+                <span>ISO/IEC 17020:2026 Impartiality &amp; Competency Gate</span>
+              </div>
+              <p className="leading-relaxed">
+                {rec.eligible_count} of {rec.pool_size} inspectors satisfy criteria.
+                {rec.required_authorization_types?.length > 0 && (
+                  <> Requires active authorization for <strong>{rec.required_authorization_types.join(", ")}</strong>.</>
+                )}{" "}
+                Inspectors with supplier affiliations, active conflict declarations (Clause 4.1), or schedule overlaps are strictly excluded.
+              </p>
+            </div>
 
             {rec.recommendations.length === 0 ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-6 text-center dark:border-amber-900/50 dark:bg-amber-950/30">
@@ -332,13 +369,16 @@ function RecommendationPanel({
                             {r.full_name}
                           </span>
                           <span className="font-mono text-xs text-slate-400">{r.person_id}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            ISO 17020 Impartial
+                          </span>
                         </div>
                         <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400">
                           {r.base_location && <span>{r.base_location}</span>}
                           <span>{r.engagement_type.toLowerCase().replace("_", " ")}</span>
                           {r.authorization_valid_until && (
-                            <span className="inline-flex items-center gap-1">
-                              <ShieldCheck className="h-3 w-3" />
+                            <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                              <ShieldCheck className="h-3 w-3 text-emerald-600" />
                               valid to {formatDate(r.authorization_valid_until)}
                             </span>
                           )}

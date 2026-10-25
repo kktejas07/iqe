@@ -6,6 +6,7 @@ from modules.control_numbers.service import ControlNumberService
 router = APIRouter(prefix="/control-numbers", tags=["Control Numbers"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_control_numbers(
     search: str = "", 

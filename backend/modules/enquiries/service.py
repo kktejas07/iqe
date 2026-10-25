@@ -835,7 +835,69 @@ class EnquiryService:
             + ([f"proposal:{eq.current_proposal_id}"] if eq.current_proposal_id else []),
             created_by=user_id,
         )
+
+        # Autonomous SOW Scenario injection
+        from modules.jobs.scenarios import PREDEFINED_SOW_TEMPLATES
+        from modules.jobs.models import SOWItem
+        from modules.service_orders.models import ServiceOrder
+        from modules.work_packages.models import WorkPackage
+
+        cat_text = (eq.category or "") + " " + " ".join(c.description or "" for c in (eq.categories or [])) + " " + (payload.get("title") or "")
+        desc_lower = cat_text.lower()
+        if any(w in desc_lower for w in ["pipe", "vessel", "boiler", "tank"]):
+            template_code = "PV-ASME"
+        elif any(w in desc_lower for w in ["structur", "steel", "fabricat"]):
+            template_code = "STR-AWS"
+        elif any(w in desc_lower for w in ["electr", "panel", "switchgear"]):
+            template_code = "ELE-IEC"
+        elif any(w in desc_lower for w in ["valve", "flow"]):
+            template_code = "VAL-API"
+        else:
+            template_code = "NDT-ASNT"
+
+        chosen_template = next((t for t in PREDEFINED_SOW_TEMPLATES if t["code"] == template_code), PREDEFINED_SOW_TEMPLATES[0])
+        job.job_type_category = template_code.split("-")[0]
+        job.scope_of_work = [SOWItem(**item) for item in chosen_template["checklist_items"]]
         await job.insert()
+
+        # Autonomous linked ServiceOrder creation
+        so_id = await next_identifier(ServiceOrder, "so_id", site_id, "SO")
+        so = ServiceOrder(
+            so_id=so_id,
+            site_id=site_id,
+            job_id=job_id,
+            so_number=f"SO/{job_id.replace('JOB-', '')}",
+            order_name=f"Service Order - {job.title}",
+            client_id=eq.client_id,
+            status="approved",
+            order_type="tpi_inspection",
+            estimated_cost=job.budget_total,
+            currency=job.currency,
+            created_by=user_id,
+        )
+        await so.insert()
+
+        # Autonomous linked WorkPackage creation
+        wp_id = await next_identifier(WorkPackage, "work_package_id", site_id, "WP")
+        work_type_code = "CODE_INSP" if template_code != "NDT-ASNT" else "VENDOR_AUDIT"
+        wp = WorkPackage(
+            work_package_id=wp_id,
+            site_id=site_id,
+            job_id=job_id,
+            so_id=so_id,
+            work_type_code=work_type_code,
+            title=f"Field Quality & NDT Package for {job.title}",
+            description=f"Auto-generated inspection package linked to SOW {template_code}",
+            status="planned",
+            client_id=eq.client_id,
+            planned_quantity=len(job.scope_of_work),
+            planned_uom="CHECKPOINTS",
+            rate=job.budget_total,
+            ceiling_value=job.budget_total,
+            currency=job.currency,
+            created_by=user_id,
+        )
+        await wp.insert()
 
         eq.won_job_id = job_id
         await eq.save()
@@ -846,16 +908,23 @@ class EnquiryService:
         await audit.record(
             "enquiry", enquiry_id, AuditAction.STATUS_CHANGE,
             actor={"user_id": user_id}, site_id=site_id,
-            note=f"Converted to job {job_id}",
-            context={"job_id": job_id, "award_reference": eq.award_reference},
+            note=f"Converted to job {job_id} with SO {so_id} and WP {wp_id}",
+            context={"job_id": job_id, "so_id": so_id, "work_package_id": wp_id, "award_reference": eq.award_reference},
         )
         await audit.record(
             "job", job_id, AuditAction.CREATE,
             actor={"user_id": user_id}, site_id=site_id,
-            note=f"Created from enquiry {enquiry_id}",
-            context={"enquiry_id": enquiry_id},
+            note=f"Created from enquiry {enquiry_id} with SOW {template_code}",
+            context={"enquiry_id": enquiry_id, "template_code": template_code},
         )
-        return {"job_id": job_id, "enquiry": eq.model_dump(exclude={"id"})}
+        return {
+            "job_id": job_id,
+            "so_id": so_id,
+            "work_package_id": wp_id,
+            "applied_template": chosen_template["method_name"],
+            "sow_checkpoints_count": len(job.scope_of_work),
+            "enquiry": eq.model_dump(exclude={"id"}),
+        }
 
 
 class PipelineService:

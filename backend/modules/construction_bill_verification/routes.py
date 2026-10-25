@@ -9,6 +9,16 @@ async def get_construction_abstract(site_id: str = "SITE-MUDIGONDA-01"):
     return ConstructionBillVerificationService.get_abstract(site_id)
 
 
+@router.get("/reconciliation-audit")
+async def get_reconciliation_audit(site_id: str = "SITE-MUDIGONDA-01"):
+    return ConstructionBillVerificationService.get_reconciliation_audit(site_id)
+
+
+@router.get("/reconciliation-audit/", include_in_schema=False)
+async def get_reconciliation_audit_slash(site_id: str = "SITE-MUDIGONDA-01"):
+    return ConstructionBillVerificationService.get_reconciliation_audit(site_id)
+
+
 @router.get("/steel")
 async def get_steel_ledger(site_id: str = "SITE-MUDIGONDA-01"):
     return ConstructionBillVerificationService.get_steel_ledger(site_id)
@@ -22,6 +32,16 @@ async def get_waybills(site_id: str = "SITE-MUDIGONDA-01"):
 @router.get("/daily-logs")
 async def get_daily_logs(site_id: str = "SITE-MUDIGONDA-01"):
     return ConstructionBillVerificationService.get_daily_logs(site_id)
+
+
+@router.post("/parse-waybill")
+async def parse_waybill(slip_type: str = "steel_tmt"):
+    return ConstructionBillVerificationService.parse_weighbridge_slip(slip_type)
+
+
+@router.post("/parse-waybill/", include_in_schema=False)
+async def parse_waybill_slash(slip_type: str = "steel_tmt"):
+    return ConstructionBillVerificationService.parse_weighbridge_slip(slip_type)
 
 
 

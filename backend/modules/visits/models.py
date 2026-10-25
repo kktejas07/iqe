@@ -72,6 +72,19 @@ class Visit(Document):
     environmental_condition: Optional[str] = "Normal (Safety & Heat stress audited per ISO 9001:2026 Cl. 4.1)"
     impartiality_declared: bool = True  # Conflict of interest declaration per ISO/IEC 17020:2026 Cl. 4.1 / IQE-MS-10
     
+    # GPS Geofence & Check-In Verification (ISO/IEC 17020 Satellite Timestamping)
+    plant_latitude: Optional[float] = 17.5831  # Default plant perimeter (Gagillapur / Industrial Zone)
+    plant_longitude: Optional[float] = 78.3842
+    plant_geofence_radius_m: float = 250.0
+    gps_checkin_lat: Optional[float] = None
+    gps_checkin_lng: Optional[float] = None
+    gps_checkin_accuracy_m: Optional[float] = None
+    gps_checkin_timestamp: Optional[datetime] = None
+    gps_geofence_verified: Optional[bool] = None
+    gps_plant_distance_m: Optional[float] = None
+    gps_satellite_seal: Optional[str] = None
+    gps_checkin_by: Optional[str] = None
+    
     # Inspector Assignment & Dates
     inspector_id: Optional[str] = None
     inspector_name: Optional[str] = None

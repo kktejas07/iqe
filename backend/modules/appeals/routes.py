@@ -8,7 +8,8 @@ from modules.appeals.service import AppealService
 router = APIRouter(prefix="/appeals", tags=["Appeals"])
 
 
-@router.get("")
+@router.get("", include_in_schema=False)
+@router.get("/")
 async def list_appeals(
     status: str = "",
     entity_type: str = "",
@@ -27,7 +28,8 @@ async def appeal_summary(user: dict = Depends(get_current_user)):
     return await AppealService.summary(user.get("site_id", "SITE-01"))
 
 
-@router.post("")
+@router.post("", include_in_schema=False)
+@router.post("/")
 async def raise_appeal(data: dict = Body(...), user: dict = Depends(get_current_user)):
     """Contest an inspection decision. Distinct from a complaint, which is
     about service rather than the technical conclusion."""

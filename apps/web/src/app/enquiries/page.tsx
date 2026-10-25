@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
-  Briefcase, RefreshCw, Plus, ArrowRight, AlertTriangle, CheckCircle2, X,
+  Briefcase, RefreshCw, Plus, ArrowRight, AlertTriangle, CheckCircle2, X, Sparkles,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
@@ -165,13 +166,42 @@ export default function EnquiriesPage() {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => setOpen(e.enquiry_id)}
-                  className={buttonSecondary + " shrink-0 !px-2.5 !py-1.5 text-xs"}
-                >
-                  Open
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {e.status === "won" && (
+                    <button
+                      onClick={async (ev) => {
+                        ev.stopPropagation();
+                        try {
+                          const res = await api.convertEnquiry(e.enquiry_id, {});
+                          toast.success(`⚡ Converted ${e.enquiry_id} to ${res.job_id} & SO ${res.service_order_id}!`);
+                          load();
+                        } catch (err: any) {
+                          toast.error(err?.response?.data?.detail || "Conversion failed");
+                        }
+                      }}
+                      className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs px-3 py-1.5 shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                      Auto-Convert SOW
+                    </button>
+                  )}
+                  {e.status === "converted" && e.won_job_id && (
+                    <Link
+                      href={`/jobs`}
+                      className="rounded-xl bg-sky-50 dark:bg-sky-950/40 text-[#0084bf] dark:text-sky-300 font-bold text-xs px-2.5 py-1.5 border border-sky-200 dark:border-sky-800 flex items-center gap-1 hover:bg-sky-100"
+                    >
+                      <span>View Job {e.won_job_id}</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => setOpen(e.enquiry_id)}
+                    className={buttonSecondary + " shrink-0 !px-2.5 !py-1.5 text-xs"}
+                  >
+                    Open
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </Card>
           ))}
@@ -497,22 +527,28 @@ function NextStep({
       )}
 
       {status === "won" && (
-        <div className="mt-2">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Won. Converting creates the job, budgeted at the revision the client awarded.
-          </p>
+        <div className="mt-3 space-y-3">
+          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+            <div className="font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              Bid Won by Client Award
+            </div>
+            <p className="leading-relaxed">
+              Converting will autonomously create the live <strong>Job</strong>, apply the discipline-matching <strong>SOW Template</strong> with 4 mandatory ITP hold points, bind the <strong>Service Order (SO)</strong>, and initialize the initial <strong>Work Package</strong>.
+            </p>
+          </div>
           <button
             onClick={() =>
               act(
                 () => api.convertEnquiry(eq.enquiry_id, {}),
-                "Converted. The job is live.",
+                "⚡ Won bid successfully converted into Job, Service Order & SOW checkpoints!",
               )
             }
             disabled={busy}
-            className={buttonPrimary + " mt-2"}
+            className="w-full justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 py-2.5 px-4 text-xs font-bold text-white shadow-md hover:from-emerald-500 hover:to-teal-600 flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <CheckCircle2 className="h-4 w-4" />
-            Convert to a job
+            <Sparkles className="h-4 w-4 text-amber-300" />
+            Autonomous Convert to Job &amp; SOW Checkpoints
           </button>
         </div>
       )}

@@ -75,3 +75,13 @@ async def record_ap_disbursement(
     user: dict = Depends(get_current_user)
 ):
     return await FinanceService.record_ap_disbursement(ap_id, paid_amount, payment_mode, transaction_ref, user.get("site_id", "SITE-01"))
+
+
+@router.get("/aging-sentinel")
+async def get_aging_sentinel(user: dict = Depends(get_current_user)):
+    return await FinanceService.aging_sentinel(user.get("site_id", "SITE-01"))
+
+
+@router.get("/aging-sentinel/", include_in_schema=False)
+async def get_aging_sentinel_slash(user: dict = Depends(get_current_user)):
+    return await FinanceService.aging_sentinel(user.get("site_id", "SITE-01"))

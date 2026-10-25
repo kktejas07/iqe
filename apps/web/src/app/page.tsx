@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck } from "@/components/icons";
+import { Sparkles, ArrowRight, CheckCircle2, Cpu, FileCheck, Search, ShieldCheck } from "@/components/icons";
 import { IQELogo } from "@/components/IQELogo";
 
 const features = [
@@ -63,7 +63,78 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+        {/* PUBLIC UNIVERSAL VERIFICATION GATEWAY */}
+        <div className="p-6 rounded-2xl bg-gradient-to-b from-[#00283f]/90 to-[#001f31]/90 border border-[#0084bf]/40 shadow-2xl backdrop-blur-xl space-y-4 text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-[#0084bf]/20 text-sky-400 border border-[#0084bf]/30">
+                <ShieldCheck className="w-5 h-5" />
+              </span>
+              <div>
+                <h2 className="text-sm font-bold text-white font-heading">
+                  Public Document Verification Gateway
+                </h2>
+                <p className="text-xs text-slate-300">
+                  Verify any Certificate, Tax Invoice, or Inspection Report without logging in.
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold self-start sm:self-auto">
+              ISO/IEC 17020 &bull; 256-Bit Cryptographic Trust
+            </span>
+          </div>
+
+          <form action="/verify" method="GET" className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                name="ref"
+                required
+                placeholder="Enter Reference (e.g., CERT-2026-0001, INV-2026-001, VIS-001)..."
+                className="w-full pl-10 pr-3 py-3 bg-white/10 border border-slate-600 rounded-xl text-xs font-mono font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0084bf] focus:bg-white/15 transition-all"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0084bf] to-[#006a9b] hover:from-[#0075ab] hover:to-[#005c87] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+            >
+              <span>Verify Document</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          {/* Quick-test chips */}
+          <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-400 text-[11px] font-semibold">Try sample reference:</span>
+            <Link
+              href="/verify?ref=CERT-2026-0001"
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-sky-300 font-mono text-[11px] font-bold transition-colors"
+            >
+              [Cert] CERT-2026-0001
+            </Link>
+            <Link
+              href="/verify?ref=INV-2026-001"
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-emerald-300 font-mono text-[11px] font-bold transition-colors"
+            >
+              [Invoice] INV-2026-001
+            </Link>
+            <Link
+              href="/verify?ref=VIS-001"
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-purple-300 font-mono text-[11px] font-bold transition-colors"
+            >
+              [Report] VIS-001
+            </Link>
+            <Link
+              href="/verify?ref=MEMO/IQE/MUDIGONDA/2026/044"
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-amber-300 font-mono text-[11px] font-bold transition-colors"
+            >
+              [Memo] MEMO/IQE/...
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <Link
             href="/login"
             className="sheen group w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#0084bf] via-[#0075ab] to-[#e35f14] text-white font-semibold shadow-lg glow-iqe-blue hover:shadow-glow-orange transition-all duration-500 flex items-center justify-center gap-2"
@@ -76,6 +147,13 @@ export default function Home() {
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-semibold border border-slate-700 hover:border-slate-500 backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
           >
             <span>Direct Dashboard</span>
+          </Link>
+          <Link
+            href="/verify"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-sky-300 hover:text-white font-semibold border border-sky-600/40 hover:border-sky-400 backdrop-blur-md transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Open Universal Verify Portal</span>
           </Link>
         </div>
       </div>

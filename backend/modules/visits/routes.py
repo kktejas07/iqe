@@ -27,6 +27,7 @@ class SubmitReq(BaseModel):
     report_mode: Optional[str] = "ai"
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_visits(
     search: str = "",
@@ -137,4 +138,24 @@ async def add_photo(visit_id: str, photo: Photo, user: dict = Depends(get_curren
 @router.post("/{visit_id}/findings")
 async def add_finding(visit_id: str, finding: Finding, user: dict = Depends(get_current_user)):
     return await VisitService.add_finding(visit_id, finding)
+
+
+class GPSCheckinReq(BaseModel):
+    lat: float
+    lng: float
+    accuracy_m: float = 12.5
+
+
+@router.post("/{visit_id}/gps-checkin")
+async def record_gps_checkin(visit_id: str, data: GPSCheckinReq, user: dict = Depends(get_current_user)):
+    return await VisitService.record_gps_checkin(
+        visit_id, data.lat, data.lng, data.accuracy_m, user.get("user_id", "USR-001")
+    )
+
+
+@router.post("/{visit_id}/gps-checkin/", include_in_schema=False)
+async def record_gps_checkin_slash(visit_id: str, data: GPSCheckinReq, user: dict = Depends(get_current_user)):
+    return await VisitService.record_gps_checkin(
+        visit_id, data.lat, data.lng, data.accuracy_m, user.get("user_id", "USR-001")
+    )
 

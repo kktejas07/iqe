@@ -8,7 +8,8 @@ from modules.equipment.service import EquipmentService, calibration_state, is_us
 router = APIRouter(prefix="/equipment", tags=["Equipment"])
 
 
-@router.get("")
+@router.get("", include_in_schema=False)
+@router.get("/")
 async def list_equipment(
     status: str = "",
     work_type_code: str = "",
@@ -28,7 +29,8 @@ async def calibration_due(horizon_days: int = 30, user: dict = Depends(get_curre
     )
 
 
-@router.post("")
+@router.post("", include_in_schema=False)
+@router.post("/")
 async def register_equipment(data: dict = Body(...), user: dict = Depends(get_current_user)):
     item = await EquipmentService.create(
         data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001")

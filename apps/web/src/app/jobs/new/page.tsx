@@ -64,45 +64,63 @@ export default function NewJobPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [clientsRes, mfrsRes, usersRes, jobsRes] = await Promise.all([
+        const [clientsSettled, mfrsSettled, usersSettled, jobsSettled] = await Promise.allSettled([
           api.listClients({ per_page: 200 }),
-          api.listManufacturers({ per_page: 100 }),
+          api.listManufacturers({ per_page: 200 }),
           api.listUsers({ per_page: 200 }),
-          api.client.get("/jobs", { params: { per_page: 1 } }),
+          api.client.get("/jobs/", { params: { per_page: 1 } }),
         ]);
 
-        // Next Job ID
-        const totalJobs = jobsRes.data?.total || 50;
-        setNextJobId(`JOB-${(totalJobs + 1).toString().padStart(3, "0")}`);
-
         // Client List
-        const clientList: ClientOption[] = (clientsRes.data || []).map((c: any) => ({
-          id: c.client_id || `C-${c.id}`,
-          name: c.name,
-          type: "client" as const,
-          city: c.city,
-        }));
+        let clientList: ClientOption[] = [];
+        if (clientsSettled.status === "fulfilled") {
+          const raw = clientsSettled.value?.data || clientsSettled.value || [];
+          clientList = (Array.isArray(raw) ? raw : []).map((c: any) => ({
+            id: c.client_id || `C-${c.id}`,
+            name: c.name,
+            type: "client" as const,
+            city: c.city,
+          }));
+        }
 
-        const mfrList: ClientOption[] = (mfrsRes.data || []).map((m: any) => ({
-          id: m.manufacturer_id || `M-${m.id}`,
-          name: m.name,
-          type: "manufacturer" as const,
-          city: m.city,
-        }));
+        // Manufacturer List
+        let mfrList: ClientOption[] = [];
+        if (mfrsSettled.status === "fulfilled") {
+          const raw = mfrsSettled.value?.data || mfrsSettled.value || [];
+          mfrList = (Array.isArray(raw) ? raw : []).map((m: any) => ({
+            id: m.manufacturer_id || `M-${m.id}`,
+            name: m.name,
+            type: "manufacturer" as const,
+            city: m.city,
+          }));
+        }
 
-        setClientOptions([...clientList, ...mfrList]);
+        if (clientList.length > 0 || mfrList.length > 0) {
+          setClientOptions([...clientList, ...mfrList]);
+        }
+
+        // Next Job ID
+        if (jobsSettled.status === "fulfilled") {
+          const totalJobs = jobsSettled.value?.data?.total || 232;
+          setNextJobId(`JOB-${(totalJobs + 1).toString().padStart(3, "0")}`);
+        }
 
         // Inspectors List
-        const inspectorList: InspectorOption[] = (usersRes.data?.data || usersRes.data || [])
-          .filter((u: any) => u.role_id === 2 || u.inspector_code)
-          .map((u: any) => ({
-            user_id: u.user_id,
-            inspector_code: u.inspector_code || `INS-${u.user_id}`,
-            full_name: u.full_name,
-            email: u.email,
-          }));
+        if (usersSettled.status === "fulfilled") {
+          const rawUsers = usersSettled.value?.data?.data || usersSettled.value?.data || usersSettled.value || [];
+          const inspectorList: InspectorOption[] = (Array.isArray(rawUsers) ? rawUsers : [])
+            .filter((u: any) => u.role_id === 2 || u.inspector_code)
+            .map((u: any) => ({
+              user_id: u.user_id,
+              inspector_code: u.inspector_code || `INS-${u.user_id}`,
+              full_name: u.full_name,
+              email: u.email,
+            }));
 
-        setInspectors(inspectorList);
+          if (inspectorList.length > 0) {
+            setInspectors(inspectorList);
+          }
+        }
       } catch (err) {
         console.error("Failed to load options:", err);
       }

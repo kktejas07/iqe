@@ -42,6 +42,7 @@ from pymongo import AsyncMongoClient  # noqa: E402
 from pymongo.errors import DuplicateKeyError, PyMongoError  # noqa: E402
 
 from core.audit import AuditEntry  # noqa: E402
+from core.sequences import Sequence  # noqa: E402
 from core.config import settings  # noqa: E402
 from modules.assignments.models import Assignment  # noqa: E402
 from modules.billing.models import BillingTerms  # noqa: E402
@@ -74,8 +75,9 @@ SITE = "SITE-VERIFY"
 USER = "USR-VERIFY"
 
 DOCUMENT_MODELS = [
-            Evidence,
+    Evidence,
     AuditEntry,
+    Sequence,
     Job, WorkTypeDefinition, WorkPackage, Person, CompetenceProfile,
     Authorization, ImpartialityDeclaration, Assignment, Certification,
     Invoice, BillingTerms, ReportFormat, TpiReport,
@@ -269,8 +271,9 @@ async def c_billing_queue_and_invoice() -> str:
     inv = await BillingService.raise_invoice_from_certifications(
         cert_ids[:1], SITE, USER, so_id="JOB-VERIFY-0001"
     )
-    assert inv.grand_total > 0, "invoice has no value"
-    return f"invoice raised, grand total {inv.grand_total:,.2f}"
+    gt = inv.grand_total if hasattr(inv, "grand_total") else (inv.get("grand_total") if isinstance(inv, dict) else 0)
+    assert gt > 0, "invoice has no value"
+    return f"invoice raised, grand total {gt:,.2f}"
 
 
 async def c_report_registry_and_pdf() -> str:

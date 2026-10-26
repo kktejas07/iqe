@@ -97,7 +97,7 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
             role = Role.FINANCE
         elif "qc" in credentials.credentials:
             role = Role.QC_AUDITOR
-        elif "client" in credentials.credentials:
+        elif "client" in credentials.credentials or "tenant" in credentials.credentials:
             role = Role.CLIENT
         return {"user_id": "MOCK-USR-001", "role_id": role, "site_id": "SITE-01"}
 

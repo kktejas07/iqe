@@ -5,6 +5,7 @@ from modules.users.service import UserService
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list(role_id: int = None, page: int = 1, per_page: int = 25, user: dict = Depends(get_current_user)):
     return await UserService.list(user["site_id"], role_id, page, per_page)

@@ -3,6 +3,7 @@
 const BACKEND_URL = (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const nextConfig = {
+  skipTrailingSlashRedirect: true,
   output: "standalone",
   // Without this, Next walks up looking for a workspace root and nests the
   // standalone output under whatever it finds - locally that produced

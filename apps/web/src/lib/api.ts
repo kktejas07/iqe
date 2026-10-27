@@ -1207,6 +1207,166 @@ class API {
       })
     ).data;
   }
+
+  // -------------------------------------------------------- regions
+  async listRegions() { return (await this.client.get("/regions/")).data; }
+  async getRegion(code: string) { return (await this.client.get(`/regions/${code}`)).data; }
+  async createRegion(data: any) { return (await this.client.post("/regions/", data)).data; }
+  async updateRegion(code: string, data: any) { return (await this.client.put(`/regions/${code}`, data)).data; }
+  async listOffices(regionCode: string) { return (await this.client.get(`/regions/${regionCode}/offices`)).data; }
+  async createOffice(regionCode: string, data: any) { return (await this.client.post(`/regions/${regionCode}/offices`, data)).data; }
+  async listSettlements(params: any = {}) { return (await this.client.get("/regions/settlements", { params })).data; }
+  async createSettlement(data: any) { return (await this.client.post("/regions/settlements", data)).data; }
+  async listLoans(params: any = {}) { return (await this.client.get("/regions/loans", { params })).data; }
+  async createLoan(data: any) { return (await this.client.post("/regions/loans", data)).data; }
+  async endLoan(loanId: string, data: any) { return (await this.client.patch(`/regions/loans/${loanId}/end`, data)).data; }
+  async listDeputies(params: any = {}) { return (await this.client.get("/regions/deputies", { params })).data; }
+  async setDeputy(data: any) { return (await this.client.post("/regions/deputies", data)).data; }
+  async getDeputyChain(role: string, regionCode: string) { return (await this.client.get(`/regions/deputies/chain/${role}/${regionCode}`)).data; }
+
+  // -------------------------------------------------------- recruitment
+  async listManpowerRequests(params: any = {}) { return (await this.client.get("/recruitment/", { params })).data; }
+  async createManpowerRequest(data: any) { return (await this.client.post("/recruitment/", data)).data; }
+  async getManpowerRequest(id: string) { return (await this.client.get(`/recruitment/${id}`)).data; }
+  async approveBudget(id: string, data: any = {}) { return (await this.client.patch(`/recruitment/${id}/approve-budget`, data)).data; }
+  async rejectBudget(id: string, data: any = {}) { return (await this.client.patch(`/recruitment/${id}/reject-budget`, data)).data; }
+  async listCandidates(params: any = {}) { return (await this.client.get("/recruitment/candidates", { params })).data; }
+  async createCandidate(data: any) { return (await this.client.post("/recruitment/candidates", data)).data; }
+  async getCandidate(id: string) { return (await this.client.get(`/recruitment/candidates/${id}`)).data; }
+  async updateCandidateStatus(id: string, data: any) { return (await this.client.patch(`/recruitment/candidates/${id}/status`, data)).data; }
+  async listInterviews(params: any = {}) { return (await this.client.get("/recruitment/interviews", { params })).data; }
+  async createInterview(data: any) { return (await this.client.post("/recruitment/interviews", data)).data; }
+  async recordInterviewResult(id: string, data: any) { return (await this.client.patch(`/recruitment/interviews/${id}/result`, data)).data; }
+  async listOffers(params: any = {}) { return (await this.client.get("/recruitment/offers", { params })).data; }
+  async createOffer(data: any) { return (await this.client.post("/recruitment/offers", data)).data; }
+  async sendOffer(id: string) { return (await this.client.patch(`/recruitment/offers/${id}/send`)).data; }
+  async respondOffer(id: string, data: any) { return (await this.client.patch(`/recruitment/offers/${id}/respond`, data)).data; }
+  async createInduction(data: any) { return (await this.client.post("/recruitment/inductions", data)).data; }
+  async getInduction(personId: string) { return (await this.client.get(`/recruitment/inductions/${personId}`)).data; }
+  async updateInductionItem(id: string, data: any) { return (await this.client.patch(`/recruitment/inductions/${id}/item`, data)).data; }
+  async completeInduction(id: string) { return (await this.client.patch(`/recruitment/inductions/${id}/complete`)).data; }
+
+  // -------------------------------------------------------- leave & attendance
+  async listLeaves(params: any = {}) { return (await this.client.get("/leave-attendance/leave", { params })).data; }
+  async createLeave(data: any) { return (await this.client.post("/leave-attendance/leave", data)).data; }
+  async approveLeave(id: string) { return (await this.client.patch(`/leave-attendance/leave/${id}/approve`)).data; }
+  async rejectLeave(id: string, data: any = {}) { return (await this.client.patch(`/leave-attendance/leave/${id}/reject`, data)).data; }
+  async listAttendance(params: any = {}) { return (await this.client.get("/leave-attendance/attendance", { params })).data; }
+  async createAttendance(data: any) { return (await this.client.post("/leave-attendance/attendance", data)).data; }
+  async getAttendanceSummary(personId: string, params: any = {}) { return (await this.client.get(`/leave-attendance/attendance/summary/${personId}`, { params })).data; }
+  async listTimesheets(params: any = {}) { return (await this.client.get("/leave-attendance/timesheets", { params })).data; }
+  async createTimesheet(data: any) { return (await this.client.post("/leave-attendance/timesheets", data)).data; }
+  async getTimesheet(id: string) { return (await this.client.get(`/leave-attendance/timesheets/${id}`)).data; }
+  async submitTimesheet(id: string) { return (await this.client.patch(`/leave-attendance/timesheets/${id}/submit`)).data; }
+  async approveTimesheet(id: string) { return (await this.client.patch(`/leave-attendance/timesheets/${id}/approve`)).data; }
+
+  // -------------------------------------------------------- payroll
+  async listPayrollRuns(params: any = {}) { return (await this.client.get("/payroll/runs", { params })).data; }
+  async createPayrollRun(data: any) { return (await this.client.post("/payroll/runs", data)).data; }
+  async getPayrollRun(id: string) { return (await this.client.get(`/payroll/runs/${id}`)).data; }
+  async processPayrollRun(id: string) { return (await this.client.post(`/payroll/runs/${id}/process`)).data; }
+  async approvePayrollRun(id: string) { return (await this.client.patch(`/payroll/runs/${id}/approve`)).data; }
+  async disbursePayrollRun(id: string) { return (await this.client.patch(`/payroll/runs/${id}/disburse`)).data; }
+  async listPayslips(params: any = {}) { return (await this.client.get("/payroll/payslips", { params })).data; }
+  async getPayslip(id: string) { return (await this.client.get(`/payroll/payslips/${id}`)).data; }
+
+  // -------------------------------------------------------- appraisal
+  async listAppraisals(params: any = {}) { return (await this.client.get("/appraisals/", { params })).data; }
+  async createAppraisal(data: any) { return (await this.client.post("/appraisals/", data)).data; }
+  async getAppraisal(id: string) { return (await this.client.get(`/appraisals/${id}`)).data; }
+  async selfReviewAppraisal(id: string, data: any) { return (await this.client.patch(`/appraisals/${id}/self-review`, data)).data; }
+  async managerReviewAppraisal(id: string, data: any) { return (await this.client.patch(`/appraisals/${id}/manager-review`, data)).data; }
+  async completeAppraisal(id: string) { return (await this.client.patch(`/appraisals/${id}/complete`)).data; }
+  async listWitnessedInspections(params: any = {}) { return (await this.client.get("/appraisals/witnessed", { params })).data; }
+  async createWitnessedInspection(data: any) { return (await this.client.post("/appraisals/witnessed", data)).data; }
+  async getWitnessedInspections(personId: string) { return (await this.client.get(`/appraisals/witnessed/${personId}`)).data; }
+
+  // -------------------------------------------------------- exit management
+  async listExits(params: any = {}) { return (await this.client.get("/exit/", { params })).data; }
+  async initiateExit(data: any) { return (await this.client.post("/exit/", data)).data; }
+  async getExit(id: string) { return (await this.client.get(`/exit/${id}`)).data; }
+  async updateExitChecklist(id: string, data: any) { return (await this.client.patch(`/exit/${id}/checklist`, data)).data; }
+  async withdrawExitAuthorization(id: string) { return (await this.client.patch(`/exit/${id}/withdraw-authorization`)).data; }
+  async settleExit(id: string, data: any) { return (await this.client.patch(`/exit/${id}/settle`, data)).data; }
+  async completeExit(id: string) { return (await this.client.patch(`/exit/${id}/complete`)).data; }
+
+  // -------------------------------------------------------- purchasing
+  async listRequisitions(params: any = {}) { return (await this.client.get("/purchasing/", { params })).data; }
+  async createRequisition(data: any) { return (await this.client.post("/purchasing/", data)).data; }
+  async getRequisition(id: string) { return (await this.client.get(`/purchasing/${id}`)).data; }
+  async approveRequisition(id: string) { return (await this.client.patch(`/purchasing/${id}/approve`)).data; }
+  async rejectRequisition(id: string, data: any = {}) { return (await this.client.patch(`/purchasing/${id}/reject`, data)).data; }
+  async listVendorPayments(params: any = {}) { return (await this.client.get("/purchasing/vendor-payments", { params })).data; }
+  async createVendorPayment(data: any) { return (await this.client.post("/purchasing/vendor-payments", data)).data; }
+  async approveVendorPayment(id: string) { return (await this.client.patch(`/purchasing/vendor-payments/${id}/approve`)).data; }
+  async payVendorPayment(id: string, data: any) { return (await this.client.patch(`/purchasing/vendor-payments/${id}/pay`, data)).data; }
+  async msmeAlerts() { return (await this.client.get("/purchasing/vendor-payments/msme-alerts")).data; }
+
+  // -------------------------------------------------------- dunning (on payments)
+  async listDunning(params: any = {}) { return (await this.client.get("/payments/dunning/", { params })).data; }
+  async createDunning(data: any) { return (await this.client.post("/payments/dunning/", data)).data; }
+  async resolveDunning(id: string, data: any) { return (await this.client.patch(`/payments/dunning/${id}/resolve`, data)).data; }
+  async reconcileTDS(paymentId: string, data: any) { return (await this.client.patch(`/payments/${paymentId}/tds-reconcile`, data)).data; }
+
+  // -------------------------------------------------------- RFI
+  async listRFIs(params: any = {}) { return (await this.client.get("/rfis/", { params })).data; }
+  async createRFI(data: any) { return (await this.client.post("/rfis/", data)).data; }
+  async getRFI(id: string) { return (await this.client.get(`/rfis/${id}`)).data; }
+  async scheduleRFI(id: string, data: any) { return (await this.client.patch(`/rfis/${id}/schedule`, data)).data; }
+  async confirmRFI(id: string) { return (await this.client.patch(`/rfis/${id}/confirm`)).data; }
+  async recordRFIResult(id: string, data: any) { return (await this.client.patch(`/rfis/${id}/result`, data)).data; }
+  async rfiTurnaround(params: any = {}) { return (await this.client.get("/rfis/turnaround", { params })).data; }
+
+  // -------------------------------------------------------- punch list
+  async listPunchItems(params: any = {}) { return (await this.client.get("/punch-list/", { params })).data; }
+  async createPunchItem(data: any) { return (await this.client.post("/punch-list/", data)).data; }
+  async getPunchItem(id: string) { return (await this.client.get(`/punch-list/${id}`)).data; }
+  async correctPunchItem(id: string, data: any) { return (await this.client.patch(`/punch-list/${id}/correct`, data)).data; }
+  async reInspectPunchItem(id: string, data: any) { return (await this.client.patch(`/punch-list/${id}/re-inspect`, data)).data; }
+  async closePunchItem(id: string) { return (await this.client.patch(`/punch-list/${id}/close`)).data; }
+  async punchListSummary(jobId: string) { return (await this.client.get(`/punch-list/summary/${jobId}`)).data; }
+
+  // -------------------------------------------------------- release notes
+  async listReleaseNotes(params: any = {}) { return (await this.client.get("/release-notes/", { params })).data; }
+  async createReleaseNote(data: any) { return (await this.client.post("/release-notes/", data)).data; }
+  async getReleaseNote(id: string) { return (await this.client.get(`/release-notes/${id}`)).data; }
+  async checkReleaseNotePreconditions(id: string) { return (await this.client.post(`/release-notes/${id}/check-preconditions`)).data; }
+  async recommendReleaseNote(id: string, data: any) { return (await this.client.patch(`/release-notes/${id}/recommend`, data)).data; }
+  async approveReleaseNote(id: string, data: any) { return (await this.client.patch(`/release-notes/${id}/approve`, data)).data; }
+  async issueReleaseNote(id: string) { return (await this.client.patch(`/release-notes/${id}/release`)).data; }
+
+  // -------------------------------------------------------- feedback & MRM
+  async listFeedback(params: any = {}) { return (await this.client.get("/feedback/", { params })).data; }
+  async createFeedback(data: any) { return (await this.client.post("/feedback/", data)).data; }
+  async getFeedback(id: string) { return (await this.client.get(`/feedback/${id}`)).data; }
+  async respondFeedback(id: string, data: any) { return (await this.client.patch(`/feedback/${id}/respond`, data)).data; }
+  async escalateFeedback(id: string) { return (await this.client.patch(`/feedback/${id}/escalate`)).data; }
+  async listMRM(params: any = {}) { return (await this.client.get("/feedback/mrm", { params })).data; }
+  async createMRM(data: any) { return (await this.client.post("/feedback/mrm", data)).data; }
+  async getMRM(id: string) { return (await this.client.get(`/feedback/mrm/${id}`)).data; }
+  async decideMRM(id: string, data: any) { return (await this.client.patch(`/feedback/mrm/${id}/decision`, data)).data; }
+  async closeMRM(id: string) { return (await this.client.patch(`/feedback/mrm/${id}/close`)).data; }
+
+  // -------------------------------------------------------- job handoff
+  async convertEnquiryToJob(data: any) { return (await this.client.post("/job-handoff/convert", data)).data; }
+  async listConversions(params: any = {}) { return (await this.client.get("/job-handoff/conversions", { params })).data; }
+  async getConversion(id: string) { return (await this.client.get(`/job-handoff/conversions/${id}`)).data; }
+
+  // -------------------------------------------------------- signoff
+  async listSignoffs(params: any = {}) { return (await this.client.get("/signoffs/", { params })).data; }
+  async createSignoff(data: any) { return (await this.client.post("/signoffs/", data)).data; }
+  async getSignoff(id: string) { return (await this.client.get(`/signoffs/${id}`)).data; }
+  async pendingSignoffs() { return (await this.client.get("/signoffs/pending")).data; }
+  async reviewSignoff(id: string, data: any) { return (await this.client.patch(`/signoffs/${id}/review`, data)).data; }
+  async assignDeputySignoff(id: string, data: any) { return (await this.client.patch(`/signoffs/${id}/assign-deputy`, data)).data; }
+
+  // -------------------------------------------------------- win-loss
+  async listWinLoss(params: any = {}) { return (await this.client.get("/win-loss/", { params })).data; }
+  async createWinLoss(data: any) { return (await this.client.post("/win-loss/", data)).data; }
+  async getWinLoss(id: string) { return (await this.client.get(`/win-loss/${id}`)).data; }
+  async winLossSummary(params: any = {}) { return (await this.client.get("/win-loss/summary", { params })).data; }
+  async winLossByRegion(params: any = {}) { return (await this.client.get("/win-loss/by-region", { params })).data; }
+  async winLossBySector(params: any = {}) { return (await this.client.get("/win-loss/by-sector", { params })).data; }
 }
 
 export const api = new API();

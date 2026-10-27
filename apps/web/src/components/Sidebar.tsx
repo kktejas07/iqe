@@ -33,7 +33,10 @@ import {
   Receipt,
   CreditCard,
   Table, Boxes, FileCheck, Users, UserCheck, Gauge,
-  Camera, Scale, History
+  Camera, Scale, History,
+  MapPin, UserPlus, Clock, DollarSign, Star, LogIn,
+  ShoppingCart, FileSearch, ListChecks, MessageSquare,
+  ArrowRightLeft, PenTool, TrendingUp
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -370,6 +373,26 @@ const sopsSubModules: SubModuleItem[] = [
   },
 ];
 
+const hrmsSubModules: SubModuleItem[] = [
+  { name: "Regions & Offices", subtitle: "N/S/E/W structure & deputies", href: "/regions", icon: MapPin, color: "text-blue-600 bg-blue-100 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800/40" },
+  { name: "Recruitment", subtitle: "Manpower requests to induction", href: "/recruitment", icon: UserPlus, color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40" },
+  { name: "Leave & Attendance", subtitle: "Leave, attendance & timesheets", href: "/leave-attendance", icon: Clock, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
+  { name: "Payroll", subtitle: "Runs, PF/ESI/PT & payslips", href: "/payroll", icon: DollarSign, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40" },
+  { name: "Appraisals", subtitle: "KPIs & witnessed inspections", href: "/appraisals-monitoring", icon: Star, color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40" },
+  { name: "Exit Management", subtitle: "Separation & final settlement", href: "/exit-management", icon: LogIn, color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40" },
+  { name: "Purchasing", subtitle: "Requisitions & vendor payments", href: "/purchasing", icon: ShoppingCart, color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40" },
+];
+
+const projectExecSubModules: SubModuleItem[] = [
+  { name: "RFIs", subtitle: "Request for inspection", href: "/rfis", icon: FileSearch, color: "text-blue-600 bg-blue-100 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800/40" },
+  { name: "Punch List", subtitle: "Snag items A/B/C", href: "/punch-list", icon: ListChecks, color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40" },
+  { name: "Release Notes", subtitle: "IRN sign-off & release", href: "/release-notes", icon: PackageCheck, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40" },
+  { name: "Client Feedback", subtitle: "Ratings & MRM review", href: "/client-feedback", icon: MessageSquare, color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40" },
+  { name: "Job Handoff", subtitle: "Enquiry → job conversion", href: "/job-handoff", icon: ArrowRightLeft, color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40" },
+  { name: "Report Sign-off", subtitle: "TM/deputy approval gate", href: "/signoffs", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
+  { name: "Win-Loss Analysis", subtitle: "Conversion & loss reasons", href: "/win-loss", icon: TrendingUp, color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40" },
+];
+
 const generalNavItems = [
   { name: "Vendor Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Assessments", href: "/jobs", icon: Briefcase },
@@ -388,6 +411,8 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
   const [operationsOpen, setOperationsOpen] = useState<boolean>(false);
   const [financeOpen, setFinanceOpen] = useState<boolean>(false);
   const [sopsOpen, setSopsOpen] = useState<boolean>(false);
+  const [hrmsOpen, setHrmsOpen] = useState<boolean>(false);
+  const [projectExecOpen, setProjectExecOpen] = useState<boolean>(false);
 
   const isFormatsActive =
     pathname.startsWith("/pms-formats") ||
@@ -433,6 +458,24 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/ncrs") ||
     pathname.startsWith("/impartiality");
 
+  const isHrmsActive =
+    pathname.startsWith("/regions") ||
+    pathname.startsWith("/recruitment") ||
+    pathname.startsWith("/leave-attendance") ||
+    pathname.startsWith("/payroll") ||
+    pathname.startsWith("/appraisals-monitoring") ||
+    pathname.startsWith("/exit-management") ||
+    pathname.startsWith("/purchasing");
+
+  const isProjectExecActive =
+    pathname.startsWith("/rfis") ||
+    pathname.startsWith("/punch-list") ||
+    pathname.startsWith("/release-notes") ||
+    pathname.startsWith("/client-feedback") ||
+    pathname.startsWith("/job-handoff") ||
+    pathname.startsWith("/signoffs") ||
+    pathname.startsWith("/win-loss");
+
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");
   const isQualityPlansActive =
     pathname.startsWith("/itps") || pathname.startsWith("/inspection-calls");
@@ -442,7 +485,9 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     if (isOperationsActive) setOperationsOpen(true);
     if (isFinanceActive) setFinanceOpen(true);
     if (isSopsActive) setSopsOpen(true);
-  }, [isOperationsActive, isFinanceActive, isSopsActive]);
+    if (isHrmsActive) setHrmsOpen(true);
+    if (isProjectExecActive) setProjectExecOpen(true);
+  }, [isOperationsActive, isFinanceActive, isSopsActive, isHrmsActive, isProjectExecActive]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -781,7 +826,117 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
             )}
           </div>
 
-          {/* MAIN TITLE 3: WORK INSTRUCTIONS */}
+          {/* MAIN TITLE 5: HRMS & ADMIN */}
+          <div className="pt-1">
+            <button
+              onClick={() => setHrmsOpen(!hrmsOpen)}
+              title={isCollapsed ? "HRMS" : undefined}
+              className={`w-full flex items-center ${
+                isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+              } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                isHrmsActive
+                  ? "bg-violet-950/60 text-violet-300 border border-violet-800/60"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Users className="w-4 h-4 text-violet-400 shrink-0" />
+                {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">HRMS</span>}
+              </div>
+              {!isCollapsed && (
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    hrmsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </button>
+
+            {(!isCollapsed && hrmsOpen) && (
+              <div className="mt-1 pl-2.5 pr-1 space-y-1.5 border-l-2 border-violet-500/30 ml-4 py-1">
+                {hrmsSubModules.map((item) => {
+                  const SubIcon = item.icon;
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs transition-all ${
+                        isActive
+                          ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white font-bold shadow-xs border border-violet-400/30"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${isActive ? "bg-white/20 text-white border-white/30" : item.color}`}>
+                        <SubIcon className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate font-semibold text-xs leading-tight">{item.name}</div>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-violet-200" : "text-slate-400"}`}>{item.subtitle}</div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* MAIN TITLE 6: PROJECT EXECUTION */}
+          <div className="pt-1">
+            <button
+              onClick={() => setProjectExecOpen(!projectExecOpen)}
+              title={isCollapsed ? "Project Execution" : undefined}
+              className={`w-full flex items-center ${
+                isCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+              } py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                isProjectExecActive
+                  ? "bg-indigo-950/60 text-indigo-300 border border-indigo-800/60"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <ClipboardList className="w-4 h-4 text-indigo-400 shrink-0" />
+                {!isCollapsed && <span className="truncate uppercase tracking-wider text-[11px]">Execution</span>}
+              </div>
+              {!isCollapsed && (
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    projectExecOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </button>
+
+            {(!isCollapsed && projectExecOpen) && (
+              <div className="mt-1 pl-2.5 pr-1 space-y-1.5 border-l-2 border-indigo-500/30 ml-4 py-1">
+                {projectExecSubModules.map((item) => {
+                  const SubIcon = item.icon;
+                  const isActive = pathname.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs transition-all ${
+                        isActive
+                          ? "bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-bold shadow-xs border border-indigo-400/30"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border ${isActive ? "bg-white/20 text-white border-white/30" : item.color}`}>
+                        <SubIcon className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate font-semibold text-xs leading-tight">{item.name}</div>
+                        <div className={`text-[11px] truncate leading-tight ${isActive ? "text-indigo-200" : "text-slate-400"}`}>{item.subtitle}</div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* WORK INSTRUCTIONS */}
           <div className="pt-1">
             <Link
               href="/work-instructions"

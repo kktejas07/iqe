@@ -53,6 +53,15 @@ class Job(Document):
     description: Optional[str] = None
     job_type: str = "inspection"
     job_type_category: str = "PV-PIPE"  # PV-PIPE, STR-FAB, NDT-RAD, VND-AUD, PRE-SHP, CUSTOM
+
+    # Service line and region (P1, R1)
+    service_line: str = "PART_B"  # PART_A (TPI/accredited), PART_B (accredited scope), PART_C (EPC project support), MANPOWER (secondment)
+    region_code: Optional[str] = None  # N, S, E, W
+    financial_year: Optional[str] = None  # "2627"
+    j_no: Optional[str] = None  # S-2627-0001 format (region-FY-sequence)
+    enquiry_id: Optional[str] = None
+    project_quality_plan_id: Optional[str] = None
+    parts_in_scope: list[str] = []  # ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
     
     # Inspector CV & Client Approval Portal Fields
     assigned_inspector_id: Optional[str] = None
@@ -89,6 +98,8 @@ class Job(Document):
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
+    closed_on: Optional[datetime] = None
+    close_reason: Optional[str] = None
 
     class Settings:
         name = "jobs"

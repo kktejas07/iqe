@@ -136,6 +136,8 @@ from modules.signoff.models import ReportSignoff
 from modules.signoff.routes import router as signoff_router
 from modules.win_loss.models import WinLossRecord
 from modules.win_loss.routes import router as win_loss_router
+from modules.notifications.models import EmailLog, NotificationPreference, InAppNotification
+from modules.notifications.routes import router as notifications_router
 
 
 @asynccontextmanager
@@ -175,6 +177,7 @@ async def lifespan(app: FastAPI):
             RFI, PunchItem, InspectionReleaseNote,
             ClientFeedback, MRMAgendaItem,
             JobConversion, ReportSignoff, WinLossRecord,
+            EmailLog, NotificationPreference, InAppNotification,
         ],
     )
 
@@ -328,6 +331,7 @@ app.include_router(feedback_router, prefix="/api/v1")
 app.include_router(job_handoff_router, prefix="/api/v1")
 app.include_router(signoff_router, prefix="/api/v1")
 app.include_router(win_loss_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
 
 
 @app.get("/api/pdf/generate", include_in_schema=False)

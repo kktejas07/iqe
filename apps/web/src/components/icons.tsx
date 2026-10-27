@@ -128,6 +128,7 @@ import {
   UploadSimple as PhUploadSimple,
   User as PhUser,
   ArrowsLeftRight as PhArrowsLeftRight,
+  Bell as PhBell,
   ChatCircle as PhChatCircle,
   FileMagnifyingGlass as PhFileMagnifyingGlass,
   Pen as PhPen,
@@ -293,6 +294,7 @@ export const Wrench = /*#__PURE__*/ make(PhWrench, "duotone", "Wrench");
 export const X = /*#__PURE__*/ make(PhX, "bold", "X");
 export const XCircle = /*#__PURE__*/ make(PhXCircle, "duotone", "XCircle");
 export const ArrowRightLeft = /*#__PURE__*/ make(PhArrowsLeftRight, "duotone", "ArrowRightLeft");
+export const Bell = /*#__PURE__*/ make(PhBell, "duotone", "Bell");
 export const FileSearch = /*#__PURE__*/ make(PhFileMagnifyingGlass, "duotone", "FileSearch");
 export const LogIn = /*#__PURE__*/ make(PhSignIn, "duotone", "LogIn");
 export const MessageSquare = /*#__PURE__*/ make(PhChatCircle, "duotone", "MessageSquare");

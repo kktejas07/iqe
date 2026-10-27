@@ -1367,6 +1367,18 @@ class API {
   async winLossSummary(params: any = {}) { return (await this.client.get("/win-loss/summary", { params })).data; }
   async winLossByRegion(params: any = {}) { return (await this.client.get("/win-loss/by-region", { params })).data; }
   async winLossBySector(params: any = {}) { return (await this.client.get("/win-loss/by-sector", { params })).data; }
+
+  // -------------------------------------------------------- notifications
+  async listNotifications(params: any = {}) { return (await this.client.get("/notifications/", { params })).data; }
+  async markNotificationRead(id: string) { return (await this.client.patch(`/notifications/${id}/read`)).data; }
+  async markAllNotificationsRead() { return (await this.client.patch("/notifications/read-all")).data; }
+  async createInAppNotification(data: any) { return (await this.client.post("/notifications/in-app", data)).data; }
+  async listEmailLogs(params: any = {}) { return (await this.client.get("/notifications/emails", { params })).data; }
+  async sendEmail(data: any) { return (await this.client.post("/notifications/emails", data)).data; }
+  async updateEmailStatus(logId: string, data: any) { return (await this.client.patch(`/notifications/emails/${logId}/status`, data)).data; }
+  async getNotificationPreferences(personId: string) { return (await this.client.get(`/notifications/preferences/${personId}`)).data; }
+  async updateNotificationPreferences(personId: string, data: any) { return (await this.client.put(`/notifications/preferences/${personId}`, data)).data; }
+  async adminRecipients() { return (await this.client.get("/notifications/preferences/admin/recipients")).data; }
 }
 
 export const api = new API();

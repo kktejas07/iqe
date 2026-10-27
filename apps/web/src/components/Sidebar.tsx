@@ -36,7 +36,7 @@ import {
   Camera, Scale, History,
   MapPin, UserPlus, Clock, DollarSign, Star, LogIn,
   ShoppingCart, FileSearch, ListChecks, MessageSquare,
-  ArrowRightLeft, PenTool, TrendingUp
+  ArrowRightLeft, PenTool, TrendingUp, Bell
 } from "@/components/icons";
 
 interface SidebarProps {
@@ -399,6 +399,7 @@ const generalNavItems = [
   { name: "Visits", href: "/visits", icon: CalendarCheck },
   { name: "Clients", href: "/clients", icon: Building2 },
   { name: "Manufacturers", href: "/manufacturers", icon: Factory },
+  { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Admin System", href: "/admin", icon: ShieldCheck },
 ];
 

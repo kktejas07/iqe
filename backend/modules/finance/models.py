@@ -26,6 +26,13 @@ class AccountReceivable(Document):
     payment_mode: Optional[str] = None
     transaction_ref: Optional[str] = None
     remarks: Optional[str] = None
+    # HO pool tracking
+    ho_pool_amount: float = 0.0
+    region_code: Optional[str] = None
+    # Ageing bucket (auto-calculated)
+    ageing_bucket: str = "current"
+    dunning_count: int = 0
+    last_dunning_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

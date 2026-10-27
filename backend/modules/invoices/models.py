@@ -40,6 +40,27 @@ class Invoice(Document):
     subtotal: float = 0.0; cgst: float = 0.0; sgst: float = 0.0
     igst: float = 0.0; tds: float = 0.0; grand_total: float = 0.0
     gst_percentage: float = 18.0
+    # GST & statutory compliance (step 9)
+    gstin_seller: Optional[str] = None
+    gstin_buyer: Optional[str] = None
+    place_of_supply: Optional[str] = None
+    hsn_sac_code: str = "998346"
+    is_reverse_charge: bool = False
+    # E-invoicing (IRN)
+    e_invoice_irn: Optional[str] = None
+    e_invoice_ack_no: Optional[str] = None
+    e_invoice_ack_date: Optional[datetime] = None
+    e_invoice_qr_data: Optional[str] = None
+    # TDS on fee
+    tds_section: str = "194J"
+    tds_rate: float = 10.0
+    tds_amount: float = 0.0
+    # Sales register linkage
+    sales_register_ref: Optional[str] = None
+    financial_year: Optional[str] = None
+    # HO pool split
+    ho_pool_amount: float = 0.0
+    region_share_amount: float = 0.0
     pdf_path: Optional[str] = None
     frozen: bool = False
     cancelled: bool = False; cancellation_reason: Optional[str] = None

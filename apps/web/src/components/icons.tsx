@@ -127,8 +127,15 @@ import {
   Truck as PhTruck,
   UploadSimple as PhUploadSimple,
   User as PhUser,
+  ArrowsLeftRight as PhArrowsLeftRight,
+  ChatCircle as PhChatCircle,
+  FileMagnifyingGlass as PhFileMagnifyingGlass,
+  Pen as PhPen,
+  ShoppingCart as PhShoppingCart,
+  SignIn as PhSignIn,
   UserCheck as PhUserCheck,
   UserMinus as PhUserMinus,
+  UserPlus as PhUserPlus,
   Users as PhUsers,
   Warning as PhWarning,
   WarningCircle as PhWarningCircle,
@@ -285,4 +292,11 @@ export const Users = /*#__PURE__*/ make(PhUsers, "duotone", "Users");
 export const Wrench = /*#__PURE__*/ make(PhWrench, "duotone", "Wrench");
 export const X = /*#__PURE__*/ make(PhX, "bold", "X");
 export const XCircle = /*#__PURE__*/ make(PhXCircle, "duotone", "XCircle");
+export const ArrowRightLeft = /*#__PURE__*/ make(PhArrowsLeftRight, "duotone", "ArrowRightLeft");
+export const FileSearch = /*#__PURE__*/ make(PhFileMagnifyingGlass, "duotone", "FileSearch");
+export const LogIn = /*#__PURE__*/ make(PhSignIn, "duotone", "LogIn");
+export const MessageSquare = /*#__PURE__*/ make(PhChatCircle, "duotone", "MessageSquare");
+export const PenTool = /*#__PURE__*/ make(PhPen, "duotone", "PenTool");
+export const ShoppingCart = /*#__PURE__*/ make(PhShoppingCart, "duotone", "ShoppingCart");
+export const UserPlus = /*#__PURE__*/ make(PhUserPlus, "duotone", "UserPlus");
 export const Zap = /*#__PURE__*/ make(PhLightning, "duotone", "Zap");

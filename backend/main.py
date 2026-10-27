@@ -106,6 +106,37 @@ from modules.reporting.routes import router as reporting_router
 from core.audit import AuditEntry
 from core.sequences import Sequence
 
+# --- New modules (gap-fill build, Oct 2026) ---
+from modules.regions.models import Region, Office, InterOfficeSettlement, InspectorLoan, DeputyCoverage
+from modules.regions.routes import router as regions_router
+from modules.recruitment.models import ManpowerRequest, Candidate, TechnicalInterview, OfferLetter, InductionChecklist
+from modules.recruitment.routes import router as recruitment_router
+from modules.leave_attendance.models import LeaveRequest, AttendanceRecord, Timesheet
+from modules.leave_attendance.routes import router as leave_attendance_router
+from modules.payroll.models import PayrollRun, Payslip
+from modules.payroll.routes import router as payroll_router
+from modules.appraisal.models import Appraisal, WitnessedInspection
+from modules.appraisal.routes import router as appraisal_router
+from modules.exit_management.models import ExitProcess
+from modules.exit_management.routes import router as exit_router
+from modules.payments.models import DunningRecord
+from modules.purchasing.models import PurchaseRequisition, VendorPayment
+from modules.purchasing.routes import router as purchasing_router
+from modules.rfi.models import RFI
+from modules.rfi.routes import router as rfi_router
+from modules.punch_list.models import PunchItem
+from modules.punch_list.routes import router as punch_list_router
+from modules.release_notes.models import InspectionReleaseNote
+from modules.release_notes.routes import router as release_notes_router
+from modules.feedback.models import ClientFeedback, MRMAgendaItem
+from modules.feedback.routes import router as feedback_router
+from modules.job_handoff.models import JobConversion
+from modules.job_handoff.routes import router as job_handoff_router
+from modules.signoff.models import ReportSignoff
+from modules.signoff.routes import router as signoff_router
+from modules.win_loss.models import WinLossRecord
+from modules.win_loss.routes import router as win_loss_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -131,7 +162,19 @@ async def lifespan(app: FastAPI):
             ScheduleMPharmaEPCProject, TpiReport, WorkTypeDefinition, WorkPackage,
             Certification, BillingTerms,
             Person, CompetenceProfile, Authorization, ImpartialityDeclaration,
-            Assignment, ReportFormat
+            Assignment, ReportFormat,
+            # Gap-fill modules
+            Region, Office, InterOfficeSettlement, InspectorLoan, DeputyCoverage,
+            ManpowerRequest, Candidate, TechnicalInterview, OfferLetter, InductionChecklist,
+            LeaveRequest, AttendanceRecord, Timesheet,
+            PayrollRun, Payslip,
+            Appraisal, WitnessedInspection,
+            ExitProcess,
+            DunningRecord,
+            PurchaseRequisition, VendorPayment,
+            RFI, PunchItem, InspectionReleaseNote,
+            ClientFeedback, MRMAgendaItem,
+            JobConversion, ReportSignoff, WinLossRecord,
         ],
     )
 
@@ -269,6 +312,22 @@ app.include_router(appeals_router, prefix="/api/v1")
 app.include_router(equipment_router, prefix="/api/v1")
 app.include_router(ai_assist_router, prefix="/api/v1")
 app.include_router(tpi_router)
+
+# Gap-fill routers
+app.include_router(regions_router, prefix="/api/v1")
+app.include_router(recruitment_router, prefix="/api/v1")
+app.include_router(leave_attendance_router, prefix="/api/v1")
+app.include_router(payroll_router, prefix="/api/v1")
+app.include_router(appraisal_router, prefix="/api/v1")
+app.include_router(exit_router, prefix="/api/v1")
+app.include_router(purchasing_router, prefix="/api/v1")
+app.include_router(rfi_router, prefix="/api/v1")
+app.include_router(punch_list_router, prefix="/api/v1")
+app.include_router(release_notes_router, prefix="/api/v1")
+app.include_router(feedback_router, prefix="/api/v1")
+app.include_router(job_handoff_router, prefix="/api/v1")
+app.include_router(signoff_router, prefix="/api/v1")
+app.include_router(win_loss_router, prefix="/api/v1")
 
 
 @app.get("/api/pdf/generate", include_in_schema=False)

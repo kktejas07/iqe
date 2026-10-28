@@ -67,7 +67,9 @@ export default function NewJobPage() {
         const [clientsSettled, mfrsSettled, usersSettled, jobsSettled] = await Promise.allSettled([
           api.listClients({ per_page: 200 }),
           api.listManufacturers({ per_page: 200 }),
-          api.listUsers({ per_page: 200 }),
+          // 200 inspectors + the handful of admin/client logins must all fit in
+          // one page; at per_page=200 the last few inspectors were cut off.
+          api.listUsers({ per_page: 500 }),
           api.client.get("/jobs/", { params: { per_page: 1 } }),
         ]);
 

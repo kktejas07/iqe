@@ -19,6 +19,14 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // The trailing-slash rule must come first. FastAPI declares most routes
+      // as "/" under their prefix, so forwarding "/backend/api/v1/regions"
+      // makes it answer 307 with an absolute Location on the API's own public
+      // host. The browser then blocks that hop as mixed content (https -> http)
+      // and drops Authorization on the cross-origin redirect, so the page ends
+      // up with no data. Matching the slash here keeps the proxied path exactly
+      // as the client sent it, and no redirect happens.
+      { source: "/backend/:path*/", destination: `${BACKEND_URL}/:path*/` },
       { source: "/backend/:path*", destination: `${BACKEND_URL}/:path*` },
       // Short links printed as QR codes on reports
       { source: "/v/:code", destination: `${BACKEND_URL}/v/:code` },

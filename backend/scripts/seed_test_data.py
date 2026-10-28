@@ -331,23 +331,11 @@ async def seed():
         for p in PEOPLE_DATA:
             await Person(site_id=SITE, **p).insert()
 
-        print("  → User logins...")
-        logins = [
-            {"username": "admin", "email": "admin@iqeipl.com", "full_name": "System Admin",
-             "role": "admin", "password_hash": "pbkdf2:sha256:dummy_admin"},
-            {"username": "rajesh.sharma", "email": "rajesh.sharma@iqeipl.com", "full_name": "Rajesh Kumar Sharma",
-             "role": "regional_head", "password_hash": "pbkdf2:sha256:dummy"},
-            {"username": "suresh.naidu", "email": "suresh.naidu@iqeipl.com", "full_name": "Suresh Babu Naidu",
-             "role": "technical_manager", "password_hash": "pbkdf2:sha256:dummy"},
-            {"username": "vikram.rathore", "email": "vikram.rathore@iqeipl.com", "full_name": "Vikram Singh Rathore",
-             "role": "inspector", "password_hash": "pbkdf2:sha256:dummy"},
-            {"username": "irfan.khan", "email": "irfan.khan@iqeipl.com", "full_name": "Mohammed Irfan Khan",
-             "role": "inspector", "password_hash": "pbkdf2:sha256:dummy"},
-            {"username": "lakshmi.n", "email": "lakshmi.n@iqeipl.com", "full_name": "Lakshmi Narayan",
-             "role": "finance", "password_hash": "pbkdf2:sha256:dummy"},
-        ]
-        for l in logins:
-            await UserLogin(site_id=SITE, is_active=True, created_at=dt(100), **l).insert()
+        # Logins are owned by scripts/seed_users.py, which writes the real
+        # UserLogin schema (user_id/login_name/login_password/role_id) and is
+        # idempotent per login_name. Seeding them here as well produced
+        # duplicate login_name rows for "admin", which makes login ambiguous.
+        print("  → User logins... (handled by scripts/seed_users.py)")
 
         print("  → Clients & units...")
         for c in CLIENTS_DATA:
@@ -861,12 +849,10 @@ async def seed():
     # ╚══════════════════════════════════════════════════════════════════════╝
     print("  → Release notes...")
     await InspectionReleaseNote(
-        release_id="IRN-2627-001", site_id=SITE, job_id="JOB-2627-001",
-        report_ref="IQE/RIL/2627/RPT-001", visit_id="VST-2627-001",
-        equipment_tag="PV-101", equipment_description="Pressure Vessel - Naphtha Splitter Overhead Drum",
-        preconditions_met=True, all_ncrs_closed=True, all_punch_items_closed=False,
-        inspector_person_id="EMP-00004",
-        tm_recommendation="release", tm_recommended_by="EMP-00002", tm_recommended_on=dt(8),
+        irn_id="IRN-2627-001", site_id=SITE, job_id="JOB-2627-001",
+        description="Pressure Vessel - Naphtha Splitter Overhead Drum (PV-101)",
+        hold_points_signed=True, ncrs_closed=True, cat_a_punch_closed=False,
+        recommended_by="EMP-00002", recommended_on=dt(8),
         status="recommended"
     ).insert()
 

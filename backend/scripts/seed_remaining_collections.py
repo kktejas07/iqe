@@ -12,8 +12,12 @@ import random
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 
-MONGO_URL = "mongodb://localhost:27017"
-DB_NAME = "iqeapp_dev"
+import os
+
+# Defaults are for a local dev box; on a container the backend's env points at
+# the real instance and database, which is what we want to seed.
+MONGO_URL = os.environ.get("MONGODB_URL", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("MONGODB_DB_NAME", "iqeapp_dev")
 
 client = MongoClient(MONGO_URL)
 db = client[DB_NAME]

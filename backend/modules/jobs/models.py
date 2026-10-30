@@ -48,6 +48,8 @@ class Job(Document):
     # Purchase Order Reference Link
     po_id: Optional[str] = None
     po_number: Optional[str] = None
+    #: Every PO raised under this J.No (a renewal or new PO continues the J.No).
+    po_references: list[str] = []
     
     title: str
     description: Optional[str] = None
@@ -55,7 +57,7 @@ class Job(Document):
     job_type_category: str = "PV-PIPE"  # PV-PIPE, STR-FAB, NDT-RAD, VND-AUD, PRE-SHP, CUSTOM
 
     # Service line and region (P1, R1)
-    service_line: str = "PART_B"  # PART_A (TPI/accredited), PART_B (accredited scope), PART_C (EPC project support), MANPOWER (secondment)
+    service_line: str = "PART_B"  # PART_A manpower/secondment, PART_B inspection, PART_C EPC project support (see core/claims.py)
     region_code: Optional[str] = None  # N, S, E, W
     financial_year: Optional[str] = None  # "2627"
     j_no: Optional[str] = None  # S-2627-0001 format (region-FY-sequence)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from core.claims import QMS_STATEMENT, INSPECTION_PROTOCOL
 from typing import Optional
 from datetime import datetime
 from beanie import Document
@@ -68,8 +69,8 @@ class Visit(Document):
     manufacturer_unit_name: Optional[str] = None
     
     plant_location: Optional[str] = None
-    protocol_standard: str = "ISO 9001:2026 & ISO/IEC 17020:2026 Quality Inspection Protocol"  # Standard TPI Inspection Protocol
-    environmental_condition: Optional[str] = "Normal (Safety & Heat stress audited per ISO 9001:2026 Cl. 4.1)"
+    protocol_standard: str = INSPECTION_PROTOCOL  # Standard TPI Inspection Protocol
+    environmental_condition: Optional[str] = "Normal (Safety & Heat stress audited per ISO 9001:2015 Cl. 4.1)"
     impartiality_declared: bool = True  # Conflict of interest declaration per ISO/IEC 17020:2026 Cl. 4.1 / IQE-MS-10
     
     # GPS Geofence & Check-In Verification (ISO/IEC 17020 Satellite Timestamping)

@@ -305,7 +305,7 @@ class VerificationService:
                 "job_id": getattr(v, "job_id", ""),
                 "inspector": getattr(v, "inspector_name", "Lead Quality Inspector"),
                 "plant_location": getattr(v, "plant_location", "Manufacturing Works"),
-                "protocol": getattr(v, "protocol_standard", "ISO/IEC 17020:2026 Protocol"),
+                "protocol": getattr(v, "protocol_standard", "IQE Quality Inspection Protocol"),
                 "impartiality_status": "ISO/IEC 17020 Cl. 4.1 Impartiality Verified (0 Conflicts)",
             },
         }

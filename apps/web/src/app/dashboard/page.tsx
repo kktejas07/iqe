@@ -207,7 +207,7 @@ export default function Dashboard() {
               <span>{greeting} • Operations Engine Active</span>
             </span>
             <span className="hidden md:inline-flex px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold">
-              ISO/IEC 17020 &amp; ISO 9001:2026 Compliant
+              ISO 9001:2015 Certified
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-heading tracking-tight mt-1">

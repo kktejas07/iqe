@@ -40,7 +40,7 @@ class RegionService:
             raise HTTPException(409, f"Region {data['region_code']} already exists")
         region = Region(**data, created_at=datetime.now(), updated_at=datetime.now())
         await region.insert()
-        await audit(AuditAction.CREATE, "region", region.region_code, user_id, after=data)
+        await audit("region", region.region_code, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
         return region
 
     @staticmethod
@@ -52,7 +52,7 @@ class RegionService:
                 setattr(region, k, v)
         region.updated_at = datetime.now()
         await region.save()
-        await audit(AuditAction.UPDATE, "region", region.region_code, user_id, before=before, after=data)
+        await audit("region", region.region_code, AuditAction.UPDATE, actor={"user_id": user_id}, before=before, after=data)
         return region
 
     # ── Offices ──────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ class RegionService:
         data["region_code"] = region_code.upper()
         office = Office(**data, created_at=datetime.now(), updated_at=datetime.now())
         await office.insert()
-        await audit(AuditAction.CREATE, "office", office.office_id, user_id, after=data)
+        await audit("office", office.office_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
         return office
 
     @staticmethod
@@ -103,7 +103,7 @@ class RegionService:
         data["created_by"] = user_id
         settlement = InterOfficeSettlement(**data, created_at=datetime.now(), updated_at=datetime.now())
         await settlement.insert()
-        await audit(AuditAction.CREATE, "settlement", settlement.settlement_id, user_id, after=data)
+        await audit("settlement", settlement.settlement_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
         return settlement
 
     @staticmethod
@@ -118,7 +118,7 @@ class RegionService:
         settlement.settled_on = datetime.now()
         settlement.updated_at = datetime.now()
         await settlement.save()
-        await audit(AuditAction.UPDATE, "settlement", settlement_id, user_id, after={"status": "settled"})
+        await audit("settlement", settlement_id, AuditAction.UPDATE, actor={"user_id": user_id}, after={"status": "settled"})
         return settlement
 
     # ── Inspector loans ──────────────────────────────────────────────
@@ -147,7 +147,7 @@ class RegionService:
         data["created_by"] = user_id
         loan = InspectorLoan(**data, created_at=datetime.now(), updated_at=datetime.now())
         await loan.insert()
-        await audit(AuditAction.CREATE, "inspector_loan", loan.loan_id, user_id, after=data)
+        await audit("inspector_loan", loan.loan_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
         return loan
 
     @staticmethod
@@ -161,7 +161,7 @@ class RegionService:
         loan.end_date = datetime.now()
         loan.updated_at = datetime.now()
         await loan.save()
-        await audit(AuditAction.UPDATE, "inspector_loan", loan_id, user_id, after={"status": "completed"})
+        await audit("inspector_loan", loan_id, AuditAction.UPDATE, actor={"user_id": user_id}, after={"status": "completed"})
         return loan
 
     # ── Deputy coverage ──────────────────────────────────────────────
@@ -181,7 +181,7 @@ class RegionService:
         data["arranged_by"] = data.get("arranged_by", user_id)
         deputy = DeputyCoverage(**data, created_at=datetime.now(), updated_at=datetime.now())
         await deputy.insert()
-        await audit(AuditAction.CREATE, "deputy_coverage", deputy.coverage_id, user_id, after=data)
+        await audit("deputy_coverage", deputy.coverage_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
         return deputy
 
     @staticmethod

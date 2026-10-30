@@ -2,8 +2,9 @@ from typing import Optional
 from datetime import datetime
 from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
+from core.claims import accreditation_mark, normalise_service_line
 from modules.release_notes.models import InspectionReleaseNote
-from modules.ncr.models import NCR
+from modules.ncr.models import NCR, OPEN_STATUSES as NCR_OPEN
 from modules.punch_list.models import PunchItem
 
 
@@ -38,12 +39,23 @@ class ReleaseNoteService:
         count = await InspectionReleaseNote.find({"site_id": site_id}).count()
         year = datetime.now().year
         irn_id = f"IRN-{year}-{count + 1:04d}"
-        irn = InspectionReleaseNote(irn_id=irn_id, site_id=site_id, **{
+        fields = {
             k: v for k, v in data.items()
-            if k in InspectionReleaseNote.model_fields and k not in ("irn_id", "site_id")
-        })
+            if k in InspectionReleaseNote.model_fields
+            and k not in ("irn_id", "site_id", "accreditation_mark")
+        }
+        try:
+            line = normalise_service_line(fields.get("service_line"))
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        fields["service_line"] = line.value
+        # The mark is never taken from the request: it is decided by the rule.
+        mark = accreditation_mark(line.value, bool(data.get("in_accredited_scope", False)))
+        irn = InspectionReleaseNote(
+            irn_id=irn_id, site_id=site_id, accreditation_mark=mark["permitted"], **fields
+        )
         await irn.insert()
-        await audit(AuditAction.CREATE, "release_note", irn_id, user_id, site_id, after=irn.dict())
+        await audit("release_note", irn_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=irn.dict())
         return irn.dict()
 
     @staticmethod
@@ -54,9 +66,14 @@ class ReleaseNoteService:
 
         # Check NCRs for this job
         all_ncrs = await NCR.find({"job_id": irn.job_id, "site_id": site_id}).to_list()
-        closed_ncrs = [n for n in all_ncrs if n.status in ("closed", "verified")]
-        open_ncr_ids = [n.ncr_id for n in all_ncrs if n.status not in ("closed", "verified")]
-        irn.ncr_total = len(all_ncrs)
+        # The NCR module owns its own vocabulary; asking it what "unresolved"
+        # means keeps this gate from drifting. VOID (raised in error) is
+        # resolved - it must not block a release - and CLOSED is verified.
+        open_values = {getattr(s, "value", s) for s in NCR_OPEN}
+        open_ncr_ids = [n.ncr_id for n in all_ncrs if n.status in open_values]
+        counted = [n for n in all_ncrs if n.status != "VOID"]
+        closed_ncrs = [n for n in counted if n.status not in open_values]
+        irn.ncr_total = len(counted)
         irn.ncr_closed_count = len(closed_ncrs)
         irn.ncr_open_ids = open_ncr_ids
         irn.ncrs_closed = len(open_ncr_ids) == 0
@@ -83,7 +100,7 @@ class ReleaseNoteService:
             irn.status = "preconditions_checked"
         irn.updated_at = datetime.now()
         await irn.save()
-        await audit(AuditAction.UPDATE, "release_note", irn_id, user_id, site_id, after={"preconditions_met": all_clear})
+        await audit("release_note", irn_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"preconditions_met": all_clear})
         return {**irn.dict(), "preconditions_met": all_clear}
 
     @staticmethod
@@ -98,7 +115,7 @@ class ReleaseNoteService:
         irn.status = "recommended"
         irn.updated_at = datetime.now()
         await irn.save()
-        await audit(AuditAction.UPDATE, "release_note", irn_id, user_id, site_id, after={"status": "recommended"})
+        await audit("release_note", irn_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "recommended"})
         return irn.dict()
 
     @staticmethod
@@ -113,7 +130,7 @@ class ReleaseNoteService:
         irn.status = "approved"
         irn.updated_at = datetime.now()
         await irn.save()
-        await audit(AuditAction.UPDATE, "release_note", irn_id, user_id, site_id, after={"status": "approved"})
+        await audit("release_note", irn_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "approved"})
         return irn.dict()
 
     @staticmethod
@@ -129,5 +146,5 @@ class ReleaseNoteService:
         irn.status = "released"
         irn.updated_at = datetime.now()
         await irn.save()
-        await audit(AuditAction.UPDATE, "release_note", irn_id, user_id, site_id, after={"status": "released"})
+        await audit("release_note", irn_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "released"})
         return irn.dict()

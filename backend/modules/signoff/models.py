@@ -28,6 +28,11 @@ class ReportSignoff(Document):
     report_ref: Optional[str] = None
     certification_id: Optional[str] = None
 
+    # Who did the work and who sold it - captured at creation, from the job and
+    # visits, so the never-self-review rule does not depend on the signer's word.
+    prepared_by_person_ids: list[str] = []
+    sold_by_person_id: Optional[str] = None
+
     # Who should sign
     assigned_tm_person_id: Optional[str] = None
 

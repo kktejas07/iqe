@@ -50,7 +50,7 @@ class RecruitmentService:
         data.setdefault("status", ManpowerRequestStatus.DRAFT.value)
         doc = ManpowerRequest(**data)
         await doc.insert()
-        await audit(AuditAction.CREATE, "manpower_request", doc.request_id, user_id, site_id)
+        await audit("manpower_request", doc.request_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return doc
 
     @staticmethod
@@ -65,7 +65,7 @@ class RecruitmentService:
         doc.status = ManpowerRequestStatus.SOURCING.value
         doc.updated_at = datetime.now()
         await doc.save()
-        await audit(AuditAction.UPDATE, "manpower_request", request_id, user_id, site_id, detail="budget_approved")
+        await audit("manpower_request", request_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note="budget_approved")
         return doc
 
     @staticmethod
@@ -79,7 +79,7 @@ class RecruitmentService:
         doc.status = ManpowerRequestStatus.BUDGET_REJECTED.value
         doc.updated_at = datetime.now()
         await doc.save()
-        await audit(AuditAction.UPDATE, "manpower_request", request_id, user_id, site_id, detail="budget_rejected")
+        await audit("manpower_request", request_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note="budget_rejected")
         return doc
 
     # ------------------------------------------------------------------
@@ -126,7 +126,7 @@ class RecruitmentService:
         data.setdefault("created_by", user_id)
         doc = Candidate(**data)
         await doc.insert()
-        await audit(AuditAction.CREATE, "candidate", doc.candidate_id, user_id, site_id)
+        await audit("candidate", doc.candidate_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return doc
 
     @staticmethod
@@ -137,7 +137,7 @@ class RecruitmentService:
             doc.screening_notes = notes
         doc.updated_at = datetime.now()
         await doc.save()
-        await audit(AuditAction.UPDATE, "candidate", candidate_id, user_id, site_id, detail=f"status→{new_status}")
+        await audit("candidate", candidate_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note=f"status→{new_status}")
         return doc
 
     # ------------------------------------------------------------------
@@ -167,7 +167,7 @@ class RecruitmentService:
         data.setdefault("created_by", user_id)
         doc = TechnicalInterview(**data)
         await doc.insert()
-        await audit(AuditAction.CREATE, "technical_interview", doc.interview_id, user_id, site_id)
+        await audit("technical_interview", doc.interview_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return doc
 
     @staticmethod
@@ -199,7 +199,7 @@ class RecruitmentService:
                 candidate.updated_at = datetime.now()
                 await candidate.save()
 
-        await audit(AuditAction.UPDATE, "technical_interview", interview_id, user_id, site_id, detail=f"result→{recommendation}")
+        await audit("technical_interview", interview_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note=f"result→{recommendation}")
         return doc
 
     # ------------------------------------------------------------------
@@ -232,7 +232,7 @@ class RecruitmentService:
         data.setdefault("created_by", user_id)
         doc = OfferLetter(**data)
         await doc.insert()
-        await audit(AuditAction.CREATE, "offer_letter", doc.offer_id, user_id, site_id)
+        await audit("offer_letter", doc.offer_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return doc
 
     @staticmethod
@@ -253,7 +253,7 @@ class RecruitmentService:
             candidate.updated_at = datetime.now()
             await candidate.save()
 
-        await audit(AuditAction.UPDATE, "offer_letter", offer_id, user_id, site_id, detail="sent")
+        await audit("offer_letter", offer_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note="sent")
         return doc
 
     @staticmethod
@@ -287,8 +287,7 @@ class RecruitmentService:
                 await candidate.save()
 
         await doc.save()
-        await audit(AuditAction.UPDATE, "offer_letter", offer_id, user_id, site_id,
-                     detail=f"response→{'accepted' if accepted else 'declined'}")
+        await audit("offer_letter", offer_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note=f"response→{'accepted' if accepted else 'declined'}")
         return doc
 
     # ------------------------------------------------------------------
@@ -317,7 +316,7 @@ class RecruitmentService:
             data["checklist_items"] = [item.model_dump() for item in DEFAULT_INDUCTION_ITEMS]
         doc = InductionChecklist(**data)
         await doc.insert()
-        await audit(AuditAction.CREATE, "induction_checklist", doc.induction_id, user_id, site_id)
+        await audit("induction_checklist", doc.induction_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return doc
 
     @staticmethod
@@ -352,7 +351,7 @@ class RecruitmentService:
 
         doc.updated_at = now
         await doc.save()
-        await audit(AuditAction.UPDATE, "induction_checklist", induction_id, user_id, site_id, detail=f"item:{item_code}→{completed}")
+        await audit("induction_checklist", induction_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note=f"item:{item_code}→{completed}")
         return doc
 
     @staticmethod
@@ -383,5 +382,5 @@ class RecruitmentService:
             person.updated_at = now
             await person.save()
 
-        await audit(AuditAction.UPDATE, "induction_checklist", induction_id, user_id, site_id, detail="completed")
+        await audit("induction_checklist", induction_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, note="completed")
         return doc

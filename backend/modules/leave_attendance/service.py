@@ -33,7 +33,7 @@ class LeaveAttendanceService:
     async def create_leave(data: dict, site_id: str, user_id: str):
         leave = LeaveRequest(**data, site_id=site_id, created_by=user_id)
         await leave.insert()
-        await audit(AuditAction.CREATE, "leave_requests", leave.leave_id, user_id, site_id)
+        await audit("leave_requests", leave.leave_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return leave
 
     @staticmethod
@@ -50,7 +50,7 @@ class LeaveAttendanceService:
             leave.remarks = remarks
         leave.updated_at = datetime.now()
         await leave.save()
-        await audit(AuditAction.UPDATE, "leave_requests", leave_id, user_id, site_id, {"status": "approved"})
+        await audit("leave_requests", leave_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "approved"})
         return leave
 
     @staticmethod
@@ -67,7 +67,7 @@ class LeaveAttendanceService:
             leave.remarks = remarks
         leave.updated_at = datetime.now()
         await leave.save()
-        await audit(AuditAction.UPDATE, "leave_requests", leave_id, user_id, site_id, {"status": "rejected"})
+        await audit("leave_requests", leave_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "rejected"})
         return leave
 
     # ── Attendance ─────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ class LeaveAttendanceService:
     async def create_timesheet(data: dict, site_id: str, user_id: str):
         ts = Timesheet(**data, site_id=site_id, created_by=user_id)
         await ts.insert()
-        await audit(AuditAction.CREATE, "timesheets", ts.timesheet_id, user_id, site_id)
+        await audit("timesheets", ts.timesheet_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return ts
 
     @staticmethod
@@ -164,7 +164,7 @@ class LeaveAttendanceService:
         ts.status = "submitted"
         ts.updated_at = datetime.now()
         await ts.save()
-        await audit(AuditAction.UPDATE, "timesheets", timesheet_id, user_id, site_id, {"status": "submitted"})
+        await audit("timesheets", timesheet_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "submitted"})
         return ts
 
     @staticmethod
@@ -179,5 +179,5 @@ class LeaveAttendanceService:
         ts.approved_on = datetime.now()
         ts.updated_at = datetime.now()
         await ts.save()
-        await audit(AuditAction.UPDATE, "timesheets", timesheet_id, user_id, site_id, {"status": "approved"})
+        await audit("timesheets", timesheet_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "approved"})
         return ts

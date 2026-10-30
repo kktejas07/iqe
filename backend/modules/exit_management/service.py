@@ -26,7 +26,7 @@ class ExitService:
             data["checklist"] = [item.model_dump() for item in DEFAULT_EXIT_CHECKLIST]
         exit_proc = ExitProcess(**data, site_id=site_id, created_by=user_id, processed_by=user_id)
         await exit_proc.insert()
-        await audit(AuditAction.CREATE, "exit_processes", exit_proc.exit_id, user_id, site_id)
+        await audit("exit_processes", exit_proc.exit_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return exit_proc
 
     @staticmethod
@@ -54,7 +54,7 @@ class ExitService:
         ep.status = "in_progress"
         ep.updated_at = datetime.now()
         await ep.save()
-        await audit(AuditAction.UPDATE, "exit_processes", exit_id, user_id, site_id, {"checklist_item": item_code, "completed": completed})
+        await audit("exit_processes", exit_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"checklist_item": item_code, "completed": completed})
         return ep
 
     @staticmethod
@@ -73,7 +73,7 @@ class ExitService:
         ep.authorization_withdrawn = True
         ep.updated_at = datetime.now()
         await ep.save()
-        await audit(AuditAction.UPDATE, "exit_processes", exit_id, user_id, site_id, {"authorization_withdrawn": True, "auths_withdrawn": len(auths)})
+        await audit("exit_processes", exit_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"authorization_withdrawn": True, "auths_withdrawn": len(auths)})
         return {"exit": ep, "authorizations_withdrawn": len(auths)}
 
     @staticmethod
@@ -85,7 +85,7 @@ class ExitService:
         ep.final_settlement_status = "calculated"
         ep.updated_at = datetime.now()
         await ep.save()
-        await audit(AuditAction.UPDATE, "exit_processes", exit_id, user_id, site_id, {"settlement_status": "calculated"})
+        await audit("exit_processes", exit_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"settlement_status": "calculated"})
         return ep
 
     @staticmethod
@@ -113,5 +113,5 @@ class ExitService:
         ep.completed_on = datetime.now()
         ep.updated_at = datetime.now()
         await ep.save()
-        await audit(AuditAction.UPDATE, "exit_processes", exit_id, user_id, site_id, {"status": "completed"})
+        await audit("exit_processes", exit_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "completed"})
         return ep

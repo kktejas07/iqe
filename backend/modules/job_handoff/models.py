@@ -25,6 +25,8 @@ class JobConversion(Document):
     # Generated Job
     job_id: Optional[str] = None
     j_no: Optional[str] = None
+    #: Why this conversion opened a new J.No or continued one (jno.py).
+    trigger: str = "NEW_PROJECT"
 
     # Trigger for manpower request (H1)
     manpower_request_ids: list[str] = []

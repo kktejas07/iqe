@@ -31,7 +31,7 @@ class AppraisalService:
     async def create_appraisal(data: dict, site_id: str, user_id: str):
         appraisal = Appraisal(**data, site_id=site_id, created_by=user_id)
         await appraisal.insert()
-        await audit(AuditAction.CREATE, "appraisals", appraisal.appraisal_id, user_id, site_id)
+        await audit("appraisals", appraisal.appraisal_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return appraisal
 
     @staticmethod
@@ -54,7 +54,7 @@ class AppraisalService:
         a.status = "self_review"
         a.updated_at = datetime.now()
         await a.save()
-        await audit(AuditAction.UPDATE, "appraisals", appraisal_id, user_id, site_id, {"status": "self_review"})
+        await audit("appraisals", appraisal_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "self_review"})
         return a
 
     @staticmethod
@@ -73,7 +73,7 @@ class AppraisalService:
         a.status = "manager_review"
         a.updated_at = datetime.now()
         await a.save()
-        await audit(AuditAction.UPDATE, "appraisals", appraisal_id, user_id, site_id, {"status": "manager_review"})
+        await audit("appraisals", appraisal_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "manager_review"})
         return a
 
     @staticmethod
@@ -87,7 +87,7 @@ class AppraisalService:
         a.completed_on = datetime.now()
         a.updated_at = datetime.now()
         await a.save()
-        await audit(AuditAction.UPDATE, "appraisals", appraisal_id, user_id, site_id, {"status": "completed"})
+        await audit("appraisals", appraisal_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "completed"})
         return a
 
     # ── Witnessed Inspections ──────────────────────────────────────────
@@ -111,7 +111,7 @@ class AppraisalService:
     async def create_witnessed(data: dict, site_id: str, user_id: str):
         wi = WitnessedInspection(**data, site_id=site_id, created_by=user_id)
         await wi.insert()
-        await audit(AuditAction.CREATE, "witnessed_inspections", wi.witness_id, user_id, site_id)
+        await audit("witnessed_inspections", wi.witness_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return wi
 
     @staticmethod

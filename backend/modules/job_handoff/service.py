@@ -2,16 +2,12 @@ from __future__ import annotations
 from datetime import datetime
 from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
-from core.sequences import next_value
+from core.claims import normalise_service_line
+from modules.job_handoff import jno
 from modules.job_handoff.models import JobConversion
 
 
-def _financial_year_code() -> str:
-    """Return a 4-char FY code (e.g. '2627' for April 2026 – March 2027)."""
-    now = datetime.now()
-    if now.month >= 4:
-        return f"{str(now.year)[-2:]}{str(now.year + 1)[-2:]}"
-    return f"{str(now.year - 1)[-2:]}{str(now.year)[-2:]}"
+_financial_year_code = jno.financial_year_code  # kept for existing importers
 
 
 class JobHandoffService:
@@ -33,32 +29,54 @@ class JobHandoffService:
         if enquiry.won_job_id:
             raise HTTPException(status_code=409, detail="Enquiry already converted")
 
-        region_code = data.get("region_code", "S")
-        fy = _financial_year_code()
-        seq_key = f"{site_id}:JNO:{region_code}-{fy}"
-        seq_num = await next_value(seq_key, seed=0)
-        j_no = f"{region_code}-{fy}-{seq_num:04d}"
+        region_code = jno.normalise_region(data.get("region_code", "S"))
+        trigger = jno.check_trigger(data.get("trigger"))
+        try:
+            service_line = normalise_service_line(data.get("service_line")).value
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
 
-        job = Job(
-            job_id=f"JOB-{j_no}",
-            site_id=site_id,
-            j_no=j_no,
-            enquiry_id=enquiry_id,
-            region_code=region_code,
-            financial_year=f"20{fy[:2]}-{fy[2:]}",
-            service_line=data.get("service_line", "PART_B"),
-            client_id=enquiry.client_id,
-            title=data.get("title", f"Job from {enquiry_id}"),
-            description=data.get("description"),
-            po_number=data.get("po_number"),
-            budget_contract_amount=data.get("award_value", enquiry.pipeline_value),
-            status="draft",
-            created_by=user_id,
-        )
-        await job.insert()
+        if trigger in jno.REUSE_TRIGGERS:
+            existing_j_no = data.get("existing_j_no")
+            if not existing_j_no:
+                raise HTTPException(
+                    422, f"{trigger} continues an existing J.No - supply existing_j_no"
+                )
+            jno.parse(existing_j_no)
+            job = await Job.find_one({"j_no": existing_j_no, "site_id": site_id})
+            jno.check_reuse(trigger, job, enquiry.client_id, region_code)
+            j_no = job.j_no
+            refs = list(job.po_references or [])
+            if data.get("po_number") and data["po_number"] not in refs:
+                refs.append(data["po_number"])
+            job.po_references = refs
+            job.updated_at = datetime.now()
+            await job.save()
+        else:
+            j_no = await jno.allocate(region_code, site_id)
+            fy = jno.financial_year_code()
+            job = Job(
+                job_id=f"JOB-{j_no}",
+                site_id=site_id,
+                j_no=j_no,
+                enquiry_id=enquiry_id,
+                region_code=region_code,
+                financial_year=f"20{fy[:2]}-{fy[2:]}",
+                service_line=service_line,
+                client_id=enquiry.client_id,
+                title=data.get("title", f"Job from {enquiry_id}"),
+                description=data.get("description"),
+                po_number=data.get("po_number"),
+                po_references=[data["po_number"]] if data.get("po_number") else [],
+                budget_contract_amount=data.get("award_value", enquiry.pipeline_value),
+                status="draft",
+                created_by=user_id,
+            )
+            await job.insert()
 
+        earlier = await JobConversion.find({"j_no": j_no, "site_id": site_id}).count()
         conversion = JobConversion(
-            conversion_id=f"CNV-{j_no}",
+            conversion_id=f"CNV-{j_no}" if earlier == 0 else f"CNV-{j_no}-{earlier + 1:02d}",
             site_id=site_id,
             enquiry_id=enquiry_id,
             proposal_id=enquiry.current_proposal_id,
@@ -68,6 +86,7 @@ class JobHandoffService:
             award_value=data.get("award_value", 0),
             job_id=job.job_id,
             j_no=j_no,
+            trigger=trigger,
             converted_by=user_id,
         )
         await conversion.insert()
@@ -78,7 +97,7 @@ class JobHandoffService:
         enquiry.updated_at = datetime.now()
         await enquiry.save()
 
-        await audit(AuditAction.CREATE, "job_conversion", conversion.conversion_id, user_id, site_id)
+        await audit("job_conversion", conversion.conversion_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, note=f"{trigger} {j_no}")
         return {"conversion": conversion.dict(), "job": job.dict(), "j_no": j_no}
 
     @staticmethod

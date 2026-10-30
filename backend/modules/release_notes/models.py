@@ -12,6 +12,11 @@ class InspectionReleaseNote(Document):
     job_id: str
     work_package_id: Optional[str] = None
 
+    #: A=manpower, B=inspection, C=project support (core/claims.py).
+    service_line: str = "PART_B"
+    #: Computed on create from core.claims; Part C release notes never carry it.
+    accreditation_mark: bool = False
+
     description: str
     scope_summary: Optional[str] = None
 

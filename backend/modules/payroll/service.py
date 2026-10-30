@@ -32,7 +32,7 @@ class PayrollService:
     async def create_run(data: dict, site_id: str, user_id: str):
         run = PayrollRun(**data, site_id=site_id, created_by=user_id)
         await run.insert()
-        await audit(AuditAction.CREATE, "payroll_runs", run.run_id, user_id, site_id)
+        await audit("payroll_runs", run.run_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return run
 
     @staticmethod
@@ -130,7 +130,7 @@ class PayrollService:
         run.processed_on = datetime.now()
         run.updated_at = datetime.now()
         await run.save()
-        await audit(AuditAction.UPDATE, "payroll_runs", run_id, user_id, site_id, {"status": "processing", "headcount": count})
+        await audit("payroll_runs", run_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "processing", "headcount": count})
         return {"run": run, "payslips_generated": count}
 
     @staticmethod
@@ -145,7 +145,7 @@ class PayrollService:
         run.approved_on = datetime.now()
         run.updated_at = datetime.now()
         await run.save()
-        await audit(AuditAction.UPDATE, "payroll_runs", run_id, user_id, site_id, {"status": "approved"})
+        await audit("payroll_runs", run_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "approved"})
         return run
 
     @staticmethod
@@ -159,7 +159,7 @@ class PayrollService:
         run.disbursed_on = datetime.now()
         run.updated_at = datetime.now()
         await run.save()
-        await audit(AuditAction.UPDATE, "payroll_runs", run_id, user_id, site_id, {"status": "disbursed"})
+        await audit("payroll_runs", run_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "disbursed"})
         return run
 
     @staticmethod

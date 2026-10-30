@@ -19,8 +19,8 @@ function NewVisitForm() {
   const [inspectorName, setInspectorName] = useState("");
   const [plannedDate, setPlannedDate] = useState("");
   const [plantLocation, setPlantLocation] = useState("");
-  const [protocolStandard, setProtocolStandard] = useState("ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code");
-  const [environmentalCondition, setEnvironmentalCondition] = useState("Normal (Safety & Heat stress audited per ISO 9001:2026 Cl. 4.1)");
+  const [protocolStandard, setProtocolStandard] = useState("ISO 9001:2015 certified QMS & ASME Section VIII Division 1 Code");
+  const [environmentalCondition, setEnvironmentalCondition] = useState("Normal (Safety & Heat stress audited per ISO 9001:2015 Cl. 4.1)");
   const [impartialityDeclared, setImpartialityDeclared] = useState(true);
   const [inspectionScope, setInspectionScope] = useState("");
   const [sowChecklists, setSowChecklists] = useState<any[]>([]);
@@ -210,8 +210,8 @@ function NewVisitForm() {
                 onChange={(e) => setProtocolStandard(e.target.value)}
                 className="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0084bf] font-semibold text-slate-900 dark:text-slate-100"
               >
-                <option value="ISO 9001:2026 & ISO/IEC 17020:2026 & ASME Section VIII Division 1 Code">ISO 9001:2026 &amp; ISO/IEC 17020:2026 &amp; ASME Section VIII Div 1</option>
-                <option value="ISO 9001:2026 & ISO/IEC 17020:2026 Quality Inspection Protocol">ISO 9001:2026 &amp; ISO/IEC 17020:2026 Quality Inspection Protocol</option>
+                <option value="ISO 9001:2015 certified QMS & ASME Section VIII Division 1 Code">ISO 9001:2015 certified QMS &amp; ASME Section VIII Div 1</option>
+                <option value="IQE Quality Inspection Protocol (ISO 9001:2015 certified quality management system)">IQE Quality Inspection Protocol (ISO 9001:2015 certified quality management system)</option>
                 <option value="API 6D Valve & Flow Control Inspection Standard">API 6D Valve &amp; Flow Control Standard</option>
                 <option value="DIN EN 10204 3.1 Material Certificate Protocol">DIN EN 10204 3.1 Material Certification</option>
                 <option value="AWS D1.1 Structural Fabrication Code">AWS D1.1 Structural Fabrication Code</option>
@@ -235,7 +235,7 @@ function NewVisitForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="visit-environment" className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                Environmental & Site Safety Condition (ISO 9001:2026 Cl. 4.1 / 7.1.4)
+                Environmental & Site Safety Condition (ISO 9001:2015 Cl. 4.1 / 7.1.4)
               </label>
               <input
                 id="visit-environment"

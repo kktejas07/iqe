@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import HTTPException
+from core.claims import normalise_service_line
 from modules.jobs.models import Job, SOWItem, AssignmentHistoryEntry
 from modules.service_orders.models import ServiceOrder
 from modules.control_numbers.models import ControlNumber
@@ -159,6 +160,24 @@ class JobService:
                     SOWItem(item_id="SOW-01", description="Equipment Dimensional Verification Against Approved QAP", category="General Inspection").dict(),
                     SOWItem(item_id="SOW-02", description="Stage Inspection Witnessing & Calibration Verification", category="General Inspection").dict(),
                 ]
+
+        # Part A/B/C use the workflow's definitions; legacy MANPOWER maps to A.
+        if "service_line" in data:
+            try:
+                data["service_line"] = normalise_service_line(data["service_line"]).value
+            except ValueError as exc:
+                raise HTTPException(422, str(exc))
+
+        # Every job has a J.No. A new PO or renewal for existing work goes
+        # through /job-handoff/convert (which continues the J.No); creating a
+        # job directly is a new relationship, so it opens one.
+        if data.get("region_code") and not data.get("j_no"):
+            from modules.job_handoff import jno
+            data["j_no"] = await jno.allocate(data["region_code"], site_id)
+            data.setdefault("financial_year", "20%s-%s" % (jno.financial_year_code()[:2], jno.financial_year_code()[2:]))
+        elif data.get("j_no"):
+            from modules.job_handoff import jno
+            jno.parse(data["j_no"])
 
         job = Job(**data, site_id=site_id, created_by=user_id)
         await job.insert()

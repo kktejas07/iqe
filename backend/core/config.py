@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     #: Accept unauthenticated requests as an Admin. Development only - with
     #: this on, every endpoint is open to anyone who can reach the port.
     auth_allow_anonymous: bool = False
+
+    #: Set only when an accreditation is actually granted. Gates the
+    #: accreditation mark everywhere (see core/claims.py).
+    iqe_holds_accreditation: bool = False
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "iqeapp_dev"
     jwt_secret_key: str = "change-me-in-production"

@@ -36,7 +36,7 @@ class WinLossService:
             created_by=user_id,
         )
         await record.insert()
-        await audit(AuditAction.CREATE, "win_loss", record_id, user_id, site_id)
+        await audit("win_loss", record_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return record.dict()
 
     @staticmethod

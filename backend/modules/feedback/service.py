@@ -45,7 +45,7 @@ class FeedbackService:
         if any(r > 0 and r < 3 for r in ratings):
             fb.requires_escalation = True
         await fb.insert()
-        await audit(AuditAction.CREATE, "feedback", feedback_id, user_id, site_id, after=fb.dict())
+        await audit("feedback", feedback_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=fb.dict())
         return fb.dict()
 
     @staticmethod
@@ -59,7 +59,7 @@ class FeedbackService:
         fb.corrective_action = data.get("corrective_action")
         fb.updated_at = datetime.now()
         await fb.save()
-        await audit(AuditAction.UPDATE, "feedback", feedback_id, user_id, site_id, after={"responded": True})
+        await audit("feedback", feedback_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"responded": True})
         return fb.dict()
 
     @staticmethod
@@ -71,7 +71,7 @@ class FeedbackService:
         fb.mrm_ref = data.get("mrm_ref")
         fb.updated_at = datetime.now()
         await fb.save()
-        await audit(AuditAction.UPDATE, "feedback", feedback_id, user_id, site_id, after={"escalated_to_mrm": True})
+        await audit("feedback", feedback_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"escalated_to_mrm": True})
         return fb.dict()
 
 
@@ -105,7 +105,7 @@ class MRMService:
             if k in MRMAgendaItem.model_fields and k not in ("mrm_id", "site_id")
         })
         await item.insert()
-        await audit(AuditAction.CREATE, "mrm", mrm_id, user_id, site_id, after=item.dict())
+        await audit("mrm", mrm_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=item.dict())
         return item.dict()
 
     @staticmethod
@@ -120,7 +120,7 @@ class MRMService:
         item.status = "presented"
         item.updated_at = datetime.now()
         await item.save()
-        await audit(AuditAction.UPDATE, "mrm", mrm_id, user_id, site_id, after={"status": "presented"})
+        await audit("mrm", mrm_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "presented"})
         return item.dict()
 
     @staticmethod
@@ -131,5 +131,5 @@ class MRMService:
         item.status = "closed"
         item.updated_at = datetime.now()
         await item.save()
-        await audit(AuditAction.UPDATE, "mrm", mrm_id, user_id, site_id, after={"status": "closed"})
+        await audit("mrm", mrm_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "closed"})
         return item.dict()

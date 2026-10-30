@@ -284,7 +284,8 @@ class AIAssistService:
 
     DRAFT_SYSTEM_PROMPT = (
         "You are drafting a section of an inspection report for a third-party "
-        "inspection body accredited to ISO/IEC 17020. Write only from the "
+        "inspection organisation with an ISO 9001:2015 certified quality system "
+        "(it holds no accreditation; never describe it as accredited). Write only from the "
         "facts supplied. Do not infer findings that were not recorded and do "
         "not state an acceptance decision that is not present; where "
         "information is missing, say so. A competent inspector will review and "

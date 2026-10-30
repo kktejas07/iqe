@@ -54,7 +54,7 @@ class RFIService:
             if k in RFI.model_fields and k not in ("rfi_id", "site_id", "raised_by")
         })
         await rfi.insert()
-        await audit(AuditAction.CREATE, "rfi", rfi_id, user_id, site_id, after=rfi.dict())
+        await audit("rfi", rfi_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=rfi.dict())
         return rfi.dict()
 
     @staticmethod
@@ -68,7 +68,7 @@ class RFIService:
         rfi.status = "scheduled"
         rfi.updated_at = datetime.now()
         await rfi.save()
-        await audit(AuditAction.UPDATE, "rfi", rfi_id, user_id, site_id, after={"status": "scheduled"})
+        await audit("rfi", rfi_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "scheduled"})
         return rfi.dict()
 
     @staticmethod
@@ -80,7 +80,7 @@ class RFIService:
         rfi.tm_confirmed_by = user_id
         rfi.updated_at = datetime.now()
         await rfi.save()
-        await audit(AuditAction.UPDATE, "rfi", rfi_id, user_id, site_id, after={"tm_confirmed": True})
+        await audit("rfi", rfi_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"tm_confirmed": True})
         return rfi.dict()
 
     @staticmethod
@@ -98,7 +98,7 @@ class RFIService:
             rfi.turnaround_hours = round(delta.total_seconds() / 3600, 1)
         rfi.updated_at = datetime.now()
         await rfi.save()
-        await audit(AuditAction.UPDATE, "rfi", rfi_id, user_id, site_id, after={"result": rfi.result})
+        await audit("rfi", rfi_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"result": rfi.result})
         return rfi.dict()
 
     @staticmethod

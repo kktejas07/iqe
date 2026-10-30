@@ -121,7 +121,7 @@ function VerifyContent() {
           </Link>
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <span className="px-2.5 py-1 rounded-full bg-white/10 text-sky-200 text-xs font-semibold border border-white/10">
-              ISO/IEC 17020:2026
+              ISO 9001:2015 certified
             </span>
             <Link
               href="/login"

@@ -57,7 +57,7 @@ class PunchListService:
             if k in PunchItem.model_fields and k not in ("punch_id", "site_id", "raised_by")
         })
         await item.insert()
-        await audit(AuditAction.CREATE, "punch_item", punch_id, user_id, site_id, after=item.dict())
+        await audit("punch_item", punch_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=item.dict())
         return item.dict()
 
     @staticmethod
@@ -69,7 +69,7 @@ class PunchListService:
         item.status = "corrected"
         item.updated_at = datetime.now()
         await item.save()
-        await audit(AuditAction.UPDATE, "punch_item", punch_id, user_id, site_id, after={"status": "corrected"})
+        await audit("punch_item", punch_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "corrected"})
         return item.dict()
 
     @staticmethod
@@ -90,7 +90,7 @@ class PunchListService:
             item.corrected_on = None
         item.updated_at = datetime.now()
         await item.save()
-        await audit(AuditAction.UPDATE, "punch_item", punch_id, user_id, site_id, after={"result": item.re_inspection_result})
+        await audit("punch_item", punch_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"result": item.re_inspection_result})
         return item.dict()
 
     @staticmethod
@@ -103,7 +103,7 @@ class PunchListService:
         item.closed_by = user_id
         item.updated_at = datetime.now()
         await item.save()
-        await audit(AuditAction.UPDATE, "punch_item", punch_id, user_id, site_id, after={"status": "closed"})
+        await audit("punch_item", punch_id, AuditAction.UPDATE, actor={"user_id": user_id}, site_id=site_id, after={"status": "closed"})
         return item.dict()
 
     @staticmethod

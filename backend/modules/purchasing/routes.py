@@ -82,8 +82,7 @@ async def approve_vendor_payment(
     vp_id: str, data: dict = {}, user: dict = Depends(get_current_user),
 ):
     return await PurchasingService.approve_vendor_payment(
-        vp_id, data,
-        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+        vp_id, data, user.get("site_id", "SITE-01"), user,
     )
 
 
@@ -92,9 +91,20 @@ async def pay_vendor(
     vp_id: str, data: dict = {}, user: dict = Depends(get_current_user),
 ):
     return await PurchasingService.pay_vendor(
-        vp_id, data,
-        user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+        vp_id, data, user.get("site_id", "SITE-01"), user,
     )
+
+
+@router.get("/vendor-payments/statutory/rules")
+async def statutory_rules(user: dict = Depends(get_current_user)):
+    """The TDS sections and thresholds in force in this system, and when they
+    were last confirmed. Shown so an accountant can check them."""
+    from modules.purchasing import statutory as st
+
+    return {"as_of": st.RULES_AS_OF, "no_pan_rate_pct": st.NO_PAN_RATE,
+            "sections": {k: {"individual_pct": v[0], "other_pct": v[1],
+                             "annual_threshold": v[2], "single_payment_threshold": v[3]}
+                         for k, v in st.TDS_SECTIONS.items()}}
 
 
 @router.get("/vendor-payments/msme-alerts")

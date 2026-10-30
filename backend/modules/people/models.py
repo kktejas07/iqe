@@ -61,6 +61,8 @@ DEPLOYABLE_STATUSES = {
 
 class AuthorizationStatus(str, Enum):
     PENDING = "pending"
+    #: The Technical Manager has recommended it; the Country Manager decides.
+    RECOMMENDED = "recommended"
     AUTHORIZED = "authorized"
     SUSPENDED = "suspended"
     WITHDRAWN = "withdrawn"
@@ -205,7 +207,21 @@ class Authorization(Document):
     site_id: str = "SITE-01"
 
     inspection_types: list[str] = []           # what they may sign off, specifically
+    #: Which service lines (core.claims.ServiceLine) they may work on. Empty on
+    #: a record made before this existed means inspection (PART_B) only.
+    service_lines: list[str] = []
     scope_limits: Optional[str] = None
+
+    #: H8: the Technical Manager recommends, the Country Manager authorises.
+    recommended_by: Optional[str] = None
+    recommended_on: Optional[datetime] = None
+    recommendation_note: Optional[str] = None
+    #: H10: reviewed every year; renewed or withdrawn, never left to drift.
+    last_review_on: Optional[datetime] = None
+    review_note: Optional[str] = None
+    renewal_recommended_by: Optional[str] = None
+    renewal_recommended_on: Optional[datetime] = None
+    renewal_count: int = 0
 
     status: str = AuthorizationStatus.PENDING.value
     qualification_verified: bool = False

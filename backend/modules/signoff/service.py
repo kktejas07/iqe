@@ -186,6 +186,18 @@ class SignoffService:
             bool(data.get("scope_verified", False)), bool(data.get("coi_checked", False)),
             s.cross_region_code, s.arranged_by,
         )
+        if is_deputy and role == "deputy_rh":
+            # "Within authorised scope" is checked against the records, not
+            # taken from a tick box: H8 says the deputy signs only the
+            # service lines they are authorised for, and only while in force.
+            from modules.jobs.models import Job
+            from modules.people import scope as scope_rules
+
+            job = await Job.find_one(Job.job_id == s.job_id, Job.site_id == site_id)
+            await scope_rules.require_line(
+                signer, getattr(job, "service_line", None), site_id,
+                what=f"signing reports on {s.job_id}",
+            )
         s.signed_by_person_id = signer
         s.signed_by_name = data.get("signed_by_name")
         s.signed_by_role = role

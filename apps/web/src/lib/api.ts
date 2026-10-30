@@ -615,6 +615,30 @@ class API {
     })).data;
   }
 
+  async recommendAuthorization(authorizationId: string, note?: string) {
+    return (await this.client.post(`/people/authorizations/${authorizationId}/recommend`, { note })).data;
+  }
+
+  async recommendAuthorizationRenewal(authorizationId: string, note: string) {
+    return (await this.client.post(`/people/authorizations/${authorizationId}/recommend-renewal`, { note })).data;
+  }
+
+  async renewAuthorization(authorizationId: string, note?: string) {
+    return (await this.client.post(`/people/authorizations/${authorizationId}/renew`, { note })).data;
+  }
+
+  async getAuthorizationsDue(days = 60) {
+    return (await this.client.get("/people/authorizations/due", { params: { days } })).data;
+  }
+
+  async lapseOverdueAuthorizations() {
+    return (await this.client.post("/people/authorizations/lapse-overdue")).data;
+  }
+
+  async scopeCheck(personId: string, serviceLine: string) {
+    return (await this.client.get(`/people/${personId}/scope-check`, { params: { service_line: serviceLine } })).data;
+  }
+
   // ---- Assignments ----
   async getAssignments(params?: {
     work_package_id?: string; person_id?: string; status?: string;

@@ -518,9 +518,16 @@ async def seed_people(log) -> dict[str, str]:
             # refuses to authorize on incomplete evidence, and that refusal is
             # the behaviour worth being able to see.
             if not auth_pending:
+                # Two named seeded roles stand in for the Technical Manager
+                # who recommended it and the Country Manager who authorised it.
+                await PeopleService.recommend_authorization(
+                    auth.authorization_id, SITE,
+                    {"user_id": "USR-SEED-TM", "role_id": 7}, "seeded: competence evidence on file",
+                )
                 await PeopleService.decide_authorization(
-                    auth.authorization_id, "authorized", SITE, USER,
+                    auth.authorization_id, "authorized", SITE, "USR-SEED-CM",
                     "seeded: competence evidence on file",
+                    {"user_id": "USR-SEED-CM", "role_id": 1},
                 )
     return index
 

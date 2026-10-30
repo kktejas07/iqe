@@ -177,8 +177,8 @@ async def test_the_pending_authorization_is_genuinely_undecidable(db):
 
     assert auth.status == "pending"
     with pytest.raises(HTTPException):
-        await PeopleService.decide_authorization(
-            auth.authorization_id, "authorized", "SITE-01", "USR-TEST"
+        await PeopleService.recommend_authorization(
+            auth.authorization_id, "SITE-01", {"user_id": "USR-TM", "role_id": 7}
         )
 
 

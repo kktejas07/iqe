@@ -34,14 +34,14 @@ async def check_preconditions(irn_id: str, user: dict = Depends(get_current_user
 
 @router.patch("/{irn_id}/recommend")
 async def recommend(irn_id: str, user: dict = Depends(get_current_user)):
-    return await ReleaseNoteService.recommend(irn_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await ReleaseNoteService.recommend(irn_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), user)
 
 
 @router.patch("/{irn_id}/approve")
 async def approve(irn_id: str, user: dict = Depends(get_current_user)):
-    return await ReleaseNoteService.approve(irn_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await ReleaseNoteService.approve(irn_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), user)
 
 
 @router.patch("/{irn_id}/release")
 async def release(irn_id: str, data: dict, user: dict = Depends(get_current_user)):
-    return await ReleaseNoteService.release(irn_id, data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await ReleaseNoteService.release(irn_id, data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), user)

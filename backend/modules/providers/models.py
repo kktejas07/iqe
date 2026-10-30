@@ -153,6 +153,31 @@ class PerformanceRecord(Document):
         indexes = ["site_id", "provider_id", "observed_on"]
 
 
+class SubcontractDecision(Document):
+    """The MD's decision that subcontracting is justified on this job.
+
+    Inspection is done by IQE's own people. Subcontracting it is a special
+    case: the MD decides, the client then consents, and IQE keeps the
+    responsibility for the result either way. Both records must exist before
+    subcontracted work is logged.
+    """
+
+    decision_id: str                           # PSD-YYYY-XXXX
+    site_id: str = "SITE-01"
+    job_id: str
+    provider_id: str
+    approved: bool = True
+    special_case_reason: str                   # why IQE cannot do it itself
+    decided_by: str
+    decided_on: datetime = Field(default_factory=datetime.now)
+    revoked_on: Optional[datetime] = None
+    revoked_reason: Optional[str] = None
+
+    class Settings:
+        name = "subcontract_decisions"
+        indexes = ["site_id", "job_id", "provider_id"]
+
+
 class SubcontractConsent(Document):
     """The client's agreement to subcontracted inspection on a job.
 

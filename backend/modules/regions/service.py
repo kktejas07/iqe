@@ -304,6 +304,14 @@ class RegionService:
         is_tm = region.technical_manager_person_id == auditor_person_id
         is_ic = region.inspection_coordinator_person_id == auditor_person_id
 
+        if not (is_rh or is_tm or is_ic):
+            now = datetime.now()
+            for d in await DeputyCoverage.find(
+                {"region_code": target_region_code, "deputy_person_id": auditor_person_id,
+                 "is_active": True}
+            ).to_list():
+                if d.valid_from <= now and (d.valid_until is None or d.valid_until > now):
+                    is_rh = True   # covering a post in that region today
         if is_rh or is_tm or is_ic:
             return {
                 "allowed": False,
@@ -311,3 +319,14 @@ class RegionService:
             }
 
         return {"allowed": True, "reason": "Auditor is from a different region"}
+
+    @staticmethod
+    async def require_cross_region_audit(auditor_person_id: str, target_region_code: str) -> dict:
+        """The same check, as a refusal. Whatever assigns an auditor calls
+        this, so an auditor cannot be put on their own region by mistake."""
+        result = await RegionService.validate_cross_region_audit(
+            auditor_person_id, target_region_code
+        )
+        if not result["allowed"]:
+            raise HTTPException(403, result["reason"])
+        return result

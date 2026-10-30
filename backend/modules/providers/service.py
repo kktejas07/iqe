@@ -12,6 +12,8 @@ from typing import Any, Optional
 
 from fastapi import HTTPException
 
+from core.auth import Role
+
 from core import audit
 from core.audit import AuditAction
 from core.sequences import next_identifier
@@ -26,6 +28,7 @@ from modules.providers.models import (
     ProviderCategory,
     ProviderStatus,
     SubcontractConsent,
+    SubcontractDecision,
 )
 
 #: How long an approval stands before it has to be revisited. Not a legal
@@ -479,6 +482,39 @@ class ProviderService:
         return consent.model_dump(exclude={"id"})
 
     @staticmethod
+    async def decide_subcontract(payload: dict, site_id: str, user: dict) -> dict:
+        """The MD's decision. Only management makes it, and it needs the
+        special-case reason: why IQE's own inspectors cannot do this work."""
+        if int(user.get("role_id") or 0) != int(Role.ADMIN):
+            raise HTTPException(
+                403, "Subcontracting inspection is the MD's decision; only management records it."
+            )
+        job_id = (payload.get("job_id") or "").strip()
+        provider_id = (payload.get("provider_id") or "").strip()
+        reason = (payload.get("special_case_reason") or "").strip()
+        if not (job_id and provider_id):
+            raise HTTPException(400, "job_id and provider_id are required")
+        if not reason:
+            raise HTTPException(
+                400, "Subcontracting is for special cases only; say why IQE cannot do this itself."
+            )
+        await ProviderService.get(provider_id, site_id)
+        row = SubcontractDecision(
+            decision_id=await next_identifier(SubcontractDecision, "decision_id", site_id, "PSD"),
+            site_id=site_id, job_id=job_id, provider_id=provider_id,
+            approved=bool(payload.get("approved", True)),
+            special_case_reason=reason, decided_by=user.get("user_id", ""),
+        )
+        await row.insert()
+        await audit.record(
+            "job", job_id, AuditAction.AUTHORIZE,
+            actor={"user_id": row.decided_by}, site_id=site_id,
+            note=f"MD {'approved' if row.approved else 'declined'} subcontracting to {provider_id}",
+            context={"provider_id": provider_id, "reason": reason},
+        )
+        return row.model_dump(exclude={"id"})
+
+    @staticmethod
     async def check_may_subcontract(
         job_id: str, provider_id: str, site_id: str = "SITE-01",
         service: Optional[str] = None,
@@ -500,9 +536,20 @@ class ProviderService:
         ).to_list()
         live = [c for c in consents if c.granted and c.withdrawn_on is None]
 
+        decisions = await SubcontractDecision.find(
+            SubcontractDecision.job_id == job_id,
+            SubcontractDecision.provider_id == provider_id,
+            SubcontractDecision.site_id == site_id,
+        ).sort(-SubcontractDecision.decided_on).to_list()
+        md_ok = bool(decisions) and decisions[0].approved and decisions[0].revoked_on is None
+
         blockers = []
         if not usable:
             blockers.append(reason)
+        if not md_ok:
+            blockers.append(
+                f"the MD has not approved subcontracting to {p.name} on {job_id}"
+            )
         if not live:
             blockers.append(
                 f"the client has not agreed to subcontracting to {p.name} on {job_id}"
@@ -511,6 +558,7 @@ class ProviderService:
             "may_subcontract": not blockers,
             "provider_usable": usable,
             "has_consent": bool(live),
+            "has_md_approval": md_ok,
             "blockers": blockers,
             "provider": {"provider_id": p.provider_id, "name": p.name,
                          "status": p.status, "category": p.category},

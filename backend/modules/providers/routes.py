@@ -68,6 +68,13 @@ async def set_status(
     return await ProviderService.set_status(provider_id, status, reason, site_id, user_id)
 
 
+@router.post("/subcontract-decision")
+async def decide_subcontract(body: dict = Body(...), user: dict = Depends(get_current_user)):
+    """The MD's decision that subcontracting is justified. Management only."""
+    site_id, _ = _ctx(user)
+    return await ProviderService.decide_subcontract(body, site_id, user)
+
+
 @router.post("/consent")
 async def record_consent(body: dict = Body(...), user: dict = Depends(get_current_user)):
     """The client's agreement to subcontracted inspection on a job."""

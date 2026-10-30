@@ -118,4 +118,4 @@ async def validate_cross_region_audit(
     target_region_code: str,
     user: dict = Depends(get_current_user),
 ):
-    return await RegionService.validate_cross_region_audit(auditor_person_id, target_region_code)
+    return await RegionService.require_cross_region_audit(auditor_person_id, target_region_code)

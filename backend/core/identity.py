@@ -30,3 +30,26 @@ async def own_identifiers(user: dict) -> set[str]:
 
 def is_approver(user: dict) -> bool:
     return int(user.get("role_id") or 0) in APPROVER_ROLES
+
+
+#: Roles that may see and review other people's appraisals and competence
+#: evidence: management, and the Technical Manager who authorises scopes.
+PEOPLE_MANAGER_ROLES = {int(Role.ADMIN), int(Role.TECHNICAL_MANAGER)}
+
+
+def is_people_manager(user: dict) -> bool:
+    return int(user.get("role_id") or 0) in PEOPLE_MANAGER_ROLES
+
+
+async def person_id_of(user: dict) -> str:
+    """The id other records use for this person: the employee code if the
+    login has one, else the login id."""
+    try:
+        from modules.auth.models import UserLogin
+
+        row = await UserLogin.find_one({"user_id": user.get("user_id")})
+        if row and row.employee_code:
+            return row.employee_code
+    except Exception:  # noqa: BLE001
+        pass
+    return str(user.get("user_id"))

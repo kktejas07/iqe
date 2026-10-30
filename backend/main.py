@@ -113,7 +113,7 @@ from modules.recruitment.models import ManpowerRequest, Candidate, TechnicalInte
 from modules.recruitment.routes import router as recruitment_router
 from modules.leave_attendance.models import LeaveRequest, AttendanceRecord, Timesheet
 from modules.leave_attendance.routes import router as leave_attendance_router
-from modules.payroll.models import PayrollRun, Payslip
+from modules.payroll.models import PayrollRun, Payslip, SalaryStructure
 from modules.payroll.routes import router as payroll_router
 from modules.appraisal.models import Appraisal, WitnessedInspection
 from modules.appraisal.routes import router as appraisal_router
@@ -160,7 +160,7 @@ async def lifespan(app: FastAPI):
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
-            Appeal, ApprovalLimit, Engagement, Equipment, CalibrationRecord, EquipmentUsage,
+            Appeal, ApprovalLimit, SalaryStructure, Engagement, Equipment, CalibrationRecord, EquipmentUsage,
             Evidence,
             AuditEntry,
             Sequence,

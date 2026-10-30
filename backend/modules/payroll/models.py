@@ -5,6 +5,40 @@ from beanie import Document
 from pydantic import Field
 
 
+class SalaryStructure(Document):
+    """What a person is paid, monthly, before attendance.
+
+    Payroll used to give everyone the same hard-coded structure. Pay is a
+    per-person fact set by HR, so it is data: append-only, each change
+    superseding the last, so a past payslip can be explained.
+    """
+    structure_id: str                       # SAL-YYYY-NNNN
+    person_id: str
+    site_id: str = "SITE-01"
+    basic: float
+    hra: float = 0.0
+    conveyance: float = 0.0
+    special_allowance: float = 0.0
+    other_earnings: float = 0.0
+    #: Tax deducted at source each month, as worked out for this person's
+    #: declared investments. Not guessed by payroll.
+    monthly_tds: float = 0.0
+    effective_from: datetime = Field(default_factory=datetime.now)
+    status: str = "active"                  # active | superseded
+    reason: str
+    set_by: str
+    superseded_on: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.now)
+
+    @property
+    def gross(self) -> float:
+        return self.basic + self.hra + self.conveyance + self.special_allowance + self.other_earnings
+
+    class Settings:
+        name = "salary_structures"
+        indexes = ["site_id", "person_id", "status"]
+
+
 class PayrollRun(Document):
     run_id: str  # PR-YYYY-MM
     site_id: str = "SITE-01"
@@ -22,6 +56,9 @@ class PayrollRun(Document):
     approved_on: Optional[datetime] = None
     disbursed_on: Optional[datetime] = None
     remarks: Optional[str] = None
+    #: People left out of this run and why (no salary structure, timesheet
+    #: not approved). Approval needs these acknowledged, not silently dropped.
+    held: list[dict] = []
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

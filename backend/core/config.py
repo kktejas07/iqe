@@ -53,3 +53,38 @@ class Settings(BaseSettings):
     
 
 settings = Settings()
+
+
+
+#: SHA-256 of JWT secrets that have been committed to the repository. A secret
+#: that has been in git history is public, whatever the repo's visibility
+#: today. The values themselves are deliberately not kept here.
+LEAKED_JWT_SECRET_HASHES = {
+    "1ee16023698145dc6f3c00b94e496c79b62396d33c3722fc41f4de7ca4887fbc",
+}
+DEFAULT_JWT_SECRET = "change-me-in-production"
+
+
+def security_problems(s: "Settings") -> list[str]:
+    """Settings that must not reach a deployed environment.
+
+    Refused at startup rather than logged: a warning on every boot is read
+    once and then scrolls past, while an Admin-for-everyone API stays up.
+    `debug` is the explicit statement that this is a developer's machine.
+    """
+    import hashlib
+
+    problems: list[str] = []
+    if s.auth_allow_anonymous and not s.debug:
+        problems.append(
+            "AUTH_ALLOW_ANONYMOUS is on but DEBUG is off: every request would be Admin"
+        )
+    secret = s.jwt_secret_key or ""
+    if not s.debug:
+        if secret == DEFAULT_JWT_SECRET:
+            problems.append("JWT_SECRET_KEY is the built-in default")
+        elif hashlib.sha256(secret.encode()).hexdigest() in LEAKED_JWT_SECRET_HASHES:
+            problems.append("JWT_SECRET_KEY is a value that was committed to the repository; generate a new one")
+        elif len(secret) < 32:
+            problems.append("JWT_SECRET_KEY is shorter than 32 characters")
+    return problems

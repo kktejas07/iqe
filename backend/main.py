@@ -117,6 +117,8 @@ from modules.payroll.models import PayrollRun, Payslip
 from modules.payroll.routes import router as payroll_router
 from modules.appraisal.models import Appraisal, WitnessedInspection
 from modules.appraisal.routes import router as appraisal_router
+from modules.approvals.models import ApprovalLimit
+from modules.approvals.routes import router as approvals_router
 from modules.exit_management.models import ExitProcess
 from modules.exit_management.routes import router as exit_router
 from modules.payments.models import DunningRecord
@@ -142,11 +144,21 @@ from modules.notifications.routes import router as notifications_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # First, before anything connects: an unsafe configuration should fail in
+    # seconds with a clear reason, not after the database is up.
+    from core.config import security_problems
+
+    problems = security_problems(settings)
+    if problems:
+        raise RuntimeError(
+            "Refusing to start with an unsafe configuration: " + "; ".join(problems)
+        )
+
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],
         document_models=[
-            Appeal, Equipment, CalibrationRecord, EquipmentUsage,
+            Appeal, ApprovalLimit, Equipment, CalibrationRecord, EquipmentUsage,
             Evidence,
             AuditEntry,
             Sequence,
@@ -322,6 +334,7 @@ app.include_router(recruitment_router, prefix="/api/v1")
 app.include_router(leave_attendance_router, prefix="/api/v1")
 app.include_router(payroll_router, prefix="/api/v1")
 app.include_router(appraisal_router, prefix="/api/v1")
+app.include_router(approvals_router, prefix="/api/v1")
 app.include_router(exit_router, prefix="/api/v1")
 app.include_router(purchasing_router, prefix="/api/v1")
 app.include_router(rfi_router, prefix="/api/v1")

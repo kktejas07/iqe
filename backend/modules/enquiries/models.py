@@ -216,6 +216,10 @@ class ProposalRevision(Document):
     validity_days: int = 30
     issued_at: Optional[datetime] = None
     issued_by: Optional[str] = None
+    #: Which approval level released it (RH / MD / BEYOND_MD) and, above the
+    #: MD's limit, the authority it was released under.
+    approved_as: Optional[str] = None
+    beyond_limit_reference: Optional[str] = None
     #: Why this revision exists. Required from Rev 1 onward - "what changed
     #: between Rev 2 and Rev 3" is the first question in any dispute.
     change_summary: Optional[str] = None
@@ -251,6 +255,12 @@ class Enquiry(Document):
     probability_pct: int = 0
     expected_award_date: Optional[datetime] = None
     competitor_names: list[str] = []
+
+    #: Which region's Regional Head reviews it, and which service line it is.
+    #: A Part A or Part C enquiry is reviewed by the Country Manager; Part B
+    #: by the Regional Head. See modules/approvals.
+    region_code: Optional[str] = None
+    service_line: str = "PART_B"
 
     current_proposal_id: Optional[str] = None
     current_revision_no: Optional[int] = None

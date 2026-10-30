@@ -86,7 +86,7 @@ async def decide(
     enquiry_id: str, body: dict = Body(...), user: dict = Depends(get_current_user)
 ):
     site_id, user_id = _ctx(user)
-    return await EnquiryService.decide(enquiry_id, body, site_id, user_id)
+    return await EnquiryService.decide(enquiry_id, body, site_id, user_id, user)
 
 
 @router.post("/{enquiry_id}/remediate")
@@ -154,10 +154,14 @@ async def add_revision(
 
 @proposals.post("/{proposal_id}/revisions/{revision_no}/issue")
 async def issue_revision(
-    proposal_id: str, revision_no: int, user: dict = Depends(get_current_user)
+    proposal_id: str, revision_no: int, body: dict = Body(default_factory=dict),
+    user: dict = Depends(get_current_user),
 ):
     site_id, user_id = _ctx(user)
-    return await EnquiryService.issue_revision(proposal_id, revision_no, site_id, user_id)
+    return await EnquiryService.issue_revision(
+        proposal_id, revision_no, site_id, user_id, user,
+        beyond_limit_reference=body.get("beyond_limit_reference"),
+    )
 
 
 # -------------------------------------------------------------- pipeline

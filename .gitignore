@@ -51,3 +51,8 @@ IQEApp.Web/connections.config
 # Mobile
 apps/mobile/node_modules
 apps/mobile/.expo
+
+# Local environment files hold secrets; copy backend/.env.example to backend/.env
+.env
+.env.*
+!.env.example

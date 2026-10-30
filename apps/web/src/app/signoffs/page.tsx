@@ -21,6 +21,8 @@ export default function SignoffsPage() {
   const [reviewModal, setReviewModal] = useState<any>(null);
   const [reviewAction, setReviewAction] = useState("");
   const [reviewNotes, setReviewNotes] = useState("");
+  const [scopeVerified, setScopeVerified] = useState(false);
+  const [coiChecked, setCoiChecked] = useState(false);
 
   useEffect(() => { loadData(); }, [activeTab]);
 
@@ -33,20 +35,32 @@ export default function SignoffsPage() {
     setLoading(false);
   }
 
+  function closeReview() {
+    setReviewModal(null); setReviewAction(""); setReviewNotes("");
+    setScopeVerified(false); setCoiChecked(false);
+  }
+
   async function handleReview() {
     if (!reviewModal || !reviewAction) return;
     try {
-      await api.reviewSignoff(reviewModal.signoff_id, { action: reviewAction, notes: reviewNotes });
+      // The signer is whoever is logged in; the server takes no name from here.
+      const result = ({ approve: "approved", rework: "rework_required", reject: "rejected" } as Record<string, string>)[reviewAction];
+      await api.reviewSignoff(reviewModal.signoff_id, {
+        result,
+        rework_notes: reviewAction === "rework" ? reviewNotes : undefined,
+        scope_verified: scopeVerified,
+        coi_checked: coiChecked,
+      });
       toast.success(`Signoff ${reviewAction}${reviewAction === "approve" ? "d" : reviewAction === "reject" ? "ed" : " requested"}`);
-      setReviewModal(null);
-      setReviewAction("");
-      setReviewNotes("");
+      closeReview();
       loadData();
-    } catch { toast.error("Review action failed"); }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Review action failed");
+    }
   }
 
   const filtered = items.filter((i: any) =>
-    (i.report_id || "").toLowerCase().includes(search.toLowerCase()) ||
+    (i.report_ref || "").toLowerCase().includes(search.toLowerCase()) ||
     (i.signoff_id || "").toLowerCase().includes(search.toLowerCase()) ||
     (i.job_id || "").toLowerCase().includes(search.toLowerCase())
   );
@@ -99,10 +113,10 @@ export default function SignoffsPage() {
               <tr key={item.signoff_id || item._id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono text-xs">{item.signoff_id}</td>
                 <td className="px-4 py-3">
-                  <div>{item.report_id}</div>
+                  <div>{item.report_ref || "—"}</div>
                   <div className="text-xs text-gray-500">{item.job_id}</div>
                 </td>
-                <td className="px-4 py-3">{item.signatory_name || item.signatory_id || "—"}</td>
+                <td className="px-4 py-3">{item.signed_by_name || item.signed_by_person_id || item.assigned_tm_person_id || "—"}</td>
                 <td className="px-4 py-3">
                   {item.is_deputy ? (
                     <span className="flex items-center gap-1 text-xs text-purple-600">
@@ -111,7 +125,7 @@ export default function SignoffsPage() {
                   ) : "—"}
                 </td>
                 <td className="px-4 py-3">{statusPill(item.status)}</td>
-                <td className="px-4 py-3">{item.submitted_at ? new Date(item.submitted_at).toLocaleDateString() : "—"}</td>
+                <td className="px-4 py-3">{item.created_at ? new Date(item.created_at).toLocaleDateString() : "—"}</td>
                 <td className="px-4 py-3">
                   {item.status === "pending" && (
                     <div className="flex items-center gap-2">
@@ -139,11 +153,11 @@ export default function SignoffsPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold capitalize">{reviewAction} Sign-off</h2>
-              <button onClick={() => { setReviewModal(null); setReviewAction(""); setReviewNotes(""); }}><X className="w-5 h-5" /></button>
+              <button onClick={closeReview}><X className="w-5 h-5" /></button>
             </div>
             <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
               <p><strong>Signoff:</strong> {reviewModal.signoff_id}</p>
-              <p><strong>Report:</strong> {reviewModal.report_id}</p>
+              <p><strong>Report:</strong> {reviewModal.report_ref || "—"}</p>
               <p><strong>Job:</strong> {reviewModal.job_id}</p>
             </div>
             {reviewAction === "rework" && (
@@ -152,12 +166,19 @@ export default function SignoffsPage() {
                 This will return the report for corrections per MS-12 procedure.
               </div>
             )}
+            {reviewModal.is_deputy && reviewAction === "approve" && (
+              <div className="mb-4 space-y-2 rounded-lg border border-purple-200 bg-purple-50 p-3 text-sm text-purple-900">
+                <p>A deputy signs only within authorised scope, for a job they did not sell.</p>
+                <label className="flex items-center gap-2"><input type="checkbox" checked={scopeVerified} onChange={e => setScopeVerified(e.target.checked)} /> Scope verified</label>
+                <label className="flex items-center gap-2"><input type="checkbox" checked={coiChecked} onChange={e => setCoiChecked(e.target.checked)} /> Conflict of interest checked</label>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
               <textarea value={reviewNotes} onChange={e => setReviewNotes(e.target.value)} rows={3} placeholder={reviewAction === "rework" ? "Describe required corrections..." : "Optional notes..."} className="w-full border rounded-lg px-3 py-2" />
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => { setReviewModal(null); setReviewAction(""); setReviewNotes(""); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+              <button onClick={closeReview} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
               <button onClick={handleReview}
                 className={`px-4 py-2 text-white rounded-lg ${
                   reviewAction === "approve" ? "bg-green-600 hover:bg-green-700" :

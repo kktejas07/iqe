@@ -761,6 +761,7 @@ function ProposalForm({ enquiryId, busy, act }: any) {
 function IssueForm({ eq, data, busy, act }: any) {
   const [summary, setSummary] = useState("");
   const [cost, setCost] = useState("");
+  const [beyondRef, setBeyondRef] = useState("");
   const latest = data.revisions?.[data.revisions.length - 1];
   if (!latest) return null;
 
@@ -774,7 +775,7 @@ function IssueForm({ eq, data, busy, act }: any) {
         <button
           onClick={() =>
             act(
-              () => api.issueProposalRevision(eq.current_proposal_id, latest.revision_no),
+              () => api.issueProposalRevision(eq.current_proposal_id, latest.revision_no, beyondRef.trim() || undefined),
               `Rev ${latest.revision_no} issued.`,
             )
           }
@@ -783,6 +784,16 @@ function IssueForm({ eq, data, busy, act }: any) {
         >
           Issue Rev {latest.revision_no}
         </button>
+        <p className="mt-2 text-xs text-slate-500">
+          Who may issue depends on the value: the Regional Head within their limit, the MD above it.
+          Above the MD&apos;s limit, the MD records the authority below.
+        </p>
+        <input
+          value={beyondRef}
+          onChange={(e) => setBeyondRef(e.target.value)}
+          placeholder="Authority beyond the MD's limit (only if asked)"
+          className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
       </div>
 
       <div className="border-t border-slate-100 pt-3 dark:border-slate-800">

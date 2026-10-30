@@ -40,7 +40,7 @@ export default function ReleaseNotesPage() {
       setShowModal(false);
       setForm({ job_id: "", title: "", scope_description: "" });
       loadData();
-    } catch { toast.error("Failed to create"); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? "Failed to create"); }
   }
 
   async function checkPreconditions(id: string) {
@@ -48,7 +48,7 @@ export default function ReleaseNotesPage() {
     try {
       const res = await api.checkReleaseNotePreconditions(id);
       setPreconditions(res);
-    } catch { toast.error("Failed to check preconditions"); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? "Failed to check preconditions"); }
   }
 
   async function handleAction(id: string, action: string) {
@@ -58,7 +58,7 @@ export default function ReleaseNotesPage() {
       else if (action === "release") await api.issueReleaseNote(id);
       toast.success(`Release note ${action}d`);
       loadData();
-    } catch { toast.error(`Failed to ${action}`); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? `Failed to ${action}`); }
   }
 
   const filtered = items.filter((i: any) =>

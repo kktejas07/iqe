@@ -378,6 +378,7 @@ const hrmsSubModules: SubModuleItem[] = [
   { name: "Recruitment", subtitle: "Manpower requests to induction", href: "/recruitment", icon: UserPlus, color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40" },
   { name: "Leave & Attendance", subtitle: "Leave, attendance & timesheets", href: "/leave-attendance", icon: Clock, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Payroll", subtitle: "Runs, PF/ESI/PT & payslips", href: "/payroll", icon: DollarSign, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40" },
+  { name: "My Payslips", subtitle: "Your released payslips", href: "/my-payslips", icon: DollarSign, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40" },
   { name: "Appraisals", subtitle: "KPIs & witnessed inspections", href: "/appraisals-monitoring", icon: Star, color: "text-amber-600 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800/40" },
   { name: "Exit Management", subtitle: "Separation & final settlement", href: "/exit-management", icon: LogIn, color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40" },
   { name: "Purchasing", subtitle: "Requisitions & vendor payments", href: "/purchasing", icon: ShoppingCart, color: "text-cyan-600 bg-cyan-100 dark:bg-cyan-950/80 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40" },
@@ -389,6 +390,8 @@ const projectExecSubModules: SubModuleItem[] = [
   { name: "Release Notes", subtitle: "IRN sign-off & release", href: "/release-notes", icon: PackageCheck, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40" },
   { name: "Client Feedback", subtitle: "Ratings & MRM review", href: "/client-feedback", icon: MessageSquare, color: "text-violet-600 bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 border-violet-200 dark:border-violet-800/40" },
   { name: "Job Handoff", subtitle: "Enquiry → job conversion", href: "/job-handoff", icon: ArrowRightLeft, color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40" },
+  { name: "Service-line Engagements", subtitle: "Expediting, vendor, asset, design, training", href: "/engagements", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
+  { name: "Approval Limits", subtitle: "RH / MD quotation limits", href: "/approval-limits", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Report Sign-off", subtitle: "TM/deputy approval gate", href: "/signoffs", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Win-Loss Analysis", subtitle: "Conversion & loss reasons", href: "/win-loss", icon: TrendingUp, color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40" },
 ];
@@ -464,6 +467,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/recruitment") ||
     pathname.startsWith("/leave-attendance") ||
     pathname.startsWith("/payroll") ||
+    pathname.startsWith("/my-payslips") ||
     pathname.startsWith("/appraisals-monitoring") ||
     pathname.startsWith("/exit-management") ||
     pathname.startsWith("/purchasing");
@@ -475,6 +479,8 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/client-feedback") ||
     pathname.startsWith("/job-handoff") ||
     pathname.startsWith("/signoffs") ||
+    pathname.startsWith("/engagements") ||
+    pathname.startsWith("/approval-limits") ||
     pathname.startsWith("/win-loss");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");

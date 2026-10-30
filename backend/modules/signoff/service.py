@@ -3,6 +3,8 @@ from typing import Optional
 from datetime import datetime
 from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
+from core.auth import Role
+from core.identity import own_identifiers, person_id_of
 from core.sequences import next_identifier
 from modules.signoff.models import ReportSignoff
 
@@ -50,6 +52,42 @@ def _check_signer(s: ReportSignoff, signer: str, role: str, is_deputy: bool,
     if role == "cross_region_tm" and not (cross_region and arranged_by):
         raise HTTPException(
             409, "another region's TM signs only when arranged by the Country Manager (cross_region_code and arranged_by)"
+        )
+
+
+async def _authenticated_signer(user: dict, data: dict) -> str:
+    """The person signing is the person logged in - never a name in the body.
+
+    A signature is evidence that a competent person took responsibility for a
+    report. Accepting `signed_by_person_id` from the request meant anyone could
+    sign as the Technical Manager.
+    """
+    claimed = data.get("signed_by_person_id")
+    if claimed and claimed not in await own_identifiers(user):
+        raise HTTPException(
+            403, "You can only sign as yourself; signed_by_person_id must be you"
+        )
+    return await person_id_of(user)
+
+
+def _require_authorised_signer(s: ReportSignoff, signer: str, user: dict) -> None:
+    """Only the person the report was routed to may sign it."""
+    if s.is_deputy:
+        if signer != s.signed_by_person_id:
+            raise HTTPException(
+                403, f"This report is with {s.signed_by_person_id} as arranged deputy; "
+                     "only they may sign it"
+            )
+    elif s.assigned_tm_person_id:
+        if signer != s.assigned_tm_person_id:
+            raise HTTPException(
+                403, f"This report is assigned to {s.assigned_tm_person_id}. If they are "
+                     "absent, management arranges a deputy first"
+            )
+    elif int(user.get("role_id") or 0) != int(Role.TECHNICAL_MANAGER):
+        raise HTTPException(
+            403, "Reports are signed by the Technical Manager, or by a deputy "
+                 "management has arranged"
         )
 
 
@@ -117,7 +155,8 @@ class SignoffService:
         return s.dict()
 
     @staticmethod
-    async def submit_review(signoff_id: str, data: dict, site_id: str, user_id: str):
+    async def submit_review(signoff_id: str, data: dict, site_id: str, user: dict):
+        user_id = user.get("user_id", "USR-001")
         s = await ReportSignoff.find_one({"signoff_id": signoff_id, "site_id": site_id})
         if not s:
             raise HTTPException(status_code=404, detail="Signoff not found")
@@ -126,20 +165,31 @@ class SignoffService:
         if result not in ("approved", "rework_required", "rejected"):
             raise HTTPException(status_code=400, detail="result must be approved, rework_required, or rejected")
 
-        signer = data.get("signed_by_person_id", user_id)
-        is_deputy = bool(data.get("is_deputy", s.is_deputy))
-        role = data.get("signed_by_role", s.signed_by_role if s.is_deputy else "tm")
+        if s.status == "approved":
+            raise HTTPException(
+                409, "This sign-off is already approved; a signature is not re-decided. "
+                     "Raise a revision of the report instead"
+            )
+        signer = await _authenticated_signer(user, data)
+        is_deputy = s.is_deputy
+        role = s.signed_by_role if is_deputy else "tm"
+        # Order matters for the reason a person is given. Whoever did the work
+        # is told that, whatever they are assigned as; then routing (is this
+        # report with you?); then the deputy's own conditions.
+        if signer in (s.prepared_by_person_ids or []):
+            raise HTTPException(
+                409, f"{signer} did the work on this job and cannot sign it (never self-review)"
+            )
+        _require_authorised_signer(s, signer, user)
         _check_signer(
             s, signer, role, is_deputy,
             bool(data.get("scope_verified", False)), bool(data.get("coi_checked", False)),
-            data.get("cross_region_code") or s.cross_region_code, data.get("arranged_by") or s.arranged_by,
+            s.cross_region_code, s.arranged_by,
         )
         s.signed_by_person_id = signer
         s.signed_by_name = data.get("signed_by_name")
         s.signed_by_role = role
         s.is_deputy = is_deputy
-        s.deputy_reason = data.get("deputy_reason") or s.deputy_reason
-        s.cross_region_code = data.get("cross_region_code") or s.cross_region_code
         s.scope_verified = data.get("scope_verified", False)
         s.coi_checked = data.get("coi_checked", False)
         s.review_date = datetime.now()
@@ -161,7 +211,13 @@ class SignoffService:
         return s.dict()
 
     @staticmethod
-    async def assign_deputy(signoff_id: str, data: dict, site_id: str, user_id: str):
+    async def assign_deputy(signoff_id: str, data: dict, site_id: str, user: dict):
+        user_id = user.get("user_id", "USR-001")
+        if int(user.get("role_id") or 0) != int(Role.ADMIN):
+            raise HTTPException(403, "A deputy is arranged by management (the Country Manager)")
+        arranger = await person_id_of(user)
+        if data.get("deputy_person_id") in await own_identifiers(user):
+            raise HTTPException(409, "You cannot arrange yourself as the deputy")
         s = await ReportSignoff.find_one({"signoff_id": signoff_id, "site_id": site_id})
         if not s:
             raise HTTPException(status_code=404, detail="Signoff not found")
@@ -171,7 +227,7 @@ class SignoffService:
         # already be decided - never-self-review, seller, Country Manager arrangement.
         _check_signer(
             s, data["deputy_person_id"], role, False, True, True,
-            data.get("cross_region_code"), data.get("arranged_by", user_id),
+            data.get("cross_region_code"), arranger,
         )
         if role == "deputy_rh" and s.sold_by_person_id == data["deputy_person_id"]:
             raise HTTPException(409, "a deputy RH signs only jobs they did not sell")
@@ -181,7 +237,7 @@ class SignoffService:
         s.is_deputy = True
         s.deputy_reason = data.get("reason", "TM absent")
         s.cross_region_code = data.get("cross_region_code")
-        s.arranged_by = data.get("arranged_by", user_id)
+        s.arranged_by = arranger
         s.status = "under_review"
         s.updated_at = datetime.now()
         await s.save()

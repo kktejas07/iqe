@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
 from core.auth import get_current_user
+from core.identity import person_id_of
 from modules.signoff.service import SignoffService
 
 router = APIRouter(prefix="/signoffs", tags=["Report Sign-off"])
@@ -24,7 +25,7 @@ async def list_signoffs(
 
 @router.get("/pending")
 async def pending_signoffs(user: dict = Depends(get_current_user)):
-    person_id = user.get("person_id") or user.get("user_id", "USR-001")
+    person_id = await person_id_of(user)
     return await SignoffService.pending_for_user(person_id, user.get("site_id", "SITE-01"))
 
 
@@ -36,12 +37,12 @@ async def get_signoff(signoff_id: str, user: dict = Depends(get_current_user)):
 @router.patch("/{signoff_id}/review")
 async def submit_review(signoff_id: str, data: dict, user: dict = Depends(get_current_user)):
     return await SignoffService.submit_review(
-        signoff_id, data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+        signoff_id, data, user.get("site_id", "SITE-01"), user,
     )
 
 
 @router.patch("/{signoff_id}/assign-deputy")
 async def assign_deputy(signoff_id: str, data: dict, user: dict = Depends(get_current_user)):
     return await SignoffService.assign_deputy(
-        signoff_id, data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"),
+        signoff_id, data, user.get("site_id", "SITE-01"), user,
     )

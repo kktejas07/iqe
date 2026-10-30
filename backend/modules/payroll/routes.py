@@ -31,13 +31,25 @@ async def process_run(run_id: str, user: dict = Depends(get_current_user)):
 
 
 @router.patch("/runs/{run_id}/approve")
-async def approve_run(run_id: str, user: dict = Depends(get_current_user)):
-    return await PayrollService.approve_run(run_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+async def approve_run(run_id: str, acknowledge_held: bool = False, user: dict = Depends(get_current_user)):
+    return await PayrollService.approve_run(
+        run_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), acknowledge_held
+    )
 
 
 @router.patch("/runs/{run_id}/disburse")
 async def disburse_run(run_id: str, user: dict = Depends(get_current_user)):
     return await PayrollService.disburse_run(run_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+
+
+@router.post("/salary-structures/{person_id}")
+async def set_salary_structure(person_id: str, data: dict, user: dict = Depends(get_current_user)):
+    return await PayrollService.set_salary_structure(person_id, data, user.get("site_id", "SITE-01"), user)
+
+
+@router.get("/salary-structures/{person_id}")
+async def salary_history(person_id: str, user: dict = Depends(get_current_user)):
+    return await PayrollService.salary_history(person_id, user.get("site_id", "SITE-01"))
 
 
 @router.get("/payslips")

@@ -1267,7 +1267,11 @@ class API {
   async createPayrollRun(data: any) { return (await this.client.post("/payroll/runs", data)).data; }
   async getPayrollRun(id: string) { return (await this.client.get(`/payroll/runs/${id}`)).data; }
   async processPayrollRun(id: string) { return (await this.client.post(`/payroll/runs/${id}/process`)).data; }
-  async approvePayrollRun(id: string) { return (await this.client.patch(`/payroll/runs/${id}/approve`)).data; }
+  async approvePayrollRun(id: string, acknowledge_held = false) {
+    return (await this.client.patch(`/payroll/runs/${id}/approve`, null, { params: acknowledge_held ? { acknowledge_held: true } : {} })).data;
+  }
+  async setSalaryStructure(personId: string, data: any) { return (await this.client.post(`/payroll/salary-structures/${personId}`, data)).data; }
+  async getSalaryHistory(personId: string) { return (await this.client.get(`/payroll/salary-structures/${personId}`)).data; }
   async disbursePayrollRun(id: string) { return (await this.client.patch(`/payroll/runs/${id}/disburse`)).data; }
   async listPayslips(params: any = {}) { return (await this.client.get("/payroll/payslips", { params })).data; }
   async getPayslip(id: string) { return (await this.client.get(`/payroll/payslips/${id}`)).data; }

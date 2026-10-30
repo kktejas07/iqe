@@ -49,22 +49,38 @@ export default function PayrollPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.createPayrollRun(form);
+      await api.createPayrollRun({
+        period_month: Number(form.month),
+        period_year: Number(form.year),
+        region_code: form.region_code || undefined,
+      });
       toast.success("Payroll run created");
       setShowCreate(false);
       loadRuns();
-    } catch { toast.error("Failed to create run"); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? "Failed to create run"); }
     setSubmitting(false);
   }
 
   async function handleAction(runId: string, action: string) {
     try {
-      if (action === "process") await api.processPayrollRun(runId);
-      else if (action === "approve") await api.approvePayrollRun(runId);
-      else if (action === "disburse") await api.disbursePayrollRun(runId);
+      if (action === "process") {
+        const out = await api.processPayrollRun(runId);
+        const held = out?.held?.length ?? 0;
+        if (held) toast.error(`${held} people were held out: ${out.held.slice(0, 5).map((h: any) => `${h.person_id} (${h.reason})`).join("; ")}${held > 5 ? "…" : ""}`);
+      } else if (action === "approve") {
+        try {
+          await api.approvePayrollRun(runId);
+        } catch (e: any) {
+          // Held people have to be knowingly left out, not silently dropped.
+          if (e?.response?.status === 409 && String(e?.response?.data?.detail).includes("held")
+              && window.confirm(`${e.response.data.detail}\n\nApprove anyway, leaving them out?`)) {
+            await api.approvePayrollRun(runId, true);
+          } else throw e;
+        }
+      } else if (action === "disburse") await api.disbursePayrollRun(runId);
       toast.success(`Payroll ${action}ed`);
       loadRuns();
-    } catch { toast.error(`Failed to ${action}`); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? `Failed to ${action}`); }
   }
 
   return (

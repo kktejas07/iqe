@@ -52,3 +52,24 @@ async def list_payslips(
 @router.get("/payslips/{payslip_id}")
 async def get_payslip(payslip_id: str, user: dict = Depends(get_current_user)):
     return await PayrollService.get_payslip(payslip_id, user.get("site_id", "SITE-01"))
+
+
+# ── Self-service: a person's own payslips ───────────────────────────────
+# Under /payroll/me so the RBAC rule can open it to every internal role while
+# the rest of /payroll stays Finance and Admin. The person comes from the
+# login; there is deliberately no person_id parameter.
+
+@router.get("/me/payslips")
+async def my_payslips(
+    period_month: Optional[int] = None, period_year: Optional[int] = None,
+    page: int = 1, per_page: int = 24, user: dict = Depends(get_current_user),
+):
+    return await PayrollService.my_payslips(
+        user.get("site_id", "SITE-01"), user, period_month, period_year, page, per_page
+    )
+
+
+@router.get("/me/payslips/{payslip_id}")
+async def my_payslip(payslip_id: str, user: dict = Depends(get_current_user)):
+    return await PayrollService.my_payslip(payslip_id, user.get("site_id", "SITE-01"), user)
+

@@ -23,6 +23,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
+from modules.approvals.models import ApprovalLimit  # noqa: E402
+from modules.service_orders.models import ServiceOrder  # noqa: E402
+from modules.work_packages.models import WorkPackage  # noqa: E402
 from modules.enquiries.models import (  # noqa: E402
     ALLOWED_TRANSITIONS,
     Enquiry,
@@ -41,6 +44,7 @@ from modules.jobs.models import Job  # noqa: E402
 
 SITE = "SITE-01"
 USER = "USR-TEST"
+ADMIN = {"role_id": 1, "user_id": USER, "site_id": SITE}
 
 
 def _patch_mongomock():
@@ -63,7 +67,7 @@ async def db():
     await init_beanie(
         database=client["presales_test"],
         document_models=[
-            Enquiry, GoNoGoDecision, ProposalRevision, ReasonCode,
+            ApprovalLimit, ServiceOrder, WorkPackage, Enquiry, GoNoGoDecision, ProposalRevision, ReasonCode,
             Job, AuditEntry, Sequence,
         ],
     )
@@ -139,8 +143,7 @@ async def test_a_no_go_without_a_reason_code_is_refused(db):
         await EnquiryService.decide(
             eq.enquiry_id,
             {"decision": "no_go", "criteria": _scorecard(1)},
-            SITE, USER,
-        )
+            SITE, USER, ADMIN)
     assert e.value.status_code == 400
     assert "reason code" in e.value.detail
 
@@ -155,8 +158,7 @@ async def test_overriding_the_scorecard_requires_a_reason(db):
             eq.enquiry_id,
             {"decision": "no_go", "criteria": _scorecard(5),
              "reason_codes": ["BELOW_RATE_FLOOR"]},
-            SITE, USER,
-        )
+            SITE, USER, ADMIN)
     assert "override needs a reason" in e.value.detail
 
     decision = await EnquiryService.decide(
@@ -164,8 +166,7 @@ async def test_overriding_the_scorecard_requires_a_reason(db):
         {"decision": "no_go", "criteria": _scorecard(5),
          "reason_codes": ["BELOW_RATE_FLOOR"],
          "override_reason": "Client's framework rate is 18% under our floor."},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
     # Both numbers survive, which is the point of recording them separately.
     assert decision["recommendation"] == "go"
     assert decision["decision"] == "no_go"
@@ -183,8 +184,7 @@ async def test_a_lost_code_cannot_be_used_to_decline_a_bid(db):
             eq.enquiry_id,
             {"decision": "no_go", "criteria": _scorecard(1),
              "reason_codes": ["UNDERCUT_BY_COMPETITOR"]},
-            SITE, USER,
-        )
+            SITE, USER, ADMIN)
     assert "not why we declined" in e.value.detail
 
 
@@ -201,8 +201,7 @@ async def test_unscored_criteria_drag_the_recommendation_down(db):
         eq.enquiry_id,
         {"decision": "no_go", "criteria": partial,
          "reason_codes": ["NO_COMPETENT_INSPECTOR"]},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
     assert decision["recommendation"] == "no_go"
     assert decision["weighted_score"] < decision["max_score"]
 
@@ -217,16 +216,14 @@ async def test_a_no_go_can_be_remediated_and_re_decided(db):
         {"decision": "no_go", "criteria": _scorecard(1),
          "reason_codes": ["NO_COMPETENT_INSPECTOR"],
          "remediation_plan": "Authorise two inspectors for UT Level II."},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
     await EnquiryService.remediate(
         eq.enquiry_id,
         {"remediation_plan": "Two inspectors authorised on 2026-11-10."},
         SITE, USER,
     )
     second = await EnquiryService.decide(
-        eq.enquiry_id, {"decision": "go", "criteria": _scorecard(4)}, SITE, USER
-    )
+        eq.enquiry_id, {"decision": "go", "criteria": _scorecard(4)}, SITE, USER, ADMIN)
     assert second["sequence"] == 2
 
     # Both decisions survive; the first is not overwritten.
@@ -248,8 +245,7 @@ async def test_remediation_without_a_plan_is_refused(db):
         eq.enquiry_id,
         {"decision": "no_go", "criteria": _scorecard(1),
          "reason_codes": ["CAPACITY_CLASH"]},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
     with pytest.raises(HTTPException):
         await EnquiryService.remediate(eq.enquiry_id, {}, SITE, USER)
 
@@ -260,8 +256,7 @@ async def _won_enquiry() -> Enquiry:
     eq = await _enquiry()
     await _to_pending(eq)
     await EnquiryService.decide(
-        eq.enquiry_id, {"decision": "go", "criteria": _scorecard(4)}, SITE, USER
-    )
+        eq.enquiry_id, {"decision": "go", "criteria": _scorecard(4)}, SITE, USER, ADMIN)
     return await EnquiryService.get(eq.enquiry_id, SITE)
 
 
@@ -287,11 +282,11 @@ async def test_an_issued_revision_is_frozen_and_the_next_supersedes_it(db):
     rev0 = await EnquiryService.create_proposal(
         eq.enquiry_id, {"inspector_cost": 100000}, SITE, USER
     )
-    await EnquiryService.issue_revision(rev0["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev0["proposal_id"], 0, SITE, USER, ADMIN)
 
     # Issuing twice is refused: what the client holds does not change.
     with pytest.raises(HTTPException) as e:
-        await EnquiryService.issue_revision(rev0["proposal_id"], 0, SITE, USER)
+        await EnquiryService.issue_revision(rev0["proposal_id"], 0, SITE, USER, ADMIN)
     assert "already" in e.value.detail
 
     rev1 = await EnquiryService.add_revision(
@@ -359,7 +354,7 @@ async def test_a_loss_needs_a_reason_and_keeps_the_competitor(db):
     rev = await EnquiryService.create_proposal(
         eq.enquiry_id, {"inspector_cost": 100000}, SITE, USER
     )
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
 
     with pytest.raises(HTTPException):
         await EnquiryService.record_outcome(
@@ -380,7 +375,7 @@ async def test_a_loss_needs_a_reason_and_keeps_the_competitor(db):
 async def test_a_lost_enquiry_can_be_revived_without_erasing_the_loss(db):
     eq = await _won_enquiry()
     rev = await EnquiryService.create_proposal(eq.enquiry_id, {}, SITE, USER)
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
     await EnquiryService.record_outcome(
         eq.enquiry_id,
         {"outcome": "lost", "reason_codes": ["PROJECT_DEFERRED"]},
@@ -403,14 +398,13 @@ async def test_closing_files_the_right_kind_of_ending(db):
         declined.enquiry_id,
         {"decision": "no_go", "criteria": _scorecard(1),
          "reason_codes": ["IMPARTIALITY_CONFLICT"]},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
     out = await EnquiryService.close(declined.enquiry_id, {}, SITE, USER)
     assert out["status"] == EnquiryStatus.CLOSED_NO_BID
 
     lost = await _won_enquiry()
     rev = await EnquiryService.create_proposal(lost.enquiry_id, {}, SITE, USER)
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
     await EnquiryService.record_outcome(
         lost.enquiry_id,
         {"outcome": "lost", "reason_codes": ["CLIENT_BUDGET_CUT"]},
@@ -428,7 +422,7 @@ async def test_a_won_enquiry_becomes_a_job_budgeted_at_the_awarded_revision(db):
     rev = await EnquiryService.create_proposal(
         eq.enquiry_id, {"inspector_cost": 200000, "margin_pct": 20}, SITE, USER
     )
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
     await EnquiryService.record_outcome(
         eq.enquiry_id, {"outcome": "won", "award_reference": "LOI/2026/44"},
         SITE, USER,
@@ -469,12 +463,11 @@ async def test_declined_work_is_not_counted_as_lost(db):
         declined.enquiry_id,
         {"decision": "no_go", "criteria": _scorecard(1),
          "reason_codes": ["OUTSIDE_ACCREDITATION"]},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
 
     won = await _won_enquiry()
     rev = await EnquiryService.create_proposal(won.enquiry_id, {}, SITE, USER)
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
     await EnquiryService.record_outcome(won.enquiry_id, {"outcome": "won"}, SITE, USER)
 
     summary = await PipelineService.summary(SITE)
@@ -491,12 +484,11 @@ async def test_loss_analysis_keeps_the_two_gates_apart(db):
         declined.enquiry_id,
         {"decision": "no_go", "criteria": _scorecard(1),
          "reason_codes": ["NO_COMPETENT_INSPECTOR"]},
-        SITE, USER,
-    )
+        SITE, USER, ADMIN)
 
     lost = await _won_enquiry()
     rev = await EnquiryService.create_proposal(lost.enquiry_id, {}, SITE, USER)
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
     await EnquiryService.record_outcome(
         lost.enquiry_id,
         {"outcome": "lost", "reason_codes": ["UNDERCUT_BY_COMPETITOR"]},
@@ -529,8 +521,7 @@ async def test_a_zero_on_a_disqualifying_criterion_outranks_the_total(db):
             eq.enquiry_id,
             {"decision": "no_go", "criteria": card,
              "reason_codes": ["OUTSIDE_ACCREDITATION"]},
-            SITE, USER,
-        )
+            SITE, USER, ADMIN)
         # Everything else scored 5, so the total is high - and it still
         # recommends no-go, which means no override reason was needed.
         assert decision["recommendation"] == "no_go", f"{code} did not disqualify"
@@ -547,6 +538,5 @@ async def test_a_zero_on_a_weighted_criterion_does_not_disqualify_on_its_own(db)
         if c["code"] == "COMMERCIAL":
             c["score"] = 0
     decision = await EnquiryService.decide(
-        eq.enquiry_id, {"decision": "go", "criteria": card}, SITE, USER
-    )
+        eq.enquiry_id, {"decision": "go", "criteria": card}, SITE, USER, ADMIN)
     assert decision["recommendation"] == "go"

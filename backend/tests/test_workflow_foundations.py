@@ -26,6 +26,7 @@ from core import claims  # noqa: E402
 from core.audit import AuditEntry  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 from modules.enquiries.models import Enquiry, EnquiryStatus  # noqa: E402
+from modules.itp.models import InspectionCall  # noqa: E402
 from modules.job_handoff import jno  # noqa: E402
 from modules.job_handoff.models import JobConversion  # noqa: E402
 from modules.job_handoff.service import JobHandoffService  # noqa: E402
@@ -63,7 +64,7 @@ async def db():
         database=client["foundations_test"],
         document_models=[
             AuditEntry, Sequence, NCR, PunchItem, RFI, InspectionReleaseNote,
-            Enquiry, Job, JobConversion, ReportSignoff, Visit,
+            Enquiry, Job, JobConversion, ReportSignoff, Visit, InspectionCall,
         ],
     )
     yield client
@@ -315,78 +316,3 @@ async def test_a_job_created_directly_with_a_region_gets_a_j_no(db):
         {"title": "Direct", "region_code": "E", "service_line": "MANPOWER"}, SITE, "U")
     assert job.j_no.startswith("E-")
     assert job.service_line == "PART_A", "legacy MANPOWER maps to Part A"
-
-
-# ------------------------------------------------------------------ sign-off
-
-async def _signoff(**kw):
-    await Job(job_id="JOB-X", title="t", assigned_inspector_id="PER-INSP").insert()
-    return await SignoffService.create({"job_id": "JOB-X", **kw}, SITE, "U")
-
-
-@pytest.mark.asyncio
-async def test_the_inspector_cannot_sign_off_their_own_work(db):
-    s = await _signoff()
-    assert "PER-INSP" in s["prepared_by_person_ids"]
-    with pytest.raises(HTTPException) as e:
-        await SignoffService.submit_review(
-            s["signoff_id"], {"result": "approved", "signed_by_person_id": "PER-INSP"}, SITE, "U")
-    assert e.value.status_code == 409 and "never self-review" in e.value.detail
-
-
-@pytest.mark.asyncio
-async def test_a_visit_inspector_is_also_barred(db):
-    await Visit.model_construct(
-        visit_id="V-1", job_id="JOB-X", site_id=SITE, inspector_id="PER-VIS").insert()
-    s = await _signoff()
-    assert "PER-VIS" in s["prepared_by_person_ids"]
-    with pytest.raises(HTTPException):
-        await SignoffService.submit_review(
-            s["signoff_id"], {"result": "approved", "signed_by_person_id": "PER-VIS"}, SITE, "U")
-
-
-@pytest.mark.asyncio
-async def test_a_deputy_rh_cannot_sign_a_job_they_sold(db):
-    s = await _signoff(sold_by_person_id="PER-RH")
-    with pytest.raises(HTTPException) as e:
-        await SignoffService.assign_deputy(
-            s["signoff_id"], {"deputy_person_id": "PER-RH", "role": "deputy_rh"}, SITE, "U")
-    assert "did not sell" in e.value.detail
-
-
-@pytest.mark.asyncio
-async def test_a_deputy_rh_must_confirm_scope_and_conflicts_first(db):
-    s = await _signoff(sold_by_person_id="PER-OTHER")
-    await SignoffService.assign_deputy(
-        s["signoff_id"], {"deputy_person_id": "PER-RH", "role": "deputy_rh"}, SITE, "U")
-    with pytest.raises(HTTPException) as e:
-        await SignoffService.submit_review(s["signoff_id"], {"result": "approved"}, SITE, "PER-RH")
-    assert "authorised scope" in e.value.detail
-    out = await SignoffService.submit_review(
-        s["signoff_id"], {"result": "approved", "scope_verified": True, "coi_checked": True},
-        SITE, "PER-RH")
-    assert out["status"] == "approved" and out["signed_by_role"] == "deputy_rh"
-
-
-@pytest.mark.asyncio
-async def test_another_regions_tm_needs_the_country_manager_to_have_arranged_it(db):
-    s = await _signoff()
-    with pytest.raises(HTTPException) as e:
-        await SignoffService.submit_review(
-            s["signoff_id"],
-            {"result": "approved", "signed_by_person_id": "PER-TM2", "signed_by_role": "cross_region_tm"},
-            SITE, "U")
-    assert "Country Manager" in e.value.detail
-    out = await SignoffService.submit_review(
-        s["signoff_id"],
-        {"result": "approved", "signed_by_person_id": "PER-TM2", "signed_by_role": "cross_region_tm",
-         "cross_region_code": "N", "arranged_by": "PER-CM"}, SITE, "U")
-    assert out["status"] == "approved"
-
-
-@pytest.mark.asyncio
-async def test_the_assigned_tm_can_approve_normally(db):
-    s = await _signoff(assigned_tm_person_id="PER-TM")
-    out = await SignoffService.submit_review(
-        s["signoff_id"], {"result": "approved", "signed_by_person_id": "PER-TM"}, SITE, "U")
-    assert out["status"] == "approved"

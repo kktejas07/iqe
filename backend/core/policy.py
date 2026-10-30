@@ -415,6 +415,22 @@ MATRIX: list[Rule] = [
     # self-service and approval, the note says so, and the approval check
     # belongs in the service.
     Rule(
+        prefix="/approvals",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="Quotation approval limits. Who may approve what is a governance "
+             "decision, so only management sets it; everyone internal can read "
+             "the limits and preview whether they could issue a quotation.",
+    ),
+    Rule(
+        prefix="/payroll/me",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="A person's own released payslips. The person comes from the login, "
+             "so opening this to every internal role exposes nobody else's pay. "
+             "There is nothing to write here.",
+    ),
+    Rule(
         prefix="/payroll",
         read=[Role.ADMIN, Role.FINANCE],
         write=[Role.ADMIN, Role.FINANCE],

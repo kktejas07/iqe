@@ -21,6 +21,9 @@ from typing import Any, Optional
 
 from fastapi import HTTPException
 
+from core.claims import ServiceLine, normalise_service_line
+from modules.approvals.service import ApprovalService
+
 from core import audit
 from core.audit import AuditAction
 from core.sequences import next_identifier
@@ -148,6 +151,12 @@ class EnquiryService:
         data = dict(data)
         data["site_id"] = site_id
         data["created_by"] = user_id
+        try:
+            data["service_line"] = normalise_service_line(data.get("service_line")).value
+        except ValueError as exc:
+            raise HTTPException(422, str(exc))
+        if data.get("region_code"):
+            data["region_code"] = str(data["region_code"]).strip().upper()
         if not data.get("enquiry_id"):
             data["enquiry_id"] = await next_identifier(
                 Enquiry, "enquiry_id", site_id, "ENQ"
@@ -339,7 +348,7 @@ class EnquiryService:
 
     @staticmethod
     async def decide(
-        enquiry_id: str, payload: dict, site_id: str, user_id: str
+        enquiry_id: str, payload: dict, site_id: str, user_id: str, user: dict
     ) -> dict:
         """Gate 1. Record the scorecard, the recommendation and the decision.
 
@@ -358,6 +367,8 @@ class EnquiryService:
         if decision not in VALID_DECISIONS:
             raise HTTPException(400, "decision must be 'go' or 'no_go'")
 
+        await EnquiryService._require_reviewer(eq, user, site_id)
+
         criteria = [ScorecardCriterion(**c) for c in payload.get("criteria", [])]
         if not criteria:
             raise HTTPException(
@@ -369,6 +380,8 @@ class EnquiryService:
 
         total, maximum, recommendation = EnquiryService._weigh(criteria)
         override_reason = (payload.get("override_reason") or "").strip() or None
+        if decision == "go":
+            EnquiryService._require_four_point_review(criteria, override_reason)
         if decision != recommendation and not override_reason:
             raise HTTPException(
                 400,
@@ -440,6 +453,57 @@ class EnquiryService:
             },
         )
         return record.model_dump(exclude={"id"})
+
+    @staticmethod
+    async def _require_reviewer(eq: Enquiry, user: dict, site_id: str) -> None:
+        """Who may take the Go/No-Go decision.
+
+        Part A (manpower) and Part C (project support) are the Country
+        Manager's. Part B is the Regional Head's, for their own region, or the
+        deputy arranged for them. The Country Manager (Admin) can take any.
+        An enquiry with no region has no Regional Head, so only Admin.
+        """
+        held = await ApprovalService.levels_held(user, eq.region_code, site_id)
+        if "MD" in held:
+            return
+        if eq.service_line == ServiceLine.PART_B.value and "RH" in held:
+            return
+        if eq.service_line != ServiceLine.PART_B.value:
+            who = "the Country Manager (Part A and Part C are reviewed by the Country Manager)"
+        elif not eq.region_code:
+            who = "the Country Manager (this enquiry has no region, so it has no Regional Head)"
+        else:
+            who = f"the Regional Head for {eq.region_code}, their arranged deputy, or the Country Manager"
+        raise HTTPException(403, f"This enquiry is reviewed by {who}.")
+
+    FOUR_POINTS = ("SCOPE_FIT", "COMPETENCE", "IMPARTIALITY", "CAPACITY")
+
+    @staticmethod
+    def _require_four_point_review(
+        criteria: list[ScorecardCriterion], override_reason: Optional[str]
+    ) -> None:
+        """The contract review: scope, competence, impartiality, capacity.
+        A go needs all four assessed, and a zero on any of them is only
+        accepted with a recorded reason."""
+        by_code = {c.code: c for c in criteria}
+        unscored = [
+            code for code in EnquiryService.FOUR_POINTS
+            if code not in by_code or by_code[code].score is None
+        ]
+        if unscored:
+            raise HTTPException(
+                400,
+                "The four-point contract review is incomplete: "
+                + ", ".join(unscored)
+                + " not assessed. A go needs scope, competence, impartiality and capacity scored.",
+            )
+        failed = [c for c in EnquiryService.FOUR_POINTS if by_code[c].score == 0]
+        if failed and not override_reason:
+            raise HTTPException(
+                400,
+                "Scored zero on " + ", ".join(failed)
+                + ". Going ahead anyway needs an override reason.",
+            )
 
     @staticmethod
     async def _validate_codes(codes: list[str], site_id: str, gate: str) -> None:
@@ -671,7 +735,8 @@ class EnquiryService:
 
     @staticmethod
     async def issue_revision(
-        proposal_id: str, revision_no: int, site_id: str, user_id: str
+        proposal_id: str, revision_no: int, site_id: str, user_id: str, user: dict,
+        beyond_limit_reference: Optional[str] = None,
     ) -> dict:
         """Freeze a revision and send it. After this it cannot be edited."""
         rev = await ProposalRevision.find_one(
@@ -687,13 +752,24 @@ class EnquiryService:
                 f"Rev {revision_no} is already {rev.status}. Add a new revision "
                 f"instead - what the client holds does not change.",
             )
+        eq = await EnquiryService.get(rev.enquiry_id, site_id)
+        gate = await ApprovalService.quotation_gate(
+            rev.total_value, user, eq.region_code, site_id,
+            prepared_by=rev.created_by, beyond_limit_reference=beyond_limit_reference,
+        )
+        if not gate["allowed"]:
+            raise HTTPException(403, gate["reason"])
+        rev.approved_as = gate["approved_as"]
+        rev.beyond_limit_reference = (
+            (beyond_limit_reference or "").strip() or None
+            if gate["approved_as"] == "BEYOND_MD" else None
+        )
         rev.status = ProposalStatus.ISSUED.value
         rev.issued_at = _now()
         rev.issued_by = user_id
         rev.updated_at = _now()
         await rev.save()
 
-        eq = await EnquiryService.get(rev.enquiry_id, site_id)
         eq.pipeline_value = rev.total_value
         await eq.save()
         if eq.status in {EnquiryStatus.PROPOSAL_DRAFT, EnquiryStatus.UNDER_CLARIFICATION,
@@ -707,7 +783,12 @@ class EnquiryService:
             "enquiry", rev.enquiry_id, AuditAction.ISSUE,
             actor={"user_id": user_id}, site_id=site_id,
             note=f"{proposal_id} Rev {revision_no} issued",
-            context={"total_value": rev.total_value, "validity_days": rev.validity_days},
+            context={
+                "total_value": rev.total_value, "validity_days": rev.validity_days,
+                "approved_as": rev.approved_as, "limits": gate["limits"],
+                "limit_note": gate["note"],
+                "beyond_limit_reference": rev.beyond_limit_reference,
+            },
         )
         return rev.model_dump(exclude={"id"})
 

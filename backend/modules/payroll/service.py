@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
+from core.identity import own_identifiers
 from modules.payroll.models import PayrollRun, Payslip
 
 
@@ -189,3 +190,55 @@ class PayrollService:
         if not slip:
             raise HTTPException(404, "Payslip not found")
         return slip
+
+    # ── Self-service ───────────────────────────────────────────────────
+
+    @staticmethod
+    async def _released_run_ids(site_id: str) -> set[str]:
+        """Payslips are released to staff once their run is disbursed.
+
+        Before that a run can still be reprocessed, and a figure shown to an
+        employee and then changed is worse than one shown late.
+        """
+        runs = await PayrollRun.find({"site_id": site_id, "status": "disbursed"}).to_list()
+        return {r.run_id for r in runs}
+
+    @staticmethod
+    async def my_payslips(
+        site_id: str, user: dict, period_month: Optional[int] = None,
+        period_year: Optional[int] = None, page: int = 1, per_page: int = 24,
+    ):
+        """The caller's own released payslips, newest first. The person is
+        taken from the login, never from the request."""
+        mine = sorted(await own_identifiers(user))
+        released = await PayrollService._released_run_ids(site_id)
+        query: dict = {
+            "site_id": site_id,
+            "person_id": {"$in": mine},
+            "run_id": {"$in": sorted(released)},
+        }
+        if period_month:
+            query["period_month"] = period_month
+        if period_year:
+            query["period_year"] = period_year
+        total = await Payslip.find(query).count()
+        items = (
+            await Payslip.find(query)
+            .sort(-Payslip.period_year, -Payslip.period_month)
+            .skip((page - 1) * per_page).limit(per_page).to_list()
+        )
+        return {"total": total, "items": items, "page": page, "per_page": per_page}
+
+    @staticmethod
+    async def my_payslip(payslip_id: str, site_id: str, user: dict):
+        """404, not 403, for a payslip that is not yours or not yet released:
+        saying "forbidden" would confirm that the payslip exists."""
+        slip = await Payslip.find_one({"payslip_id": payslip_id, "site_id": site_id})
+        if (
+            not slip
+            or slip.person_id not in await own_identifiers(user)
+            or slip.run_id not in await PayrollService._released_run_ids(site_id)
+        ):
+            raise HTTPException(404, "Payslip not found")
+        return slip
+

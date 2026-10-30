@@ -18,6 +18,11 @@ class RFI(Document):
     raised_by: Optional[str] = None
     raised_on: datetime = Field(default_factory=datetime.now)
 
+    #: When the RFI is raised against an ITP point, the InspectionCall it
+    #: created. The call is the single authority for hold points; the RFI
+    #: is the contractor-facing request that fed it.
+    inspection_call_id: Optional[str] = None
+
     inspection_point_type: str = "hold"  # hold, witness, surveillance, review
     discipline: Optional[str] = None
     description: str

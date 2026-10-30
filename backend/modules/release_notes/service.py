@@ -87,13 +87,30 @@ class ReleaseNoteService:
         irn.cat_a_open_ids = open_a_ids
         irn.cat_a_punch_closed = len(open_a_ids) == 0
 
-        # Hold points — checked from RFIs with type "hold"
+        # Hold points. The InspectionCall is the authority: a hold point is
+        # satisfied by an accepted attendance, or by the client's waiver.
+        # RFIs not tied to an ITP point (older records) are still honoured.
+        from modules.itp.models import InspectionCall
         from modules.rfi.models import RFI
-        hold_rfis = await RFI.find({"job_id": irn.job_id, "site_id": site_id, "inspection_point_type": "hold"}).to_list()
-        signed = [r for r in hold_rfis if r.status in ("inspected", "closed")]
-        irn.hold_points_count = len(hold_rfis)
-        irn.hold_points_signed_count = len(signed)
-        irn.hold_points_signed = len(hold_rfis) == len(signed) and len(hold_rfis) > 0
+
+        calls = await InspectionCall.find(
+            {"job_id": irn.job_id, "site_id": site_id, "intervention": "H"}
+        ).to_list()
+        call_ok = [
+            c for c in calls
+            if c.status == "WAIVED"
+            or (c.status == "ATTENDED" and c.outcome in ("ACCEPTED", "ACCEPTED_WITH_COMMENTS"))
+        ]
+        legacy = await RFI.find(
+            {"job_id": irn.job_id, "site_id": site_id, "inspection_point_type": "hold",
+             "inspection_call_id": None}
+        ).to_list()
+        legacy_ok = [r for r in legacy if r.status in ("inspected", "closed") and r.result != "rejected"]
+        total = len(calls) + len(legacy)
+        done = len(call_ok) + len(legacy_ok)
+        irn.hold_points_count = total
+        irn.hold_points_signed_count = done
+        irn.hold_points_signed = total > 0 and total == done
 
         all_clear = irn.ncrs_closed and irn.cat_a_punch_closed and irn.hold_points_signed
         if all_clear:

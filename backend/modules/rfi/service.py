@@ -4,6 +4,16 @@ from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
 from modules.rfi.models import RFI
 
+#: ITP intervention marks -> the RFI's own words. Kept in one place so the two
+#: vocabularies cannot drift again.
+_POINT_TYPE = {"H": "hold", "W": "witness", "M": "surveillance", "R": "review"}
+#: RFI results -> inspection call outcomes.
+_RESULT_TO_OUTCOME = {
+    "accepted": "ACCEPTED",
+    "conditional": "ACCEPTED_WITH_COMMENTS",
+    "rejected": "REJECTED",
+}
+
 
 class RFIService:
 
@@ -49,10 +59,36 @@ class RFIService:
         count = await RFI.find({"site_id": site_id}).count()
         year = datetime.now().year
         rfi_id = f"RFI-{year}-{count + 1:04d}"
-        rfi = RFI(rfi_id=rfi_id, site_id=site_id, raised_by=user_id, **{
+        fields = {
             k: v for k, v in data.items()
-            if k in RFI.model_fields and k not in ("rfi_id", "site_id", "raised_by")
-        })
+            if k in RFI.model_fields
+            and k not in ("rfi_id", "site_id", "raised_by", "inspection_call_id")
+        }
+        # Raised against an ITP point: the point decides what kind of
+        # intervention this is - the requester does not - and the request
+        # becomes an InspectionCall, so there is one hold-point record.
+        point_id = data.get("itp_line_ref")
+        if data.get("itp_id") and point_id:
+            from modules.itp.service import ITPService
+
+            when = data.get("requested_date") or data.get("scheduled_date")
+            if not when:
+                raise HTTPException(
+                    422, "an RFI against an ITP point needs requested_date (notice is measured from it)"
+                )
+            call = await ITPService.raise_call(
+                {
+                    "itp_id": data["itp_id"], "point_id": point_id,
+                    "requested_date": when,
+                    "work_package_id": data.get("work_package_id"),
+                    "raised_by": user_id, "location": data.get("location"),
+                },
+                site_id, user_id,
+            )
+            fields["inspection_call_id"] = call["call_id"]
+            fields["inspection_point_type"] = _POINT_TYPE.get(call["intervention"], "witness")
+            fields["job_id"] = call["job_id"]
+        rfi = RFI(rfi_id=rfi_id, site_id=site_id, raised_by=user_id, **fields)
         await rfi.insert()
         await audit("rfi", rfi_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id, after=rfi.dict())
         return rfi.dict()
@@ -88,8 +124,27 @@ class RFIService:
         rfi = await RFI.find_one({"rfi_id": rfi_id, "site_id": site_id})
         if not rfi:
             raise HTTPException(status_code=404, detail="RFI not found")
+        result = data.get("result")
+        if rfi.inspection_call_id:
+            # The call's outcome is what releases the point; keep one record.
+            outcome = _RESULT_TO_OUTCOME.get(result)
+            if outcome is None:
+                raise HTTPException(
+                    422, "result must be accepted, conditional or rejected for an RFI tied to an ITP point"
+                )
+            from modules.itp.service import ITPService
+
+            await ITPService.record_attendance(
+                rfi.inspection_call_id,
+                {
+                    "outcome": outcome, "outcome_note": data.get("note") or data.get("outcome_note"),
+                    "visit_id": data.get("visit_id"), "ncr_refs": data.get("ncr_ids", []),
+                    "attended_on": data.get("inspection_date"),
+                },
+                site_id, user_id,
+            )
         rfi.inspection_date = data.get("inspection_date", datetime.now())
-        rfi.result = data.get("result")
+        rfi.result = result
         rfi.visit_id = data.get("visit_id")
         rfi.ncr_ids = data.get("ncr_ids", [])
         rfi.status = "inspected"

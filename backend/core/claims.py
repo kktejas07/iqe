@@ -34,6 +34,13 @@ class ServiceLine(str, Enum):
     PART_A = "PART_A"  # manpower / secondment
     PART_B = "PART_B"  # inspection
     PART_C = "PART_C"  # EPC project support
+    # The other service lines the Job Register carries (workflow, bottom band).
+    # None of them is an accredited inspection, so none carries the mark.
+    EXPEDITING = "EXPEDITING"
+    VENDOR_ASSESSMENT = "VENDOR_ASSESSMENT"
+    ASSET_INTEGRITY = "ASSET_INTEGRITY"
+    EQUIPMENT_DESIGN = "EQUIPMENT_DESIGN"
+    TRAINING = "TRAINING"
 
 
 #: Values stored before the definitions were corrected.
@@ -43,6 +50,11 @@ LABELS = {
     ServiceLine.PART_A: "Part A - manpower / secondment",
     ServiceLine.PART_B: "Part B - inspection",
     ServiceLine.PART_C: "Part C - EPC project support",
+    ServiceLine.EXPEDITING: "Expediting",
+    ServiceLine.VENDOR_ASSESSMENT: "Vendor assessment",
+    ServiceLine.ASSET_INTEGRITY: "Asset integrity & advanced NDT",
+    ServiceLine.EQUIPMENT_DESIGN: "Equipment design (design consultants)",
+    ServiceLine.TRAINING: "Training",
 }
 
 
@@ -57,8 +69,8 @@ def normalise_service_line(value: Optional[str]) -> ServiceLine:
         return ServiceLine(key)
     except ValueError:
         raise ValueError(
-            f"service_line must be PART_A (manpower), PART_B (inspection) or "
-            f"PART_C (project support); got {value!r}"
+            "service_line must be one of "
+            + ", ".join(l.value for l in ServiceLine) + f"; got {value!r}"
         )
 
 

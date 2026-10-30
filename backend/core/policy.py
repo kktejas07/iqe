@@ -415,6 +415,16 @@ MATRIX: list[Rule] = [
     # self-service and approval, the note says so, and the approval check
     # belongs in the service.
     Rule(
+        prefix="/engagements",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.COORDINATOR, Role.INSPECTOR,
+               Role.QC_AUDITOR],
+        note="Expediting, vendor assessment, asset integrity, equipment design and "
+             "training. Who may do each step is checked in the service: the TM "
+             "confirms competence, engages external parties and signs reports; the "
+             "authorised person records progress. Finance and clients do not.",
+    ),
+    Rule(
         prefix="/approvals",
         read=ALL_INTERNAL,
         write=[Role.ADMIN],

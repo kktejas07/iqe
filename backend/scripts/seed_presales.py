@@ -49,6 +49,7 @@ from modules.jobs.models import Job  # noqa: E402
 
 SITE = "SITE-01"
 USER = "EMP-00002"
+ADMIN = {"role_id": 1, "user_id": USER, "site_id": SITE}
 MARKER = "seeded:presales"
 
 
@@ -198,8 +199,7 @@ async def _walk(spec: dict) -> str:
              "reason_codes": spec["codes"],
              "override_reason": spec.get("override"),
              "remediation_plan": spec.get("remedy")},
-            SITE, USER,
-        )
+            SITE, USER, ADMIN)
         if stop == "no_go":
             return eid
         if stop == "closed_no_bid":
@@ -211,12 +211,10 @@ async def _walk(spec: dict) -> str:
             SITE, USER,
         )
         await EnquiryService.decide(
-            eid, {"decision": "go", "criteria": scores()}, SITE, USER
-        )
+            eid, {"decision": "go", "criteria": scores()}, SITE, USER, ADMIN)
     else:
         await EnquiryService.decide(
-            eid, {"decision": "go", "criteria": scores()}, SITE, USER
-        )
+            eid, {"decision": "go", "criteria": scores()}, SITE, USER, ADMIN)
     if stop == "go":
         return eid
 
@@ -226,7 +224,7 @@ async def _walk(spec: dict) -> str:
     if stop == "proposal_draft":
         return eid
 
-    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER)
+    await EnquiryService.issue_revision(rev["proposal_id"], 0, SITE, USER, ADMIN)
 
     if stop == "under_clarification":
         await EnquiryService.advance(
@@ -243,8 +241,7 @@ async def _walk(spec: dict) -> str:
             eid, "under_clarification", SITE, USER, "Client queried the travel basis."
         )
         await EnquiryService.issue_revision(
-            rev["proposal_id"], nxt["revision_no"], SITE, USER
-        )
+            rev["proposal_id"], nxt["revision_no"], SITE, USER, ADMIN)
     if stop == "submitted_after_remediation":
         return eid
 

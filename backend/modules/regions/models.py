@@ -115,7 +115,8 @@ class InspectorLoan(Document):
     home_region: str
     borrowing_region: str
     job_id: Optional[str] = None
-    rate_card_rate: float = 0.0                # internal daily rate
+    rate_card_rate: float = 0.0                # internal daily rate, from the rate card
+    rate_card_id: Optional[str] = None         # which card it came from
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     timesheet_ids: list[str] = []

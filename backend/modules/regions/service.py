@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import HTTPException
+from core.sequences import next_value
 from core.audit import AuditAction, record as audit
 from modules.regions.models import (
     DeputyCoverage,
@@ -15,6 +16,18 @@ from modules.regions.models import (
     Region,
     SettlementStatus,
 )
+
+
+async def _next_id(model, field: str, prefix: str, *, year_scoped: bool = True, width: int = 4) -> str:
+    """Region records are not site-scoped, so they cannot use next_identifier
+    (which seeds from a site_id column). Skips any id already taken, so records
+    created before this existed cannot collide."""
+    root = f"{prefix}-{datetime.now().year}-" if year_scoped else f"{prefix}-"
+    while True:
+        seq = await next_value(f"regions:{root}")
+        candidate = f"{root}{seq:0{width}d}"
+        if not await model.find_one({field: candidate}):
+            return candidate
 
 
 class RegionService:
@@ -65,6 +78,8 @@ class RegionService:
     async def create_office(region_code: str, data: dict, user_id: str):
         await RegionService.get_region(region_code)
         data["region_code"] = region_code.upper()
+        if not data.get("office_id"):
+            data["office_id"] = await _next_id(Office, "office_id", f"OFF-{data['region_code']}", year_scoped=False, width=2)
         office = Office(**data, created_at=datetime.now(), updated_at=datetime.now())
         await office.insert()
         await audit("office", office.office_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
@@ -101,6 +116,8 @@ class RegionService:
         data["region_share"] = round(fee * (1 - HO_POOL_PCT), 2)
         data["net_payable_to_ho"] = round(data["ho_pool_share"] + data.get("adjustments", 0.0), 2)
         data["created_by"] = user_id
+        if not data.get("settlement_id"):
+            data["settlement_id"] = await _next_id(InterOfficeSettlement, "settlement_id", "IOS")
         settlement = InterOfficeSettlement(**data, created_at=datetime.now(), updated_at=datetime.now())
         await settlement.insert()
         await audit("settlement", settlement.settlement_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
@@ -145,6 +162,31 @@ class RegionService:
         data["home_region"] = data["home_region"].upper()
         data["borrowing_region"] = data["borrowing_region"].upper()
         data["created_by"] = user_id
+        if not data.get("loan_id"):
+            data["loan_id"] = await _next_id(InspectorLoan, "loan_id", "LOAN")
+
+        # A loaned inspector is charged between regions at the internal rate
+        # card. The rate is looked up, never typed: a hand-entered figure is
+        # how two regions end up disagreeing about what was owed.
+        from modules.rates.service import RateService
+
+        code = data.pop("work_type_code", None) or "INSPECTOR_LOAN"
+        resolved = await RateService.resolve(code, discipline=data.pop("discipline", None))
+        if not resolved.priced or resolved.rate is None:
+            raise HTTPException(
+                422,
+                f"No internal rate card prices {code}. Add the rate first - a loan "
+                "is not priced from a figure entered by hand.",
+            )
+        supplied = data.get("rate_card_rate")
+        if supplied and abs(float(supplied) - resolved.rate) > 0.005:
+            raise HTTPException(
+                409,
+                f"Internal loans are priced at the rate card ({resolved.rate:,.2f} from "
+                f"{resolved.card_id}); {float(supplied):,.2f} was supplied.",
+            )
+        data["rate_card_rate"] = resolved.rate
+        data["rate_card_id"] = resolved.card_id
         loan = InspectorLoan(**data, created_at=datetime.now(), updated_at=datetime.now())
         await loan.insert()
         await audit("inspector_loan", loan.loan_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)
@@ -179,6 +221,8 @@ class RegionService:
     async def set_deputy(data: dict, user_id: str):
         data["region_code"] = data["region_code"].upper()
         data["arranged_by"] = data.get("arranged_by", user_id)
+        if not data.get("coverage_id"):
+            data["coverage_id"] = await _next_id(DeputyCoverage, "coverage_id", "DEP")
         deputy = DeputyCoverage(**data, created_at=datetime.now(), updated_at=datetime.now())
         await deputy.insert()
         await audit("deputy_coverage", deputy.coverage_id, AuditAction.CREATE, actor={"user_id": user_id}, after=data)

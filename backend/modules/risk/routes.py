@@ -102,3 +102,23 @@ async def impartiality_proposals(
     return await ImpartialityExposure.propose_risks(
         site_id, window_days=window_days
     )
+
+
+@router.post("/impartiality/design-engagement")
+async def design_engagement(data: dict, user: dict = Depends(get_current_user)):
+    """Workflow step D1: may IQE design this item, or only appraise it?
+
+    Conflicted design requests are refused (409) with the engagement that is
+    allowed; a plain check is available with `dry_run`.
+    """
+    from modules.risk import design_independence as di
+
+    facts = dict(
+        inspected_by_iqe=bool(data.get("inspected_by_iqe", False)),
+        similar_competitive=bool(data.get("similar_competitive", False)),
+        item=data.get("item"),
+    )
+    requested = data.get("requested", "DESIGN")
+    if data.get("dry_run"):
+        return di.decide(requested, **facts)
+    return di.enforce(requested, **facts)

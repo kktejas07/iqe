@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     #: Set only when an accreditation is actually granted. Gates the
     #: accreditation mark everywhere (see core/claims.py).
     iqe_holds_accreditation: bool = False
+
+    #: IQE's own GSTIN. The first two digits are its state, which decides
+    #: whether a vendor's GST is CGST+SGST or IGST. No default: guessing a
+    #: state would put the wrong tax heads on every vendor bill.
+    iqe_gstin: Optional[str] = None
+    #: RBI bank rate (%), for MSMED Act interest at three times the rate. Set
+    #: it from the current RBI notification; it is not guessed here.
+    rbi_bank_rate_pct: Optional[float] = None
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "iqeapp_dev"
     jwt_secret_key: str = "change-me-in-production"

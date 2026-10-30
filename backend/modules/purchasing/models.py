@@ -60,9 +60,25 @@ class VendorPayment(Document):
     tm_approved_by: Optional[str] = None
     tm_approved_on: Optional[datetime] = None
 
+    #: Invoice total including GST (what the vendor billed).
     amount: float = 0.0
+    #: Before GST. TDS is deducted on this, not on the GST charged separately.
+    taxable_value: float = 0.0
+    pan: Optional[str] = None
+    gstin: Optional[str] = None
+    gst_rate_pct: float = 0.0
+    cgst: float = 0.0
+    sgst: float = 0.0
+    igst: float = 0.0
+    gst_total: float = 0.0
+    reverse_charge: bool = False
     tds_deducted: float = 0.0
-    tds_section: str = "194J"
+    tds_section: Optional[str] = "194J"
+    tds_rate_pct: float = 0.0
+    tds_note: Optional[str] = None
+    lower_rate_pct: Optional[float] = None
+    lower_cert_ref: Optional[str] = None
+    tds_deposit_due: Optional[datetime] = None
     net_payable: float = 0.0
 
     due_date: Optional[datetime] = None
@@ -72,8 +88,17 @@ class VendorPayment(Document):
     status: str = "pending"
 
     is_msme: bool = False
+    msme_category: Optional[str] = None            # micro | small | medium
+    udyam_number: Optional[str] = None
+    acceptance_date: Optional[datetime] = None     # of the goods or services
+    written_agreement_days: Optional[int] = None
     msme_45day_compliant: bool = True
+    msme_late_days: int = 0
+    msme_interest: Optional[float] = None
+    msme_interest_note: Optional[str] = None
 
+    approved_by: Optional[str] = None
+    paid_by: Optional[str] = None
     created_by: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

@@ -50,7 +50,7 @@ export default function PurchasingPage() {
       else await api.approveVendorPayment(id);
       toast.success("Approved");
       loadData();
-    } catch { toast.error("Approval failed"); }
+    } catch (e: any) { toast.error(e?.response?.data?.detail ?? "Approval failed"); }
   }
 
   async function handleCreate(e: React.FormEvent) {

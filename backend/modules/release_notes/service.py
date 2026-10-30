@@ -1,6 +1,10 @@
 from typing import Optional
 from datetime import datetime
 from fastapi import HTTPException
+
+from core.auth import Role
+from core.identity import own_identifiers
+from modules.regions.cover import covering
 from core.audit import AuditAction, record as audit
 from core.claims import accreditation_mark, normalise_service_line
 from modules.release_notes.models import InspectionReleaseNote
@@ -121,12 +125,53 @@ class ReleaseNoteService:
         return {**irn.dict(), "preconditions_met": all_clear}
 
     @staticmethod
-    async def recommend(irn_id: str, site_id: str, user_id: str):
+    async def _job_region(job_id: str) -> Optional[str]:
+        from modules.jobs.models import Job
+
+        job = await Job.find_one({"job_id": job_id})
+        return job.region_code if job else None
+
+    @staticmethod
+    async def _require(irn, user: dict, *, stage: str) -> None:
+        """Release is a technical authorisation, not a finance or client
+        function.
+
+        * recommend: the Technical Manager, or the deputy arranged for them
+          in the job's region, or management.
+        * approve: the Country Manager (management). Part C is theirs
+          alone, and so is every approval.
+        * release: management for Part C; management or the Technical
+          Manager for Part B.
+        """
+        role = int(user.get("role_id") or 0)
+        admin = role == int(Role.ADMIN)
+        tm = role == int(Role.TECHNICAL_MANAGER)
+        part_c = irn.service_line == "PART_C"
+        if stage == "recommend":
+            ok = admin or tm or await covering(
+                user, "TM", await ReleaseNoteService._job_region(irn.job_id)
+            )
+            who = "the Technical Manager (or the deputy arranged for them)"
+        elif stage == "approve":
+            ok, who = admin, "the Country Manager"
+        else:
+            ok = admin or (tm and not part_c)
+            who = "the Country Manager" if part_c else "the Country Manager or the Technical Manager"
+        if not ok:
+            raise HTTPException(
+                status_code=403,
+                detail=f"A release note is {stage}d by {who}."
+                       if stage != "release" else f"A release note is released by {who}.",
+            )
+
+    @staticmethod
+    async def recommend(irn_id: str, site_id: str, user_id: str, user: dict):
         irn = await InspectionReleaseNote.find_one({"irn_id": irn_id, "site_id": site_id})
         if not irn:
             raise HTTPException(status_code=404, detail="Release note not found")
         if irn.status != "preconditions_checked":
             raise HTTPException(status_code=400, detail="Preconditions not yet verified")
+        await ReleaseNoteService._require(irn, user, stage="recommend")
         irn.recommended_by = user_id
         irn.recommended_on = datetime.now()
         irn.status = "recommended"
@@ -136,12 +181,18 @@ class ReleaseNoteService:
         return irn.dict()
 
     @staticmethod
-    async def approve(irn_id: str, site_id: str, user_id: str):
+    async def approve(irn_id: str, site_id: str, user_id: str, user: dict):
         irn = await InspectionReleaseNote.find_one({"irn_id": irn_id, "site_id": site_id})
         if not irn:
             raise HTTPException(status_code=404, detail="Release note not found")
         if irn.status != "recommended":
             raise HTTPException(status_code=400, detail="Must be recommended by TM first")
+        await ReleaseNoteService._require(irn, user, stage="approve")
+        if irn.recommended_by and irn.recommended_by in await own_identifiers(user):
+            raise HTTPException(
+                status_code=403,
+                detail="You recommended this release note and cannot also approve it.",
+            )
         irn.approved_by = user_id
         irn.approved_on = datetime.now()
         irn.status = "approved"
@@ -151,12 +202,13 @@ class ReleaseNoteService:
         return irn.dict()
 
     @staticmethod
-    async def release(irn_id: str, data: dict, site_id: str, user_id: str):
+    async def release(irn_id: str, data: dict, site_id: str, user_id: str, user: dict):
         irn = await InspectionReleaseNote.find_one({"irn_id": irn_id, "site_id": site_id})
         if not irn:
             raise HTTPException(status_code=404, detail="Release note not found")
         if irn.status != "approved":
             raise HTTPException(status_code=400, detail="Must be approved by Country Manager first")
+        await ReleaseNoteService._require(irn, user, stage="release")
         irn.released = True
         irn.release_date = datetime.now()
         irn.release_certificate_doc_id = data.get("release_certificate_doc_id")

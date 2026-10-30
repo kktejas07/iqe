@@ -25,7 +25,7 @@ from modules.providers.models import (  # noqa: E402
     PerformanceRecord,
     ProviderCategory,
     ProviderStatus,
-    SubcontractConsent,
+    SubcontractConsent, SubcontractDecision,
 )
 from modules.providers.service import (  # noqa: E402
     ProviderService,
@@ -35,6 +35,7 @@ from modules.providers.service import (  # noqa: E402
 )
 
 SITE = "SITE-01"
+MD = {"user_id": "USR-MD", "role_id": 1, "site_id": "SITE-01"}
 USER = "EMP-TM"
 
 
@@ -59,7 +60,7 @@ async def db():
         database=client["providers_test"],
         document_models=[
             ExternalProvider, EvaluationRecord, PerformanceRecord,
-            SubcontractConsent, AuditEntry, Sequence,
+            SubcontractConsent, SubcontractDecision, AuditEntry, Sequence,
         ],
     )
     yield client
@@ -230,6 +231,13 @@ async def test_accreditation_is_not_demanded_of_providers_that_do_not_measure(db
     assert usable is True, reason
 
 
+async def _md_approves(job_id, provider_id):
+    await ProviderService.decide_subcontract(
+        {"job_id": job_id, "provider_id": provider_id,
+         "special_case_reason": "No IQE inspector holds the NDT method."},
+        SITE, MD)
+
+
 # --------------------------------------------------------- client consent
 
 @pytest.mark.asyncio
@@ -246,6 +254,7 @@ async def test_subcontracting_without_client_consent_is_blocked(db):
     assert check["provider_usable"] is True
     assert any("has not agreed" in b for b in check["blockers"])
 
+    await _md_approves("JOB-2026-0001", p["provider_id"])
     await ProviderService.record_consent(
         {"job_id": "JOB-2026-0001", "provider_id": p["provider_id"],
          "granted_by": "K. Ramesh", "reference": "email 14.10.2026"},
@@ -265,6 +274,7 @@ async def test_consent_is_per_job_not_blanket(db):
                         accreditation={"body": "NABL",
                                        "valid_until": datetime.now() + timedelta(days=200)})
     await _approve(p["provider_id"], approved_services=["UT"])
+    await _md_approves("JOB-A", p["provider_id"])
     await ProviderService.record_consent(
         {"job_id": "JOB-A", "provider_id": p["provider_id"], "granted_by": "X"},
         SITE, USER,
@@ -279,7 +289,33 @@ async def test_both_blockers_are_reported_together(db):
     p = await _register()           # calibration lab, no accreditation
     await _approve(p["provider_id"])
     check = await ProviderService.check_may_subcontract("JOB-X", p["provider_id"], SITE)
-    assert len(check["blockers"]) == 2
+    assert len(check["blockers"]) == 3   # provider, MD decision, client consent
+
+
+@pytest.mark.asyncio
+async def test_only_the_md_decides_and_needs_a_special_case_reason(db):
+    p = await _register()
+    body = {"job_id": "J1", "provider_id": p["provider_id"],
+            "special_case_reason": "Method not held in-house."}
+    for role in (2, 4, 6, 7):
+        with pytest.raises(HTTPException) as e:
+            await ProviderService.decide_subcontract(
+                body, SITE, {"user_id": "U", "role_id": role})
+        assert e.value.status_code == 403
+    with pytest.raises(HTTPException) as e:
+        await ProviderService.decide_subcontract({**body, "special_case_reason": " "}, SITE, MD)
+    assert e.value.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_md_approval_alone_is_not_enough_without_client_consent(db):
+    p = await _register(name="Apex NDT", category=ProviderCategory.NDT_SERVICE,
+                        accreditation={"body": "NABL",
+                                       "valid_until": datetime.now() + timedelta(days=200)})
+    await _approve(p["provider_id"], approved_services=["UT"])
+    await _md_approves("J9", p["provider_id"])
+    check = await ProviderService.check_may_subcontract("J9", p["provider_id"], SITE)
+    assert check["has_md_approval"] is True and check["may_subcontract"] is False
 
 
 # ------------------------------------------------------------- monitoring

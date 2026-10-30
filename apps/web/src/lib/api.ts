@@ -868,8 +868,10 @@ class API {
     return (await this.client.post(`/proposals/${proposalId}/revisions`, body)).data;
   }
 
-  async issueProposalRevision(proposalId: string, revisionNo: number) {
-    return (await this.client.post(`/proposals/${proposalId}/revisions/${revisionNo}/issue`)).data;
+  // Above the MD's limit the MD must record the authority it was approved under.
+  async issueProposalRevision(proposalId: string, revisionNo: number, beyond_limit_reference?: string) {
+    return (await this.client.post(`/proposals/${proposalId}/revisions/${revisionNo}/issue`,
+      beyond_limit_reference ? { beyond_limit_reference } : {})).data;
   }
 
   async recordEnquiryOutcome(enquiryId: string, body: any) {
@@ -1351,6 +1353,18 @@ class API {
   async convertEnquiryToJob(data: any) { return (await this.client.post("/job-handoff/convert", data)).data; }
   async listConversions(params: any = {}) { return (await this.client.get("/job-handoff/conversions", { params })).data; }
   async getConversion(id: string) { return (await this.client.get(`/job-handoff/conversions/${id}`)).data; }
+
+  // ------------------------------------------------ approvals / engagements / payslips
+  async getApprovalLimits() { return (await this.client.get("/approvals/limits")).data; }
+  async getApprovalLimitHistory() { return (await this.client.get("/approvals/limits/history")).data; }
+  async setApprovalLimit(data: any) { return (await this.client.post("/approvals/limits", data)).data; }
+  async myPayslips(params: any = {}) { return (await this.client.get("/payroll/me/payslips", { params })).data; }
+  async listEngagementsForJob(jobId: string) { return (await this.client.get(`/engagements/job/${jobId}`)).data; }
+  async getEngagement(id: string) { return (await this.client.get(`/engagements/${id}`)).data; }
+  async openEngagement(data: any) { return (await this.client.post("/engagements", data)).data; }
+  async completeEngagementStep(id: string, code: string, data: any = {}) {
+    return (await this.client.post(`/engagements/${id}/steps/${code}`, data)).data;
+  }
 
   // -------------------------------------------------------- signoff
   async listSignoffs(params: any = {}) { return (await this.client.get("/signoffs/", { params })).data; }

@@ -60,6 +60,23 @@ class AccountPayable(Document):
     payment_mode: Optional[str] = None
     transaction_ref: Optional[str] = None
     remarks: Optional[str] = None
+
+    #: Set when the entry comes from a vendor bill. Such an entry is paid
+    #: through the vendor payment (approve, then a different person pays),
+    #: never by disbursing the ledger row directly.
+    vp_id: Optional[str] = None
+    pan: Optional[str] = None
+    gstin: Optional[str] = None
+    #: Before GST; TDS is worked out on this.
+    taxable_value: float = 0.0
+    gst_total: float = 0.0
+    tds_section: Optional[str] = None
+    tds_deducted: float = 0.0
+    #: What the bill totals, before TDS. `amount` is what is owed to the vendor.
+    invoice_total: float = 0.0
+    is_msme: bool = False
+    msme_category: Optional[str] = None
+    msme_due_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

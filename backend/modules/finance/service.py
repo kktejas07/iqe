@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from core.sequences import next_identifier
 from modules.finance.models import AccountReceivable, AccountPayable
 from datetime import datetime, timedelta
 from typing import Optional
@@ -238,7 +239,7 @@ class FinanceService:
         amt = float(data.get("amount", 0.0))
 
         ap = AccountPayable(
-            ap_id=data.get("ap_id", f"AP-2026-{datetime.now().strftime('%M%S')}"),
+            ap_id=data.get("ap_id") or await next_identifier(AccountPayable, "ap_id", site_id, "AP"),
             site_id=site_id,
             vendor_id=data.get("vendor_id"),
             vendor_name=data.get("vendor_name"),
@@ -255,10 +256,50 @@ class FinanceService:
         return ap
 
     @staticmethod
+    async def post_vendor_bill(vp: dict, site_id: str):
+        """The creditor ledger entry for a vendor bill, carrying its tax."""
+        entry = datetime.now()
+        due = vp.get("due_date") or entry + timedelta(days=30)
+        owed = float(vp.get("net_payable") or 0.0)
+        ap = AccountPayable(
+            ap_id=await next_identifier(AccountPayable, "ap_id", site_id, "AP"),
+            site_id=site_id, vp_id=vp["vp_id"], vendor_id=vp.get("vendor_id"),
+            vendor_name=vp["vendor_name"], vendor_type=vp.get("vendor_type") or "manufacturer",
+            invoice_id=vp.get("invoice_number"), entry_date=entry, due_date=due,
+            payment_terms_days=max(0, (due - entry).days),
+            amount=owed, balance_amount=owed, status="pending",
+            pan=vp.get("pan"), gstin=vp.get("gstin"), taxable_value=vp.get("taxable_value") or 0.0,
+            gst_total=vp.get("gst_total") or 0.0, tds_section=vp.get("tds_section"),
+            tds_deducted=vp.get("tds_deducted") or 0.0, invoice_total=vp.get("amount") or 0.0,
+            is_msme=bool(vp.get("is_msme")), msme_category=vp.get("msme_category"),
+            msme_due_date=vp.get("due_date") if vp.get("is_msme") else None,
+        )
+        await ap.insert()
+        return ap
+
+    @staticmethod
+    async def settle_vendor_bill(vp_id: str, paid: float, mode: Optional[str], ref: Optional[str], site_id: str):
+        ap = await AccountPayable.find_one({"vp_id": vp_id, "site_id": site_id})
+        if not ap:
+            return None
+        ap.paid_amount, ap.balance_amount = paid, 0.0
+        ap.status, ap.overdue_alert = "settled", False
+        ap.payment_mode, ap.transaction_ref = mode, ref
+        ap.disbursement_date = datetime.now()
+        ap.updated_at = datetime.now()
+        await ap.save()
+        return ap
+
+    @staticmethod
     async def record_ap_disbursement(ap_id: str, paid_amount: float, payment_mode: str, transaction_ref: str, site_id: str = "SITE-01"):
         ap = await AccountPayable.find_one(AccountPayable.ap_id == ap_id, AccountPayable.site_id == site_id)
         if not ap:
             raise HTTPException(404, "AP record not found")
+        if ap.vp_id:
+            raise HTTPException(
+                409, f"{ap_id} comes from vendor bill {ap.vp_id}. It is paid there: approved by the "
+                     "Technical Manager, then released by a different person, with TDS and MSME "
+                     "interest worked out. Disbursing the ledger row directly would skip all of that.")
         ap.paid_amount += paid_amount
         ap.balance_amount = max(0.0, ap.amount - ap.paid_amount)
         ap.payment_mode = payment_mode

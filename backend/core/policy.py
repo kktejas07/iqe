@@ -408,6 +408,173 @@ MATRIX: list[Rule] = [
              "whoever performs the work.",
     ),
 
+    # --- HR, workflow and inter-office areas (added with the IQEIPL workflow) --
+    # The application has no HR or BD role, so HR actions map to Admin, and
+    # money to Finance. The matrix works on path prefixes and cannot tell
+    # "my own leave" from "approve someone's leave"; where a prefix mixes
+    # self-service and approval, the note says so, and the approval check
+    # belongs in the service.
+    Rule(
+        prefix="/payroll",
+        read=[Role.ADMIN, Role.FINANCE],
+        write=[Role.ADMIN, Role.FINANCE],
+        note="Pay is Finance's and HR's alone. A person viewing their own "
+             "payslip needs a self-service route; it is not opened here.",
+    ),
+    Rule(
+        prefix="/recruitment",
+        read=[Role.ADMIN, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER],
+        note="Candidates' details are personal data. HR (Admin) runs the process; "
+             "the Technical Manager sets competence needs and interviews.",
+    ),
+    Rule(
+        prefix="/exit",
+        read=[Role.ADMIN, Role.FINANCE, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN, Role.FINANCE, Role.TECHNICAL_MANAGER],
+        note="HR runs the checklist, Finance settles dues, and withdrawing a "
+             "leaver's authorisations is the Technical Manager's.",
+    ),
+    Rule(
+        prefix="/appraisals",
+        read=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.COORDINATOR,
+              Role.INSPECTOR, Role.QC_AUDITOR],
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER, Role.COORDINATOR,
+               Role.INSPECTOR, Role.QC_AUDITOR],
+        note="Staff complete their own self-review; the Technical Manager does "
+             "the manager review. Finance has no part. Limitation: this cannot "
+             "stop one inspector reading another's appraisal - scoping to the "
+             "person belongs in the service.",
+    ),
+    Rule(
+        prefix="/leave-attendance",
+        read=ALL_INTERNAL,
+        write=ALL_INTERNAL,
+        note="Leave, attendance and timesheets are self-service for every "
+             "internal role. Limitation: approving leave or a timesheet must "
+             "not be allowed on one's own record, and that check belongs in "
+             "the service, not in a path prefix.",
+    ),
+    Rule(
+        prefix="/feedback",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.QC_AUDITOR,
+               Role.TECHNICAL_MANAGER, Role.CLIENT],
+        note="Clients give feedback; the quality function responds and "
+             "escalates to management review. Clients cannot read other "
+             "clients' feedback.",
+    ),
+    Rule(
+        prefix="/job-handoff",
+        read=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE, Role.TECHNICAL_MANAGER,
+              Role.QC_AUDITOR],
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="Converting a won enquiry opens the J.No, which every later "
+             "record hangs off, so it is not open to inspectors or clients.",
+    ),
+    Rule(
+        prefix="/win-loss",
+        read=[Role.ADMIN, Role.COORDINATOR, Role.FINANCE, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN, Role.COORDINATOR],
+        note="Commercial intelligence on why enquiries are won or lost.",
+    ),
+    Rule(
+        prefix="/punch-list",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR,
+               Role.TECHNICAL_MANAGER],
+        note="Whoever performs the inspection raises and re-inspects items.",
+    ),
+    Rule(
+        prefix="/rfis",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.INSPECTOR, Role.QC_AUDITOR,
+               Role.TECHNICAL_MANAGER],
+        note="Contractors have no login; the coordinator raises their requests "
+             "and schedules, the Technical Manager confirms, the inspector "
+             "records the result.",
+    ),
+    Rule(
+        prefix="/signoffs",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.QC_AUDITOR,
+               Role.TECHNICAL_MANAGER],
+        note="Report sign-off is the Technical Manager's, or a deputy's under "
+             "the absence rules. Inspectors cannot sign off reports. "
+             "Who the signer is, and that they did not do the work, is "
+             "enforced in the service.",
+    ),
+    Rule(
+        prefix="/release-notes",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.COORDINATOR, Role.QC_AUDITOR,
+               Role.TECHNICAL_MANAGER],
+        note="Prepared and checked by the coordinator, recommended by the "
+             "Technical Manager, approved by management (Admin).",
+    ),
+
+    # --- Purchasing and inter-office money ---------------------------------
+    Rule(
+        prefix="/purchasing/vendor-payments",
+        read=[Role.ADMIN, Role.FINANCE],
+        write=[Role.ADMIN, Role.FINANCE],
+        note="Paying vendors, including the MSME 45-day alerts, is Finance's.",
+    ),
+    Rule(
+        prefix="/purchasing",
+        read=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN, Role.COORDINATOR, Role.TECHNICAL_MANAGER],
+        note="Requisitions are raised by operations and approved by management; "
+             "payment is the longer /purchasing/vendor-payments rule.",
+    ),
+    Rule(
+        prefix="/regions/settlements",
+        read=[Role.ADMIN, Role.FINANCE],
+        write=[Role.ADMIN, Role.FINANCE],
+        note="The 25% head-office pool and inter-office settlement are money "
+             "between offices.",
+    ),
+    Rule(
+        prefix="/regions/loans",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN, Role.TECHNICAL_MANAGER],
+        note="Lending an inspector to another region is arranged by "
+             "management with the Technical Manager.",
+    ),
+    Rule(
+        prefix="/regions/audit-check",
+        read=[Role.ADMIN, Role.QC_AUDITOR],
+        write=[Role.ADMIN],
+        note="Checks that a cross-region auditor is independent of the region "
+             "audited.",
+    ),
+    Rule(
+        prefix="/regions",
+        read=ALL_INTERNAL,
+        write=[Role.ADMIN],
+        note="Regions, offices and deputy arrangements are set by management.",
+    ),
+
+    # --- Notifications ------------------------------------------------------
+    Rule(
+        prefix="/notifications/emails",
+        read=[Role.ADMIN],
+        write=[Role.ADMIN],
+        note="The outbound email log can contain anyone's messages.",
+    ),
+    Rule(
+        prefix="/notifications/preferences/admin",
+        read=[Role.ADMIN],
+        write=[Role.ADMIN],
+        note="Who receives system-wide alerts is an administrative setting.",
+    ),
+    Rule(
+        prefix="/notifications",
+        read=ALL_INTERNAL + [Role.CLIENT],
+        write=ALL_INTERNAL + [Role.CLIENT],
+        note="A person's own notifications and preferences are self-service.",
+    ),
+
     # --- Self-service --------------------------------------------------
     Rule(
         prefix="/auth",

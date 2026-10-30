@@ -16,6 +16,10 @@ services:
       MONGODB_URL: mongodb://iqe:${MONGO_PASSWORD:-devpassword}@mongodb:27017/iqe?authSource=admin
       REDIS_URL: redis://redis:6379/0
       PUBLIC_WEB_URL: http://localhost:3000
+      # This file is the developer stack. DEBUG is the explicit statement of
+      # that; with it off the API refuses weak secrets (see core/config.py).
+      DEBUG: "true"
+      AUTH_ALLOW_ANONYMOUS: ${AUTH_ALLOW_ANONYMOUS:-false}
     env_file:
       - path: ./backend/.env
         required: false

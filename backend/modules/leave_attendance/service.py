@@ -1,10 +1,37 @@
 from typing import Optional
 from datetime import datetime
 from fastapi import HTTPException
+from core.identity import is_approver, own_identifiers
 from core.audit import AuditAction, record as audit
 from modules.leave_attendance.models import (
     LeaveRequest, AttendanceRecord, Timesheet,
 )
+
+
+async def _require_approver(user: dict, record_person_id: str, what: str) -> None:
+    """Approving leave or a timesheet is a managerial act, and never on your own.
+
+    Two separate refusals, because they fail for different reasons: an
+    inspector approving a colleague's leave is outside their authority; a
+    manager approving their own is a conflict. The second is why leave
+    approval exists at all.
+    """
+    if not is_approver(user):
+        raise HTTPException(
+            403, f"Your role may not approve {what}; it goes to your manager"
+        )
+    if record_person_id in await own_identifiers(user):
+        raise HTTPException(
+            409, f"You cannot approve your own {what}; it needs someone else"
+        )
+
+
+async def _require_own_or_approver(user: dict, person_id, what: str) -> None:
+    """Staff file their own; a manager may file on someone's behalf."""
+    if is_approver(user):
+        return
+    if person_id not in await own_identifiers(user):
+        raise HTTPException(403, f"You can only file {what} for yourself")
 
 
 class LeaveAttendanceService:
@@ -30,19 +57,23 @@ class LeaveAttendanceService:
         return {"total": total, "items": items, "page": page, "per_page": per_page}
 
     @staticmethod
-    async def create_leave(data: dict, site_id: str, user_id: str):
+    async def create_leave(data: dict, site_id: str, user: dict):
+        user_id = user.get("user_id", "USR-001")
+        await _require_own_or_approver(user, data.get("person_id"), "leave")
         leave = LeaveRequest(**data, site_id=site_id, created_by=user_id)
         await leave.insert()
         await audit("leave_requests", leave.leave_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
         return leave
 
     @staticmethod
-    async def approve_leave(leave_id: str, site_id: str, user_id: str, remarks: Optional[str] = None):
+    async def approve_leave(leave_id: str, site_id: str, approver: dict, remarks: Optional[str] = None):
+        user_id = approver.get("user_id", "USR-001")
         leave = await LeaveRequest.find_one({"leave_id": leave_id, "site_id": site_id})
         if not leave:
             raise HTTPException(404, "Leave request not found")
         if leave.status != "pending":
             raise HTTPException(400, f"Cannot approve a {leave.status} request")
+        await _require_approver(approver, leave.person_id, "leave")
         leave.status = "approved"
         leave.approved_by = user_id
         leave.approved_on = datetime.now()
@@ -54,12 +85,14 @@ class LeaveAttendanceService:
         return leave
 
     @staticmethod
-    async def reject_leave(leave_id: str, site_id: str, user_id: str, remarks: Optional[str] = None):
+    async def reject_leave(leave_id: str, site_id: str, approver: dict, remarks: Optional[str] = None):
+        user_id = approver.get("user_id", "USR-001")
         leave = await LeaveRequest.find_one({"leave_id": leave_id, "site_id": site_id})
         if not leave:
             raise HTTPException(404, "Leave request not found")
         if leave.status != "pending":
             raise HTTPException(400, f"Cannot reject a {leave.status} request")
+        await _require_approver(approver, leave.person_id, "leave")
         leave.status = "rejected"
         leave.approved_by = user_id
         leave.approved_on = datetime.now()
@@ -141,7 +174,9 @@ class LeaveAttendanceService:
         return {"total": total, "items": items, "page": page, "per_page": per_page}
 
     @staticmethod
-    async def create_timesheet(data: dict, site_id: str, user_id: str):
+    async def create_timesheet(data: dict, site_id: str, user: dict):
+        user_id = user.get("user_id", "USR-001")
+        await _require_own_or_approver(user, data.get("person_id"), "timesheet")
         ts = Timesheet(**data, site_id=site_id, created_by=user_id)
         await ts.insert()
         await audit("timesheets", ts.timesheet_id, AuditAction.CREATE, actor={"user_id": user_id}, site_id=site_id)
@@ -168,12 +203,14 @@ class LeaveAttendanceService:
         return ts
 
     @staticmethod
-    async def approve_timesheet(timesheet_id: str, site_id: str, user_id: str):
+    async def approve_timesheet(timesheet_id: str, site_id: str, approver: dict):
+        user_id = approver.get("user_id", "USR-001")
         ts = await Timesheet.find_one({"timesheet_id": timesheet_id, "site_id": site_id})
         if not ts:
             raise HTTPException(404, "Timesheet not found")
         if ts.status != "submitted":
             raise HTTPException(400, f"Cannot approve a {ts.status} timesheet")
+        await _require_approver(approver, ts.person_id, "timesheet")
         ts.status = "approved"
         ts.approved_by = user_id
         ts.approved_on = datetime.now()

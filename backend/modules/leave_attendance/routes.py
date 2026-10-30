@@ -11,7 +11,7 @@ router = APIRouter(prefix="/leave-attendance", tags=["Leave & Attendance"])
 
 @router.post("/leave")
 async def create_leave(data: dict, user: dict = Depends(get_current_user)):
-    return await LeaveAttendanceService.create_leave(data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await LeaveAttendanceService.create_leave(data, user.get("site_id", "SITE-01"), user)
 
 
 @router.get("/leave")
@@ -24,12 +24,12 @@ async def list_leaves(
 
 @router.patch("/leave/{leave_id}/approve")
 async def approve_leave(leave_id: str, remarks: Optional[str] = None, user: dict = Depends(get_current_user)):
-    return await LeaveAttendanceService.approve_leave(leave_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), remarks)
+    return await LeaveAttendanceService.approve_leave(leave_id, user.get("site_id", "SITE-01"), user, remarks)
 
 
 @router.patch("/leave/{leave_id}/reject")
 async def reject_leave(leave_id: str, remarks: Optional[str] = None, user: dict = Depends(get_current_user)):
-    return await LeaveAttendanceService.reject_leave(leave_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"), remarks)
+    return await LeaveAttendanceService.reject_leave(leave_id, user.get("site_id", "SITE-01"), user, remarks)
 
 
 # ── Attendance ─────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ async def attendance_summary(
 
 @router.post("/timesheets")
 async def create_timesheet(data: dict, user: dict = Depends(get_current_user)):
-    return await LeaveAttendanceService.create_timesheet(data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await LeaveAttendanceService.create_timesheet(data, user.get("site_id", "SITE-01"), user)
 
 
 @router.get("/timesheets")
@@ -83,4 +83,4 @@ async def submit_timesheet(timesheet_id: str, user: dict = Depends(get_current_u
 
 @router.patch("/timesheets/{timesheet_id}/approve")
 async def approve_timesheet(timesheet_id: str, user: dict = Depends(get_current_user)):
-    return await LeaveAttendanceService.approve_timesheet(timesheet_id, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+    return await LeaveAttendanceService.approve_timesheet(timesheet_id, user.get("site_id", "SITE-01"), user)

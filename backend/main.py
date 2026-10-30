@@ -142,6 +142,16 @@ from modules.notifications.routes import router as notifications_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # First, before anything connects: an unsafe configuration should fail in
+    # seconds with a clear reason, not after the database is up.
+    from core.config import security_problems
+
+    problems = security_problems(settings)
+    if problems:
+        raise RuntimeError(
+            "Refusing to start with an unsafe configuration: " + "; ".join(problems)
+        )
+
     client = AsyncMongoClient(settings.mongodb_url)
     await init_beanie(
         database=client[settings.mongodb_db_name],

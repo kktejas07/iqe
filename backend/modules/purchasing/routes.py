@@ -110,3 +110,27 @@ async def statutory_rules(user: dict = Depends(get_current_user)):
 @router.get("/vendor-payments/msme-alerts")
 async def msme_alerts(user: dict = Depends(get_current_user)):
     return await PurchasingService.msme_alerts(user.get("site_id", "SITE-01"))
+
+
+# --- Vendor master: tax identity held once -----------------------------------
+
+@router.get("/vendors")
+async def list_vendors(search: str = "", include_inactive: bool = False,
+                       user: dict = Depends(get_current_user)):
+    return await PurchasingService.list_vendors(user.get("site_id", "SITE-01"), search, not include_inactive)
+
+
+@router.post("/vendors")
+async def create_vendor(data: dict, user: dict = Depends(get_current_user)):
+    return await PurchasingService.create_vendor(data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))
+
+
+@router.get("/vendors/{vendor_id}")
+async def get_vendor(vendor_id: str, user: dict = Depends(get_current_user)):
+    return await PurchasingService.get_vendor(vendor_id, user.get("site_id", "SITE-01"))
+
+
+@router.patch("/vendors/{vendor_id}")
+async def update_vendor(vendor_id: str, data: dict, user: dict = Depends(get_current_user)):
+    return await PurchasingService.update_vendor(
+        vendor_id, data, user.get("site_id", "SITE-01"), user.get("user_id", "USR-001"))

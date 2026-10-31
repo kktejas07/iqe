@@ -124,7 +124,7 @@ from modules.engagements.routes import router as engagements_router
 from modules.exit_management.models import ExitProcess
 from modules.exit_management.routes import router as exit_router
 from modules.payments.models import DunningRecord
-from modules.purchasing.models import PurchaseRequisition, VendorPayment
+from modules.purchasing.models import PurchaseRequisition, Vendor, VendorPayment
 from modules.purchasing.routes import router as purchasing_router
 from modules.rfi.models import RFI
 from modules.rfi.routes import router as rfi_router
@@ -187,7 +187,7 @@ async def lifespan(app: FastAPI):
             Appraisal, WitnessedInspection,
             ExitProcess,
             DunningRecord,
-            PurchaseRequisition, VendorPayment,
+            PurchaseRequisition, Vendor, VendorPayment,
             RFI, PunchItem, InspectionReleaseNote,
             ClientFeedback, MRMAgendaItem,
             JobConversion, ReportSignoff, WinLossRecord,

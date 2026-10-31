@@ -3,11 +3,143 @@ from fastapi import HTTPException
 from core.audit import AuditAction, record as audit
 from core.sequences import next_identifier
 from modules.purchasing import statutory as st
-from modules.purchasing.models import PurchaseRequisition, VendorPayment
+from modules.purchasing.models import PurchaseRequisition, Vendor, VendorPayment
 from datetime import datetime, timedelta
 
 
 class PurchasingService:
+
+    # --- Vendor master -----------------------------------------------------
+
+    _VENDOR_FIELDS = (
+        "name", "vendor_type", "pan", "gstin", "is_msme", "msme_category", "udyam_number",
+        "default_tds_section", "lower_rate_pct", "lower_cert_ref", "contact_email",
+        "bank_account_last4", "active",
+    )
+    _TAX_FIELDS = ("pan", "gstin", "is_msme", "msme_category", "udyam_number",
+                   "default_tds_section", "lower_rate_pct", "lower_cert_ref")
+
+    @staticmethod
+    def _clean_vendor(fields: dict) -> dict:
+        out = dict(fields)
+        for k in ("pan", "gstin", "udyam_number"):
+            if k in out:
+                out[k] = (out[k] or "").strip().upper() or None
+        if not (out.get("name") or "").strip():
+            raise HTTPException(422, "A vendor needs a name")
+        pan, gstin = out.get("pan"), out.get("gstin")
+        if pan and not st.valid_pan(pan):
+            raise HTTPException(422, f"PAN {pan} is not a valid PAN")
+        if gstin:
+            if not st.valid_gstin(gstin):
+                raise HTTPException(422, f"GSTIN {gstin} is not valid (15 characters, correct check digit)")
+            if pan and gstin[2:12] != pan:
+                raise HTTPException(422, f"GSTIN {gstin} contains PAN {gstin[2:12]}, not {pan}")
+        section = (out.get("default_tds_section") or "").strip().upper() or None
+        if section and section != "NONE" and section not in st.TDS_SECTIONS:
+            raise HTTPException(
+                422, f"default_tds_section must be one of {', '.join(st.TDS_SECTIONS)} or NONE")
+        out["default_tds_section"] = section
+        if out.get("lower_rate_pct") is not None and not (out.get("lower_cert_ref") or "").strip():
+            raise HTTPException(422, "A lower deduction rate needs the certificate reference")
+        if out.get("is_msme"):
+            cat = (out.get("msme_category") or "").lower()
+            if cat not in ("micro", "small", "medium"):
+                raise HTTPException(422, "msme_category must be micro, small or medium")
+            out["msme_category"] = cat
+            if not st.valid_udyam(out.get("udyam_number")):
+                raise HTTPException(422, "A valid Udyam registration number is required (UDYAM-XX-00-0000000)")
+        else:
+            out["msme_category"] = None
+            out["udyam_number"] = None
+        return out
+
+    @staticmethod
+    async def create_vendor(data: dict, site_id: str, user_id: str):
+        fields = PurchasingService._clean_vendor(
+            {k: data.get(k) for k in PurchasingService._VENDOR_FIELDS if k in data})
+        pan = fields.get("pan")
+        if pan:
+            dup = await Vendor.find_one({"site_id": site_id, "pan": pan, "active": True})
+            if dup:
+                raise HTTPException(
+                    409, f"{dup.name} ({dup.vendor_id}) already holds PAN {pan}. "
+                         "Use that vendor, or give each branch its own GSTIN on it.")
+        fields.setdefault("active", True)
+        v = Vendor(vendor_id=await next_identifier(Vendor, "vendor_id", site_id, "VND"),
+                   site_id=site_id, created_by=user_id, **fields)
+        await v.insert()
+        await audit("vendor", v.vendor_id, AuditAction.CREATE, actor={"user_id": user_id},
+                    site_id=site_id, after={k: getattr(v, k) for k in PurchasingService._TAX_FIELDS})
+        return v.model_dump()
+
+    @staticmethod
+    async def update_vendor(vendor_id: str, data: dict, site_id: str, user_id: str):
+        v = await Vendor.find_one({"vendor_id": vendor_id, "site_id": site_id})
+        if not v:
+            raise HTTPException(404, "Vendor not found")
+        merged = {k: getattr(v, k) for k in PurchasingService._VENDOR_FIELDS}
+        merged.update({k: data[k] for k in PurchasingService._VENDOR_FIELDS if k in data})
+        fields = PurchasingService._clean_vendor(merged)
+        if fields.get("pan") and fields["pan"] != v.pan:
+            dup = await Vendor.find_one({"site_id": site_id, "pan": fields["pan"], "active": True,
+                                         "vendor_id": {"$ne": vendor_id}})
+            if dup:
+                raise HTTPException(409, f"{dup.name} ({dup.vendor_id}) already holds PAN {fields['pan']}.")
+        before = {k: getattr(v, k) for k in PurchasingService._TAX_FIELDS}
+        for k, val in fields.items():
+            setattr(v, k, val)
+        v.updated_at = datetime.now()
+        await v.save()
+        after = {k: getattr(v, k) for k in PurchasingService._TAX_FIELDS}
+        # Changing a vendor's tax identity changes how its next bill is taxed.
+        await audit("vendor", vendor_id, AuditAction.UPDATE, actor={"user_id": user_id},
+                    site_id=site_id, before=before, after=after)
+        return v.model_dump()
+
+    @staticmethod
+    async def get_vendor(vendor_id: str, site_id: str):
+        v = await Vendor.find_one({"vendor_id": vendor_id, "site_id": site_id})
+        if not v:
+            raise HTTPException(404, "Vendor not found")
+        return v.model_dump()
+
+    @staticmethod
+    async def list_vendors(site_id: str, search: str = "", active_only: bool = True):
+        q: dict = {"site_id": site_id}
+        if active_only:
+            q["active"] = True
+        if search:
+            q["$or"] = [{"name": {"$regex": search, "$options": "i"}},
+                        {"pan": {"$regex": search.upper()}}, {"vendor_id": search}]
+        rows = await Vendor.find(q).sort("name").to_list()
+        return {"total": len(rows), "data": [r.model_dump(exclude={"id"}) for r in rows]}
+
+    @staticmethod
+    async def _apply_vendor_to_bill(data: dict, site_id: str) -> dict:
+        """Take the vendor's tax identity from the master and refuse a bill
+        that disagrees with it."""
+        v = await Vendor.find_one({"vendor_id": data["vendor_id"], "site_id": site_id})
+        if not v:
+            raise HTTPException(404, f"Vendor {data['vendor_id']} not found")
+        if not v.active:
+            raise HTTPException(409, f"{v.name} is inactive; no bill can be entered against it")
+        for k, held in (("pan", v.pan), ("gstin", v.gstin), ("udyam_number", v.udyam_number)):
+            given = (data.get(k) or "").strip().upper() or None
+            if given and given != held:
+                raise HTTPException(
+                    409, f"The bill says {k} {given} but the vendor record holds {held or 'none'}. "
+                         "Correct the vendor record (with the audit trail) rather than the bill.")
+        data.update(
+            vendor_name=v.name, vendor_type=v.vendor_type, pan=v.pan, gstin=v.gstin,
+            is_msme=v.is_msme, msme_category=v.msme_category, udyam_number=v.udyam_number,
+        )
+        if not data.get("tds_section"):
+            data["tds_section"] = v.default_tds_section or "NONE"
+        if data.get("lower_rate_pct") is None and v.lower_rate_pct is not None:
+            data["lower_rate_pct"], data["lower_cert_ref"] = v.lower_rate_pct, v.lower_cert_ref
+        return data
+
 
     # --- Requisitions ---
 
@@ -155,6 +287,10 @@ class PurchasingService:
                   "tm_approved", "tm_approved_by", "status", "paid_date", "created_by"):
             data.pop(k, None)
         typed_tds = data.pop("tds_deducted", None)
+        if data.get("vendor_id"):
+            data = await PurchasingService._apply_vendor_to_bill(data, site_id)
+        elif not (data.get("vendor_name") or "").strip():
+            raise HTTPException(422, "Name the vendor: pick a vendor record, or give vendor_name for a one-off")
 
         taxable = float(data.get("taxable_value") or data.get("amount") or 0)
         if taxable <= 0:
@@ -221,6 +357,9 @@ class PurchasingService:
         )
         vp = VendorPayment(**data)
         await vp.insert()
+        from modules.finance.service import FinanceService
+
+        await FinanceService.post_vendor_bill(vp.model_dump(), site_id)
         await audit(
             "vendor_payment", vp.vp_id, AuditAction.CREATE,
             actor={"user_id": user_id}, site_id=site_id,
@@ -294,6 +433,10 @@ class PurchasingService:
 
         vp.updated_at = datetime.now()
         await vp.save()
+        from modules.finance.service import FinanceService
+
+        await FinanceService.settle_vendor_bill(
+            vp.vp_id, vp.net_payable, vp.payment_mode, vp.payment_ref, site_id)
         await audit("vendor_payment", vp_id, AuditAction.UPDATE,
                     actor={"user_id": user.get("user_id")}, site_id=site_id,
                     after={"status": "paid", "tds": vp.tds_deducted, "msme_late_days": vp.msme_late_days})

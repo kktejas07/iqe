@@ -547,6 +547,13 @@ MATRIX: list[Rule] = [
         note="Paying vendors, including the MSME 45-day alerts, is Finance's.",
     ),
     Rule(
+        prefix="/purchasing/vendors",
+        read=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR, Role.TECHNICAL_MANAGER],
+        write=[Role.ADMIN, Role.FINANCE],
+        note="A vendor's PAN, GSTIN and MSME status decide how every bill to it is "
+             "taxed, so changing them is Finance's or management's.",
+    ),
+    Rule(
         prefix="/purchasing",
         read=[Role.ADMIN, Role.FINANCE, Role.COORDINATOR, Role.TECHNICAL_MANAGER],
         write=[Role.ADMIN, Role.COORDINATOR, Role.TECHNICAL_MANAGER],

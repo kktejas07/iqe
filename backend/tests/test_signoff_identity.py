@@ -21,6 +21,8 @@ from core.auth import Role  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 from modules.auth.models import UserLogin  # noqa: E402
 from modules.jobs.models import Job  # noqa: E402
+from modules.people.models import Authorization, Person  # noqa: E402
+from datetime import datetime, timedelta  # noqa: E402
 from modules.signoff.models import ReportSignoff  # noqa: E402
 from modules.signoff.service import SignoffService as S  # noqa: E402
 from modules.visits.models import Visit  # noqa: E402
@@ -59,7 +61,7 @@ async def db():
     client = AsyncMongoMockClient()
     await init_beanie(
         database=client["signoff_test"],
-        document_models=[ReportSignoff, Job, Visit, UserLogin, AuditEntry, Sequence],
+        document_models=[ReportSignoff, Job, Visit, UserLogin, AuditEntry, Sequence, Authorization, Person],
     )
     for uid, code, role in [
         ("USR-INSP", "EMP-INSP", Role.INSPECTOR), ("USR-TM", "EMP-TM", Role.TECHNICAL_MANAGER),
@@ -185,9 +187,40 @@ async def test_a_deputy_rh_must_confirm_scope_and_conflicts(db):
     with pytest.raises(HTTPException) as e:
         await S.submit_review(s["signoff_id"], APPROVE, SITE, RH)
     assert "authorised scope" in e.value.detail
+    await _authorise("EMP-RH", ["PART_B"])
     out = await S.submit_review(
         s["signoff_id"], {**APPROVE, "scope_verified": True, "coi_checked": True}, SITE, RH)
     assert out["status"] == "approved" and out["signed_by_role"] == "deputy_rh"
+
+
+async def _authorise(person, lines, **kw):
+    await Authorization(
+        authorization_id=f"ATH-{person}", person_id=person, site_id=SITE, status="authorized",
+        service_lines=lines, valid_until=datetime.now() + timedelta(days=200),
+        next_surveillance_due=datetime.now() + timedelta(days=200), **kw).insert()
+
+
+FLAGS = {**APPROVE, "scope_verified": True, "coi_checked": True}
+
+
+@pytest.mark.asyncio
+async def test_a_deputy_rh_ticking_the_scope_box_is_not_authorisation(db):
+    """The tick says the deputy has checked; the records say whether they may."""
+    s = await _signoff(sold_by_person_id="EMP-X")
+    await S.assign_deputy(s["signoff_id"], {"deputy_person_id": "EMP-RH", "role": "deputy_rh"}, SITE, CM)
+    with pytest.raises(HTTPException) as e:
+        await S.submit_review(s["signoff_id"], FLAGS, SITE, RH)
+    assert e.value.status_code == 409 and "not authorised" in e.value.detail
+
+
+@pytest.mark.asyncio
+async def test_a_deputy_rh_authorised_for_another_line_cannot_sign_this_one(db):
+    s = await _signoff(sold_by_person_id="EMP-X")
+    await _authorise("EMP-RH", ["PART_A"])
+    await S.assign_deputy(s["signoff_id"], {"deputy_person_id": "EMP-RH", "role": "deputy_rh"}, SITE, CM)
+    with pytest.raises(HTTPException) as e:
+        await S.submit_review(s["signoff_id"], FLAGS, SITE, RH)
+    assert e.value.status_code == 409 and "PART_A" in e.value.detail
 
 
 @pytest.mark.asyncio

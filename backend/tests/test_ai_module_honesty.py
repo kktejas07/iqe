@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
+from authz import authorise as grant_authorization
 import pytest_asyncio
 from beanie import init_beanie
 from mongomock_motor import AsyncMongoMockClient
@@ -201,9 +202,7 @@ async def test_a_ranked_suggestion_comes_from_the_assignment_engine(db):
                  "valid_until": datetime.now() + timedelta(days=200)},
                 SITE, USER,
             )
-            await PeopleService.decide_authorization(
-                auth.authorization_id, "authorized", SITE, USER
-            )
+            await grant_authorization(auth.authorization_id, SITE)
 
     suggestions = await ai.suggest_inspector(
         "inspection", "", SITE, work_package_id=wp.work_package_id
@@ -231,7 +230,7 @@ async def test_without_a_work_package_the_answer_says_it_is_unranked(db):
          "valid_until": datetime.now() + timedelta(days=200)},
         SITE, USER,
     )
-    await PeopleService.decide_authorization(auth.authorization_id, "authorized", SITE, USER)
+    await grant_authorization(auth.authorization_id, SITE)
 
     suggestions = await ai.suggest_inspector("inspection", "", SITE)
     assert suggestions

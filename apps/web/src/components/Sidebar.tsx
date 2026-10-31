@@ -392,6 +392,7 @@ const projectExecSubModules: SubModuleItem[] = [
   { name: "Job Handoff", subtitle: "Enquiry → job conversion", href: "/job-handoff", icon: ArrowRightLeft, color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/40" },
   { name: "Service-line Engagements", subtitle: "Expediting, vendor, asset, design, training", href: "/engagements", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Approval Limits", subtitle: "RH / MD quotation limits", href: "/approval-limits", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
+  { name: "Authorisation Review", subtitle: "Yearly H8 / H10 renewals", href: "/authorisation-review", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Report Sign-off", subtitle: "TM/deputy approval gate", href: "/signoffs", icon: PenTool, color: "text-teal-600 bg-teal-100 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800/40" },
   { name: "Win-Loss Analysis", subtitle: "Conversion & loss reasons", href: "/win-loss", icon: TrendingUp, color: "text-rose-600 bg-rose-100 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800/40" },
 ];
@@ -481,6 +482,7 @@ export function Sidebar({ isCollapsed, toggleSidebar, theme }: SidebarProps) {
     pathname.startsWith("/signoffs") ||
     pathname.startsWith("/engagements") ||
     pathname.startsWith("/approval-limits") ||
+    pathname.startsWith("/authorisation-review") ||
     pathname.startsWith("/win-loss");
 
   const isWorkInstructionsActive = pathname.startsWith("/work-instructions");

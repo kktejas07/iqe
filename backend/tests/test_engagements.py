@@ -187,6 +187,26 @@ async def test_authorising_needs_tm_scope_no_conflict_and_not_yourself(db):
 
 
 @pytest.mark.asyncio
+async def test_a_record_naming_service_lines_must_cover_the_job_line(db):
+    """Authorised for expediting in the abstract is not authorised on a line
+    the record does not name."""
+    eid = await _open("EXPEDITING")
+    await _authorise_person("EMP-EX", ["EXPEDITING"], service_lines=["PART_B"])
+    await _refused(eid, "E2", {"person_id": "EMP-EX", "allocated_by": "EMP-IC"}, TM, 409, "not currently authorised")
+    await Authorization.find_one({"person_id": "EMP-EX"}).update({"$set": {"service_lines": ["EXPEDITING"]}})
+    out = await _step(eid, "E2", {"person_id": "EMP-EX", "allocated_by": "EMP-IC"}, TM)
+    assert out["authorised_person_id"] == "EMP-EX"
+
+
+@pytest.mark.asyncio
+async def test_an_authorisation_overdue_its_annual_review_does_not_count(db):
+    eid = await _open("EXPEDITING")
+    await _authorise_person("EMP-EX", ["EXPEDITING"],
+                            next_surveillance_due=datetime.now() - timedelta(days=1))
+    await _refused(eid, "E2", {"person_id": "EMP-EX", "allocated_by": "EMP-IC"}, TM, 409, "renewed")
+
+
+@pytest.mark.asyncio
 async def test_tm_cannot_confirm_their_own_authorisation(db):
     eid = await _open("EXPEDITING")
     await _authorise_person("EMP-TM", ["EXPEDITING"])

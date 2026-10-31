@@ -6,6 +6,9 @@ from typing import Optional
 from fastapi import HTTPException
 
 from core.audit import AuditAction, record as audit
+from core.auth import Role
+from core.identity import own_identifiers
+from modules.people import scope as scope_rules
 from core.sequences import next_identifier
 from modules.people.models import (
     Authorization,
@@ -140,18 +143,17 @@ class PeopleService:
         """
         person = await PeopleService.get(person_id, site_id)
 
-        auth = await Authorization.find_one(
-            Authorization.person_id == person_id,
-            Authorization.site_id == site_id,
-            Authorization.status == AuthorizationStatus.AUTHORIZED.value,
-        )
+        # Current means authorised, unexpired and reviewed within the year
+        # (H10). A record that has lapsed no longer makes anyone deployable.
+        merged = await scope_rules.merged(person_id, site_id)
+        auth = merged
         profile = await CompetenceProfile.find_one(
             CompetenceProfile.person_id == person_id, CompetenceProfile.site_id == site_id
         )
 
         ok, reason = evaluate_deployability(
             person.employment_status,
-            auth.model_dump() if auth else None,
+            auth,
             [q.model_dump() for q in profile.qualifications] if profile else [],
         )
         person.deployable = ok
@@ -173,12 +175,8 @@ class PeopleService:
 
         out = []
         for p in people:
-            auth = await Authorization.find_one(
-                Authorization.person_id == p.person_id,
-                Authorization.status == AuthorizationStatus.AUTHORIZED.value,
-            Authorization.site_id == site_id,
-        )
-            if inspection_type and (not auth or inspection_type not in auth.inspection_types):
+            auth = await scope_rules.merged(p.person_id, site_id)
+            if inspection_type and (not auth or inspection_type not in auth["inspection_types"]):
                 continue
             if discipline and discipline.lower() not in (p.prof_qualification or "").lower():
                 continue
@@ -190,9 +188,9 @@ class PeopleService:
                 "base_location": p.base_location or p.city_name,
                 "inspector_code": p.inspector_code,
                 "discipline": p.prof_qualification,
-                "authorization_id": auth.authorization_id if auth else None,
-                "inspection_types": auth.inspection_types if auth else [],
-                "authorization_valid_until": auth.valid_until if auth else None,
+                "authorization_id": auth["authorization_id"] if auth else None,
+                "inspection_types": auth["inspection_types"] if auth else [],
+                "authorization_valid_until": auth["valid_until"] if auth else None,
             })
         return {"total": len(out), "data": out}
 
@@ -259,46 +257,120 @@ class PeopleService:
         return auth
 
     @staticmethod
+    def _require_role(user: Optional[dict], allowed: set, who: str) -> None:
+        if not user or int(user.get("role_id") or 0) not in {int(r) for r in allowed}:
+            raise HTTPException(403, f"This is decided by {who}.")
+
+    @staticmethod
+    def _evidence_gaps(auth) -> list[str]:
+        missing = []
+        if not auth.qualification_verified:
+            missing.append("qualifications not verified")
+        if not auth.training_completed:
+            missing.append("training not completed")
+        if auth.supervised_inspections_count < auth.supervised_required:
+            missing.append(
+                f"{auth.supervised_inspections_count} of {auth.supervised_required} "
+                "supervised inspections logged"
+            )
+        if not auth.witnessed_assessment_passed:
+            missing.append("witnessed assessment not passed")
+        return missing
+
+    @staticmethod
+    async def _load_auth(authorization_id: str, site_id: str):
+        auth = await Authorization.find_one(
+            Authorization.authorization_id == authorization_id, Authorization.site_id == site_id
+        )
+        if not auth:
+            raise HTTPException(404, f"Authorization '{authorization_id}' not found")
+        return auth
+
+    @staticmethod
+    async def recommend_authorization(
+        authorization_id: str, site_id: str, user: dict, note: Optional[str] = None
+    ):
+        """H8, first half: the Technical Manager recommends the scope.
+
+        The evidence has to be complete before the recommendation is made, so
+        the Country Manager is never asked to authorise on a promise.
+        """
+        PeopleService._require_role(
+            user, {Role.TECHNICAL_MANAGER, Role.ADMIN}, "the Technical Manager (or management)"
+        )
+        auth = await PeopleService._load_auth(authorization_id, site_id)
+        if auth.status not in (AuthorizationStatus.PENDING.value, AuthorizationStatus.RECOMMENDED.value):
+            raise HTTPException(409, f"An authorization that is {auth.status} cannot be recommended.")
+        if not auth.service_lines and not auth.inspection_types:
+            raise HTTPException(409, "State the scope being recommended: service lines and/or inspection types.")
+        gaps = PeopleService._evidence_gaps(auth)
+        if gaps:
+            raise HTTPException(409, "Cannot recommend yet: " + "; ".join(gaps) + ".")
+        previous = auth.status
+        auth.status = AuthorizationStatus.RECOMMENDED.value
+        auth.recommended_by = user.get("user_id")
+        auth.recommended_on = datetime.now()
+        auth.recommendation_note = note
+        auth.updated_at = datetime.now()
+        await auth.save()
+        await audit(
+            "authorization", auth.authorization_id, AuditAction.UPDATE,
+            actor={"user_id": user.get("user_id")},
+            before={"status": previous}, after={"status": auth.status}, note=note,
+            context={"person_id": auth.person_id,
+                     "service_lines": sorted(scope_rules.lines_of(auth)),
+                     "step": "H8 recommend"},
+            site_id=site_id,
+        )
+        return auth
+
+    @staticmethod
     async def decide_authorization(
         authorization_id: str,
         status: str,
         site_id: str = "SITE-01",
         authorized_by: str = "USR-001",
         reason: Optional[str] = None,
+        user: Optional[dict] = None,
     ):
+        """H8, second half: the Country Manager authorises what the Technical
+        Manager recommended. Suspending or withdrawing is open to the
+        Technical Manager as well, since stopping someone working must not
+        wait for a second signature.
+        """
         if status not in VALID_AUTH_STATUSES:
             raise HTTPException(400, f"Invalid status '{status}'. Expected one of: {sorted(VALID_AUTH_STATUSES)}")
 
-        auth = await Authorization.find_one(
-            Authorization.authorization_id == authorization_id, Authorization.site_id == site_id
-        )
-        if not auth:
-            raise HTTPException(404, f"Authorization '{authorization_id}' not found")
+        auth = await PeopleService._load_auth(authorization_id, site_id)
 
         if status == AuthorizationStatus.AUTHORIZED.value:
-            missing = []
-            if not auth.qualification_verified:
-                missing.append("qualifications not verified")
-            if not auth.training_completed:
-                missing.append("training not completed")
-            if auth.supervised_inspections_count < auth.supervised_required:
-                missing.append(
-                    f"{auth.supervised_inspections_count} of {auth.supervised_required} "
-                    "supervised inspections logged"
-                )
-            if not auth.witnessed_assessment_passed:
-                missing.append("witnessed assessment not passed")
-            if missing:
+            PeopleService._require_role(user, {Role.ADMIN}, "the Country Manager")
+            if auth.status != AuthorizationStatus.RECOMMENDED.value:
                 raise HTTPException(
-                    409,
-                    "Cannot authorize yet: " + "; ".join(missing) + ".",
-                )
-            auth.authorized_by = authorized_by
-            auth.authorized_on = datetime.now()
+                    409, "The Technical Manager must recommend this scope before it is authorised "
+                         f"(it is {auth.status}).")
+            if auth.recommended_by and auth.recommended_by in await own_identifiers(user):
+                raise HTTPException(403, "You recommended this authorization and cannot also authorise it.")
+            missing = PeopleService._evidence_gaps(auth)
+            if missing:
+                raise HTTPException(409, "Cannot authorize yet: " + "; ".join(missing) + ".")
+            now = datetime.now()
+            auth.authorized_by = user.get("user_id") or authorized_by
+            auth.authorized_on = now
             auth.unverified_legacy_grant = False
-
-        if status == AuthorizationStatus.SUSPENDED.value:
-            auth.suspension_reason = reason
+            # Authorised for a year at a time. The review date and the expiry
+            # move together so nothing runs on a stale appraisal.
+            auth.valid_until = auth.valid_until or now + timedelta(days=365)
+            auth.next_surveillance_due = auth.next_surveillance_due or now + timedelta(days=365)
+        else:
+            PeopleService._require_role(
+                user, {Role.ADMIN, Role.TECHNICAL_MANAGER},
+                "the Country Manager or the Technical Manager",
+            )
+            if status == AuthorizationStatus.SUSPENDED.value:
+                auth.suspension_reason = reason
+            if status == AuthorizationStatus.WITHDRAWN.value and not reason:
+                raise HTTPException(422, "Say why the authorization is withdrawn.")
 
         previous = auth.status
         auth.status = status
@@ -306,17 +378,16 @@ class PeopleService:
         await auth.save()
         await PeopleService.refresh_deployability(auth.person_id, site_id)
 
-        # Granting, suspending or withdrawing an authorization is a competence
-        # decision. ISO/IEC 17020 expects it to be traceable to a named person
-        # and to the evidence that supported it.
         await audit(
             "authorization", auth.authorization_id, AuditAction.AUTHORIZE,
-            actor={"user_id": authorized_by},
+            actor={"user_id": (user or {}).get("user_id") or authorized_by},
             before={"status": previous}, after={"status": status},
             note=reason,
             context={
                 "person_id": auth.person_id,
                 "inspection_types": list(auth.inspection_types or []),
+                "service_lines": sorted(scope_rules.lines_of(auth)),
+                "recommended_by": auth.recommended_by,
                 "qualification_verified": auth.qualification_verified,
                 "training_completed": auth.training_completed,
                 "supervised": f"{auth.supervised_inspections_count}/{auth.supervised_required}",
@@ -326,6 +397,119 @@ class PeopleService:
             site_id=site_id,
         )
         return auth
+
+    # ---------------------------------------------------- H10: yearly review
+
+    @staticmethod
+    async def recommend_renewal(authorization_id: str, site_id: str, user: dict, note: str):
+        """The Technical Manager appraises the person and recommends renewal."""
+        PeopleService._require_role(
+            user, {Role.TECHNICAL_MANAGER, Role.ADMIN}, "the Technical Manager (or management)"
+        )
+        if not (note or "").strip():
+            raise HTTPException(422, "Record the appraisal: what was reviewed and why renewal is recommended.")
+        auth = await PeopleService._load_auth(authorization_id, site_id)
+        # A lapsed record is appraised too: lapsing is what an overdue review
+        # looks like, and the review is how it comes back.
+        if auth.status not in (AuthorizationStatus.AUTHORIZED.value, AuthorizationStatus.EXPIRED.value):
+            raise HTTPException(409, f"Only a current or lapsed authorization is renewed (this one is {auth.status}).")
+        auth.renewal_recommended_by = user.get("user_id")
+        auth.renewal_recommended_on = datetime.now()
+        auth.review_note = note
+        auth.updated_at = datetime.now()
+        await auth.save()
+        await audit(
+            "authorization", authorization_id, AuditAction.UPDATE,
+            actor={"user_id": user.get("user_id")}, site_id=site_id, note=note,
+            after={"renewal_recommended": True}, context={"step": "H10 recommend renewal"},
+        )
+        return auth
+
+    @staticmethod
+    async def renew_authorization(authorization_id: str, site_id: str, user: dict, note: Optional[str] = None):
+        """The Country Manager renews for another year, on the Technical
+        Manager's appraisal and not on their own."""
+        PeopleService._require_role(user, {Role.ADMIN}, "the Country Manager")
+        auth = await PeopleService._load_auth(authorization_id, site_id)
+        # A lapsed record can still be renewed by the person who reviews it:
+        # that is the point of the review. Withdrawn or suspended cannot.
+        if auth.status not in (AuthorizationStatus.AUTHORIZED.value, AuthorizationStatus.EXPIRED.value):
+            raise HTTPException(409, f"An authorization that is {auth.status} cannot be renewed.")
+        if not auth.renewal_recommended_by or (
+            auth.renewal_recommended_on and auth.authorized_on
+            and auth.renewal_recommended_on < auth.authorized_on
+        ):
+            raise HTTPException(409, "The Technical Manager must appraise and recommend renewal first.")
+        if auth.renewal_recommended_by in await own_identifiers(user):
+            raise HTTPException(403, "You recommended this renewal and cannot also grant it.")
+        gaps = PeopleService._evidence_gaps(auth)
+        if gaps:
+            raise HTTPException(409, "Cannot renew: " + "; ".join(gaps) + ".")
+        now = datetime.now()
+        before = {"status": auth.status, "valid_until": str(auth.valid_until)}
+        base = max(now, auth.valid_until) if (auth.valid_until and auth.status == "authorized") else now
+        auth.status = AuthorizationStatus.AUTHORIZED.value
+        auth.valid_until = base + timedelta(days=365)
+        auth.next_surveillance_due = now + timedelta(days=365)
+        auth.last_review_on = now
+        auth.renewal_count = (auth.renewal_count or 0) + 1
+        auth.updated_at = now
+        await auth.save()
+        await PeopleService.refresh_deployability(auth.person_id, site_id)
+        await audit(
+            "authorization", authorization_id, AuditAction.AUTHORIZE,
+            actor={"user_id": user.get("user_id")}, site_id=site_id, note=note,
+            before=before, after={"status": auth.status, "valid_until": str(auth.valid_until)},
+            context={"person_id": auth.person_id, "step": "H10 renew",
+                     "recommended_by": auth.renewal_recommended_by,
+                     "service_lines": sorted(scope_rules.lines_of(auth))},
+        )
+        return auth
+
+    @staticmethod
+    async def due_for_review(site_id: str, within_days: int = 60):
+        """Authorisations to be appraised soon, or already overdue."""
+        horizon = datetime.now() + timedelta(days=within_days)
+        rows = await Authorization.find(
+            {"site_id": site_id, "status": AuthorizationStatus.AUTHORIZED.value}
+        ).to_list()
+        out = []
+        for a in rows:
+            due = min([d for d in (a.next_surveillance_due, a.valid_until) if d], default=None)
+            if due and due <= horizon:
+                out.append({
+                    "authorization_id": a.authorization_id, "person_id": a.person_id,
+                    "service_lines": sorted(scope_rules.lines_of(a)),
+                    "due": due, "overdue": due <= datetime.now(),
+                    "renewal_recommended": bool(a.renewal_recommended_by),
+                })
+        return sorted(out, key=lambda r: r["due"])
+
+    @staticmethod
+    async def lapse_overdue(site_id: str, user: Optional[dict] = None):
+        """Nothing runs on a lapsed authorization. Marks the overdue ones
+        expired so every list shows the truth, and removes their
+        deployability. Safe to run daily."""
+        now = datetime.now()
+        lapsed = []
+        for a in await Authorization.find(
+            {"site_id": site_id, "status": AuthorizationStatus.AUTHORIZED.value}
+        ).to_list():
+            ok, why = scope_rules.currency(a, now)
+            if ok:
+                continue
+            a.status = AuthorizationStatus.EXPIRED.value
+            a.updated_at = now
+            await a.save()
+            await PeopleService.refresh_deployability(a.person_id, site_id)
+            await audit(
+                "authorization", a.authorization_id, AuditAction.UPDATE,
+                actor={"user_id": (user or {}).get("user_id", "system")}, site_id=site_id,
+                before={"status": "authorized"}, after={"status": "expired"}, note=why,
+                context={"step": "H10 lapse"},
+            )
+            lapsed.append(a.authorization_id)
+        return {"lapsed": lapsed, "count": len(lapsed)}
 
     # ------------------------------------------------------------ profiles
 

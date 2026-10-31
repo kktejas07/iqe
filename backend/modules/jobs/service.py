@@ -195,6 +195,14 @@ class JobService:
         job = await Job.find_one(Job.job_id == job_id, Job.site_id == site_id)
         if not job:
             raise HTTPException(404, "Job not found")
+        # Job Register step 5: the inspector must be authorised for this job's
+        # service line, and the authorisation must be in force (H8/H10).
+        from modules.people import scope as scope_rules
+
+        await scope_rules.require_line(
+            inspector_id, getattr(job, "service_line", None), site_id,
+            what=f"{job.job_id}",
+        )
         job.assigned_inspector_id = inspector_id
         job.assigned_inspector_name = inspector_name
         job.inspector_certifications = certifications

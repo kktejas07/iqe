@@ -163,7 +163,7 @@ def test_the_guarded_routes_actually_carry_a_guard():
     guarded = {
         ("POST", "/certifications/{certification_id}/issue"),
         ("POST", "/billing/invoices/from-certifications"),
-        ("PATCH", "/people/authorizations/{authorization_id}"),
+        ("POST", "/people/authorizations/lapse-overdue"),
         ("POST", "/migration/all"),
     }
     # FastAPI 0.149 keeps included routers lazy, so app.routes holds

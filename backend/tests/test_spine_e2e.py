@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
+from authz import authorise
 import pytest_asyncio
 from beanie import init_beanie
 from fastapi import HTTPException
@@ -119,7 +120,7 @@ async def seed_authorized_person(name="Rajesh Sharma", types=("CODE_INSPECTION",
         },
         SITE, USER,
     )
-    await PeopleService.decide_authorization(auth.authorization_id, "authorized", SITE, USER)
+    await authorise(auth.authorization_id, SITE)
     return await PeopleService.get(person.person_id, SITE)
 
 
@@ -286,7 +287,7 @@ async def test_authorization_refused_until_evidence_is_complete(db):
         SITE, USER,
     )
     with pytest.raises(HTTPException) as exc:
-        await PeopleService.decide_authorization(auth.authorization_id, "authorized", SITE, USER)
+        await authorise(auth.authorization_id, SITE)
     assert exc.value.status_code == 409
     assert "training not completed" in exc.value.detail
 

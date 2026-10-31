@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
+from authz import authorise
 import pytest_asyncio
 from beanie import init_beanie
 from mongomock_motor import AsyncMongoMockClient
@@ -165,17 +166,17 @@ async def test_an_authorization_decision_records_the_evidence_behind_it(db):
          "valid_until": datetime.now() + timedelta(days=365)},
         SITE, USER,
     )
-    await PeopleService.decide_authorization(
-        auth.authorization_id, "authorized", SITE, "USR-TECHMGR", "evidence complete"
-    )
+    await authorise(auth.authorization_id, SITE, "evidence complete")
 
     entries = await history("authorization", auth.authorization_id, SITE)
-    assert len(entries) == 1
-    e = entries[0]
-    assert e.actor_user_id == "USR-TECHMGR"
+    # The recommendation and the decision are both on the record, by two people.
+    assert len(entries) == 2
+    e = [x for x in entries if x.changes and x.changes[-1].after == "authorized"][0]
+    assert {x.actor_user_id for x in entries} == {"USR-TM-TEST", "USR-CM-TEST"}
+    assert e.actor_user_id == "USR-CM-TEST"
     assert e.context["supervised"] == "3/3"
     assert e.context["witnessed_assessment_passed"] is True
-    assert [(c.before, c.after) for c in e.changes] == [("pending", "authorized")]
+    assert [(c.before, c.after) for c in e.changes] == [("recommended", "authorized")]
 
 
 @pytest.mark.asyncio
@@ -197,7 +198,7 @@ async def test_a_refused_authorization_leaves_no_entry(db):
         SITE, USER,
     )
     with pytest.raises(HTTPException):
-        await PeopleService.decide_authorization(auth.authorization_id, "authorized", SITE, USER)
+        await authorise(auth.authorization_id, SITE)
 
     assert await history("authorization", auth.authorization_id, SITE) == []
 

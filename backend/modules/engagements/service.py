@@ -144,21 +144,28 @@ class EngagementService:
     async def _require_authorised(
         person_id: str, accepted: set[str], job, site_id: str
     ) -> None:
-        from modules.people.models import Authorization, AuthorizationStatus
+        from core.claims import normalise_service_line
+        from modules.people import scope as scope_rules
         from modules.people.service import PeopleService
 
-        rows = await Authorization.find({"person_id": person_id, "site_id": site_id}).to_list()
-        now = datetime.now()
-        ok = [
-            a for a in rows
-            if a.status == AuthorizationStatus.AUTHORIZED.value
-            and (a.valid_until is None or a.valid_until > now)
-            and {t.upper() for t in a.inspection_types} & accepted
-        ]
+        pid = await scope_rules.resolve_person_id(person_id, site_id) or person_id
+        try:
+            line = normalise_service_line(getattr(job, "service_line", None)).value
+        except ValueError:
+            line = None
+        ok = []
+        for a in await scope_rules.current_records(pid, site_id):
+            if not ({t.upper() for t in a.inspection_types} & accepted):
+                continue
+            # A record that names service lines must cover this job's line.
+            if a.service_lines and line and line not in scope_rules.lines_of(a):
+                continue
+            ok.append(a)
         if not ok:
             raise HTTPException(
-                409, f"{person_id} is not currently authorised for {' / '.join(sorted(accepted))}. "
-                     "Authorisation is by scope (the Job Register's H8 check)."
+                409, f"{person_id} is not currently authorised for {' / '.join(sorted(accepted))}"
+                     f"{' on ' + line if line else ''}. Authorisation is by scope and is renewed "
+                     "every year (the Job Register's H8/H10 check)."
             )
         if await PeopleService.has_conflict(
             person_id, getattr(job, "client_id", None), getattr(job, "manufacturer_id", None), site_id

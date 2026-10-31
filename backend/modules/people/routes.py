@@ -97,21 +97,63 @@ async def create_authorization(person_id: str, data: dict, user: dict = Depends(
     )
 
 
+@router.post("/authorizations/{authorization_id}/recommend")
+async def recommend_authorization(
+    authorization_id: str, data: dict, user: dict = Depends(get_current_user)
+):
+    """H8: the Technical Manager recommends the scope. Evidence must be complete."""
+    return await PeopleService.recommend_authorization(
+        authorization_id, user.get("site_id", "SITE-01"), user, (data or {}).get("note")
+    )
+
+
 @router.patch("/authorizations/{authorization_id}")
 async def decide_authorization(
     authorization_id: str,
     status: str,
     reason: Optional[str] = None,
-    # Under ISO/IEC 17020 the authority to authorize inspection personnel sits
-    # with a named competent technical function, not an administrative
-    # permission - so this is the one action Admin alone should not hold.
-    user: dict = Depends(require_roles(AUTHORIZES_PERSONNEL)),
+    user: dict = Depends(get_current_user),
 ):
-    """Authorize, suspend or withdraw. Authorizing checks the evidence is complete."""
+    """Authorize (Country Manager, on the Technical Manager's recommendation),
+    or suspend / withdraw (either). Roles are enforced in the service."""
     return await PeopleService.decide_authorization(
         authorization_id, status, user.get("site_id", "SITE-01"),
-        user.get("user_id", "USR-001"), reason,
+        user.get("user_id", "USR-001"), reason, user,
     )
+
+
+@router.post("/authorizations/{authorization_id}/recommend-renewal")
+async def recommend_renewal(authorization_id: str, data: dict, user: dict = Depends(get_current_user)):
+    """H10: the Technical Manager appraises and recommends renewal."""
+    return await PeopleService.recommend_renewal(
+        authorization_id, user.get("site_id", "SITE-01"), user, (data or {}).get("note", "")
+    )
+
+
+@router.post("/authorizations/{authorization_id}/renew")
+async def renew_authorization(authorization_id: str, data: dict, user: dict = Depends(get_current_user)):
+    """H10: the Country Manager renews for a year."""
+    return await PeopleService.renew_authorization(
+        authorization_id, user.get("site_id", "SITE-01"), user, (data or {}).get("note")
+    )
+
+
+@router.get("/authorizations/due")
+async def authorizations_due(days: int = 60, user: dict = Depends(get_current_user)):
+    return await PeopleService.due_for_review(user.get("site_id", "SITE-01"), days)
+
+
+@router.post("/authorizations/lapse-overdue")
+async def lapse_overdue(user: dict = Depends(require_roles(AUTHORIZES_PERSONNEL))):
+    return await PeopleService.lapse_overdue(user.get("site_id", "SITE-01"), user)
+
+
+@router.get("/{person_id}/scope-check")
+async def scope_check(person_id: str, service_line: str = "PART_B", user: dict = Depends(get_current_user)):
+    """The Job Register's flag: is this person authorised for this line now?"""
+    from modules.people import scope as scope_rules
+
+    return await scope_rules.check_line(person_id, service_line, user.get("site_id", "SITE-01"))
 
 
 @router.post("/{person_id}/impartiality")

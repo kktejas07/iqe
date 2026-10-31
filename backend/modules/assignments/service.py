@@ -70,6 +70,32 @@ def _proximity(person_location: Optional[str], work_location: Optional[str]) -> 
     return 0.15
 
 
+async def _current_authorization(person_id: str, wp, site_id: str):
+    """(authorization object, merged dict, line problem) for this work.
+
+    "Current" is authorised, unexpired and reviewed within the year; the work
+    must also fall inside a service line the person is authorised for (H8).
+    """
+    from core.claims import normalise_service_line
+    from modules.jobs.models import Job
+    from modules.people import scope as scope_rules
+
+    cur = await scope_rules.current_records(person_id, site_id)
+    if not cur:
+        return None, None, None
+    merged = await scope_rules.merged(person_id, site_id)
+    job = await Job.find_one(Job.job_id == wp.job_id, Job.site_id == site_id) if wp.job_id else None
+    try:
+        line = normalise_service_line(getattr(job, "service_line", None)).value
+    except ValueError:
+        line = "PART_B"
+    problem = None
+    if line not in merged["service_lines"]:
+        problem = (f"Not authorised for {line} work "
+                   f"(authorised for {', '.join(merged['service_lines'])})")
+    return cur[0], merged, problem
+
+
 def _skill_depth(person: Person, wt: Optional[WorkTypeDefinition], auth: Optional[Authorization]) -> float:
     """Depth beyond the minimum bar, not whether they clear it — that is the gate."""
     score = 0.5
@@ -119,11 +145,7 @@ class AssignmentService:
 
         eligible, excluded = [], []
         for p in pool:
-            auth = await Authorization.find_one(
-                Authorization.person_id == p.person_id,
-                Authorization.site_id == site_id,
-                Authorization.status == AuthorizationStatus.AUTHORIZED.value,
-            )
+            auth, merged, line_problem = await _current_authorization(p.person_id, wp, site_id)
             conflict = await PeopleService.has_conflict(
                 p.person_id, wp.client_id, wp.manufacturer_id, site_id
             )
@@ -131,12 +153,14 @@ class AssignmentService:
 
             ok, reason = check_eligibility(
                 p.model_dump(),
-                auth.model_dump() if auth else None,
+                merged,
                 required_types,
                 wp.planned_start,
                 conflict,
                 clash,
             )
+            if ok and line_problem:
+                ok, reason = False, line_problem
             if not ok:
                 excluded.append({
                     "person_id": p.person_id, "full_name": p.full_name, "reason": reason
@@ -220,11 +244,7 @@ class AssignmentService:
             WorkTypeDefinition.work_type_code == wp.work_type_code,
             WorkTypeDefinition.site_id == site_id,
         )
-        auth = await Authorization.find_one(
-            Authorization.person_id == person_id,
-            Authorization.site_id == site_id,
-            Authorization.status == AuthorizationStatus.AUTHORIZED.value,
-        )
+        auth, merged, line_problem = await _current_authorization(person_id, wp, site_id)
         conflict = await PeopleService.has_conflict(
             person_id, wp.client_id, wp.manufacturer_id, site_id
         )
@@ -234,12 +254,14 @@ class AssignmentService:
         # being shown and being acted on.
         ok, reason = check_eligibility(
             person.model_dump(),
-            auth.model_dump() if auth else None,
+            merged,
             wt.required_authorization_types if wt else [],
             wp.planned_start,
             conflict,
             clash,
         )
+        if ok and line_problem:
+            ok, reason = False, line_problem
         if not ok:
             raise HTTPException(409, f"{person.full_name} cannot take this work: {reason}")
 

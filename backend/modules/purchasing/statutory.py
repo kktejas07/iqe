@@ -18,6 +18,45 @@ from fastapi import HTTPException
 
 RULES_AS_OF = "FY 2026-27 (Income-tax Act 2025 from 1 April 2026) - confirm with your accountant"
 
+#: Where each section sits in the Income-tax Act 2025 (s.393(1) table), and
+#: what was checked. Checked 31 Oct 2026 against two published FY 2026-27 TDS
+#: charts; the 7th-of-next-month deposit date was NOT confirmed by those and
+#: still needs the accountant. This is a reading aid, not a sign-off.
+ACT_2025_REFS = {
+    "194C":      "s.393(1) table, item 6(i) - contractors",
+    "194J":      "s.393(1) table, item 6(iii) - professional fees",
+    "194J_TECH": "s.393(1) table, item 6(iii) - technical services",
+    "194H":      "s.393(1) table, item 1(ii) - commission / brokerage",
+}
+NO_PAN_REF = "s.397(2) - higher rate where no PAN is furnished"
+VERIFICATION = {
+    "checked_on": "2026-10-31",
+    "basis": "two published FY 2026-27 TDS charts; RBI Bank Rate from rbi.org.in",
+    "accountant_signed_off": False,
+    "not_confirmed": ["TDS deposit due date (7th of next month; 30 April for March)",
+                      "MSMED s.16 compounding with monthly rests"],
+}
+
+
+def config_status(gstin: Optional[str], bank_rate: Optional[float]) -> dict:
+    """What is missing from configuration, in words a finance user can act on."""
+    warnings = []
+    if not gstin:
+        warnings.append({"code": "IQE_GSTIN_MISSING",
+                         "message": "IQE's own GSTIN is not set (IQE_GSTIN). Vendor bills carrying GST are refused "
+                                    "until it is, because the tax heads depend on IQE's state."})
+    elif not valid_gstin(gstin):
+        warnings.append({"code": "IQE_GSTIN_INVALID",
+                         "message": "IQE_GSTIN is not a valid GSTIN (check digit fails). Correct it."})
+    if bank_rate is None:
+        warnings.append({"code": "RBI_BANK_RATE_MISSING",
+                         "message": "RBI Bank Rate is not set (RBI_BANK_RATE_PCT). Interest on late MSME payments "
+                                    "will not be computed."})
+    if not VERIFICATION["accountant_signed_off"]:
+        warnings.append({"code": "ACCOUNTANT_NOT_SIGNED_OFF",
+                         "message": "The TDS table and MSME interest rule have not been signed off by IQE's accountant."})
+    return {"iqe_gstin_set": bool(gstin), "rbi_bank_rate_pct": bank_rate, "warnings": warnings}
+
 # ---------------------------------------------------------------- identity
 
 _PAN = re.compile(r"^[A-Z]{5}[0-9]{4}[A-Z]$")

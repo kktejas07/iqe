@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     #: whether a vendor's GST is CGST+SGST or IGST. No default: guessing a
     #: state would put the wrong tax heads on every vendor bill.
     iqe_gstin: Optional[str] = None
-    #: RBI bank rate (%), for MSMED Act interest at three times the rate. Set
-    #: it from the current RBI notification; it is not guessed here.
-    rbi_bank_rate_pct: Optional[float] = None
+    #: RBI Bank Rate (%), for MSMED Act interest at three times the rate.
+    #: 5.75 is the figure on rbi.org.in as updated 30 Oct 2026. It moves with
+    #: monetary policy: override with RBI_BANK_RATE_PCT when it changes.
+    rbi_bank_rate_pct: Optional[float] = 5.75
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "iqeapp_dev"
     jwt_secret_key: str = "change-me-in-production"

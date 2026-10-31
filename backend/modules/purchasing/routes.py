@@ -99,11 +99,15 @@ async def pay_vendor(
 async def statutory_rules(user: dict = Depends(get_current_user)):
     """The TDS sections and thresholds in force in this system, and when they
     were last confirmed. Shown so an accountant can check them."""
+    from core.config import settings
     from modules.purchasing import statutory as st
 
-    return {"as_of": st.RULES_AS_OF, "no_pan_rate_pct": st.NO_PAN_RATE,
+    return {"as_of": st.RULES_AS_OF, "no_pan_rate_pct": st.NO_PAN_RATE, "no_pan_ref": st.NO_PAN_REF,
+            "verification": st.VERIFICATION,
+            "config": st.config_status(settings.iqe_gstin, settings.rbi_bank_rate_pct),
             "sections": {k: {"individual_pct": v[0], "other_pct": v[1],
-                             "annual_threshold": v[2], "single_payment_threshold": v[3]}
+                             "annual_threshold": v[2], "single_payment_threshold": v[3],
+                             "act_2025_ref": st.ACT_2025_REFS.get(k)}
                          for k, v in st.TDS_SECTIONS.items()}}
 
 

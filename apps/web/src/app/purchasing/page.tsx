@@ -65,6 +65,8 @@ export default function PurchasingPage() {
   const [pay, setPay] = useState<any>({ id: "", payment_mode: "NEFT", payment_ref: "" });
 
   useEffect(() => { load(); }, [tab, search]);
+  const [cfgWarnings, setCfgWarnings] = useState<{ code: string; message: string }[]>([]);
+  useEffect(() => { api.statutoryRules().then((r: any) => setCfgWarnings(r?.config?.warnings || [])).catch(() => {}); }, []);
   useEffect(() => { api.listVendors().then((r: any) => setVendors(rows(r))).catch(() => {}); }, []);
 
   async function load() {
@@ -151,6 +153,13 @@ export default function PurchasingPage() {
           <button onClick={() => setModal(action[0] as any)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><Plus size={16} /> {action[1]}</button>
         )}
       </div>
+
+      {cfgWarnings.length > 0 && (
+        <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-3 text-sm text-amber-900 dark:text-amber-200">
+          <p className="font-semibold mb-1">Set up before relying on vendor payments</p>
+          <ul className="list-disc pl-5 space-y-0.5">{cfgWarnings.map(w => <li key={w.code}>{w.message}</li>)}</ul>
+        </div>
+      )}
 
       <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
         {tabs.map(t => (

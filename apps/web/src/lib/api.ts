@@ -1322,6 +1322,7 @@ class API {
   async getRequisition(id: string) { return (await this.client.get(`/purchasing/${id}`)).data; }
   async approveRequisition(id: string) { return (await this.client.patch(`/purchasing/${id}/approve`)).data; }
   async rejectRequisition(id: string, data: any = {}) { return (await this.client.patch(`/purchasing/${id}/reject`, data)).data; }
+  async statutoryRules() { return (await this.client.get("/purchasing/vendor-payments/statutory/rules")).data; }
   async listVendorPayments(params: any = {}) { return (await this.client.get("/purchasing/vendor-payments", { params })).data; }
   async createVendorPayment(data: any) { return (await this.client.post("/purchasing/vendor-payments", data)).data; }
   async approveVendorPayment(id: string) { return (await this.client.patch(`/purchasing/vendor-payments/${id}/approve`)).data; }

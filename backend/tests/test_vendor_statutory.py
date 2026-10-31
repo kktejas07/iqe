@@ -254,3 +254,28 @@ async def test_payment_needs_approval_by_someone_else_and_cannot_repeat(db):
 async def test_ids_are_sequenced_not_counted(db):
     ids = {(await _bill(vendor_name=f"V{i}"))["vp_id"] for i in range(3)}
     assert len(ids) == 3
+
+
+# ------------------------------------------------- configuration visibility
+
+def test_missing_gstin_and_unsigned_rules_are_warned_about_not_hidden():
+    codes = {w["code"] for w in st.config_status(None, 5.75)["warnings"]}
+    assert "IQE_GSTIN_MISSING" in codes and "ACCOUNTANT_NOT_SIGNED_OFF" in codes
+    assert "RBI_BANK_RATE_MISSING" not in codes
+    assert "RBI_BANK_RATE_MISSING" in {w["code"] for w in st.config_status(IQE_GSTIN, None)["warnings"]}
+    assert "IQE_GSTIN_INVALID" in {w["code"] for w in st.config_status("36AAACB1234F1Z0", 5.75)["warnings"]}
+    ok = st.config_status(IQE_GSTIN, 5.75)
+    assert ok["iqe_gstin_set"] and "IQE_GSTIN_MISSING" not in {w["code"] for w in ok["warnings"]}
+
+
+def test_every_tds_section_names_its_place_in_the_2025_act():
+    assert set(st.ACT_2025_REFS) == set(st.TDS_SECTIONS)
+    assert st.VERIFICATION["accountant_signed_off"] is False   # only a person can change this
+
+
+def test_rbi_bank_rate_defaults_to_the_published_figure_and_gstin_is_never_defaulted():
+    from core.config import Settings
+
+    s = Settings(_env_file=None)
+    assert s.rbi_bank_rate_pct == 5.75
+    assert s.iqe_gstin is None, "IQE's GSTIN must come from the business, never a default"

@@ -167,8 +167,11 @@ class EngagementService:
                      f"{' on ' + line if line else ''}. Authorisation is by scope and is renewed "
                      "every year (the Job Register's H8/H10 check)."
             )
-        if await PeopleService.has_conflict(
-            person_id, getattr(job, "client_id", None), getattr(job, "manufacturer_id", None), site_id
+        # Declarations are filed under the person_id; the caller may have named
+        # the person by employee code, so look under both.
+        client, maker = getattr(job, "client_id", None), getattr(job, "manufacturer_id", None)
+        if await PeopleService.has_conflict(pid, client, maker, site_id) or (
+            pid != person_id and await PeopleService.has_conflict(person_id, client, maker, site_id)
         ):
             raise HTTPException(
                 409, f"{person_id} has declared a conflict of interest with this client or manufacturer."

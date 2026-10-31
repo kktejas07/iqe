@@ -341,3 +341,16 @@ async def test_certificates_only_for_participants_who_passed(db):
     await _refused(eid, "T5", {"certificate_ref": "TC-1", "participants": ["Asha", "Ravi"]}, EXP, 409, "Ravi")
     await _step(eid, "T5", {"certificate_ref": "TC-1", "participants": ["Asha"]}, EXP)
     assert (await _step(eid, "T6", {}, MD))["status"] == "closed"
+
+
+@pytest.mark.asyncio
+async def test_conflict_is_found_when_the_person_is_named_by_employee_code(db):
+    """Declarations are filed under the person_id. Naming the trainer by employee
+    code must not let a declared conflict slip past (found by the scenario seed)."""
+    await Person(person_id="P-0009", employee_code="EMP-NAMED", site_id=SITE, full_name="Named By Code",
+                 category="TECHNICAL_INSPECTION", engagement_type="PERMANENT").insert()
+    await _authorise_person("P-0009", ["EXPEDITING"])
+    await ImpartialityDeclaration(declaration_id="IMP-9", person_id="P-0009", site_id=SITE,
+                                  conflicted_client_ids=["CLI-1"]).insert()
+    eid = await _open("EXPEDITING")
+    await _refused(eid, "E2", {"person_id": "EMP-NAMED", "allocated_by": "EMP-IC"}, TM, 409, "conflict of interest")

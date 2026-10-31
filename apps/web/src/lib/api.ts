@@ -1326,6 +1326,9 @@ class API {
   async createVendorPayment(data: any) { return (await this.client.post("/purchasing/vendor-payments", data)).data; }
   async approveVendorPayment(id: string) { return (await this.client.patch(`/purchasing/vendor-payments/${id}/approve`)).data; }
   async payVendorPayment(id: string, data: any) { return (await this.client.patch(`/purchasing/vendor-payments/${id}/pay`, data)).data; }
+  async listVendors(params: any = {}) { return (await this.client.get("/purchasing/vendors", { params })).data; }
+  async createVendor(data: any) { return (await this.client.post("/purchasing/vendors", data)).data; }
+  async updateVendor(id: string, data: any) { return (await this.client.patch(`/purchasing/vendors/${id}`, data)).data; }
   async msmeAlerts() { return (await this.client.get("/purchasing/vendor-payments/msme-alerts")).data; }
 
   // -------------------------------------------------------- dunning (on payments)

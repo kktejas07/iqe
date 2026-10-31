@@ -22,7 +22,8 @@ from core.config import settings  # noqa: E402
 from core.sequences import Sequence  # noqa: E402
 from modules.auth.models import UserLogin  # noqa: E402
 from modules.purchasing import statutory as st  # noqa: E402
-from modules.purchasing.models import VendorPayment  # noqa: E402
+from modules.finance.models import AccountPayable  # noqa: E402
+from modules.purchasing.models import Vendor, VendorPayment  # noqa: E402
 from modules.purchasing.service import PurchasingService  # noqa: E402
 
 SITE = "SITE-01"
@@ -57,7 +58,7 @@ async def db(monkeypatch):
     monkeypatch.setattr(settings, "rbi_bank_rate_pct", 6.0)
     c = AsyncMongoMockClient()
     await init_beanie(database=c["vendor_stat"],
-                      document_models=[VendorPayment, UserLogin, AuditEntry, Sequence])
+                      document_models=[VendorPayment, Vendor, AccountPayable, UserLogin, AuditEntry, Sequence])
     yield c
 
 

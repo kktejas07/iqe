@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { toast } from "@/components/feedback";
 
@@ -12,8 +13,19 @@ const LINES = [
 ];
 
 export default function EngagementsPage() {
+  // useSearchParams needs a Suspense boundary when the page is prerendered.
+  return <Suspense fallback={null}><Engagements /></Suspense>;
+}
+
+function Engagements() {
   const [jobId, setJobId] = useState("");
-  const [line, setLine] = useState("EXPEDITING");
+  // The menu links here with ?line=..., so Asset Integrity, Equipment Design
+  // and Training each open on their own service line.
+  const wanted = useSearchParams().get("line");
+  const [line, setLine] = useState(wanted && LINES.some(([v]) => v === wanted) ? wanted : "EXPEDITING");
+  useEffect(() => {
+    if (wanted && LINES.some(([v]) => v === wanted)) setLine(wanted);
+  }, [wanted]);
   const [eng, setEng] = useState<any>(null);
   const [body, setBody] = useState("{}");
   const [busy, setBusy] = useState(false);

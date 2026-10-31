@@ -44,6 +44,39 @@ class PurchaseRequisition(Document):
         name = "purchase_requisitions"
 
 
+class Vendor(Document):
+    """A vendor's tax identity, held once.
+
+    PAN, GSTIN and MSME status are properties of the vendor, not of each bill.
+    Bills point at the vendor and take these from here, so a bill cannot
+    quietly carry a different PAN (and a different TDS rate) from the last one.
+    """
+    vendor_id: str
+    site_id: str = "SITE-01"
+    name: str
+    vendor_type: str = "manufacturer"
+    pan: Optional[str] = None
+    gstin: Optional[str] = None
+    is_msme: bool = False
+    msme_category: Optional[str] = None            # micro | small | medium
+    udyam_number: Optional[str] = None
+    #: The TDS section this vendor's bills normally fall under.
+    default_tds_section: Optional[str] = None
+    #: Section 197 certificate for a lower rate, when the vendor holds one.
+    lower_rate_pct: Optional[float] = None
+    lower_cert_ref: Optional[str] = None
+    contact_email: Optional[str] = None
+    bank_account_last4: Optional[str] = None
+    active: bool = True
+    created_by: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    class Settings:
+        name = "vendors"
+        indexes = ["vendor_id", "pan", "site_id"]
+
+
 class VendorPayment(Document):
     vp_id: str
     site_id: str = "SITE-01"

@@ -91,61 +91,6 @@ class ClientService:
             query["unit_type"] = unit_type
         units = await ClientUnit.find(query).to_list()
 
-        # Auto-seed if empty so user always sees existing units details
-        if not units and not region and not unit_type:
-            client = await Client.find_one(Client.client_id == client_id, Client.site_id == site_id)
-            c_name = client.name if client else "Corporate Plant"
-            sample_units = [
-                ClientUnit(
-                    client_unit_id=f"{client_id}-U01",
-                    client_id=client_id,
-                    site_id=site_id,
-                    name=f"{c_name} - Unit 1 (Hazira Heavy Fabrication Yard)",
-                    unit_type="FAB - Fabrication Yard",
-                    region="WST - Western Region",
-                    city="HAZ - Hazira",
-                    location="HAZ - Plot 45, GIDC Industrial Estate Phase I",
-                    contact_person="Site Lead / QC Head",
-                    phone="+91 98200 11223",
-                    gst="27AAACR1234F1ZV",
-                    custom_category="Offshore Pressure Vessels",
-                ),
-                ClientUnit(
-                    client_unit_id=f"{client_id}-U02",
-                    client_id=client_id,
-                    site_id=site_id,
-                    name=f"{c_name} - Unit 2 (Jamnagar Refinery Expansion Site)",
-                    unit_type="PET - Oil Refinery & Petrochemicals",
-                    region="WST - Western Region",
-                    city="JAM - Jamnagar",
-                    location="JAM - Moti Khavdi Petrochemical Complex",
-                    contact_person="Refinery QC Lead",
-                    phone="+91 98200 44556",
-                    gst="27AAACR1234F2ZW",
-                    custom_category="High Temp Alloy Piping Wing",
-                ),
-                ClientUnit(
-                    client_unit_id=f"{client_id}-U03",
-                    client_id=client_id,
-                    site_id=site_id,
-                    name=f"{c_name} - Unit 3 (Chennai Subsea Integration Works)",
-                    unit_type="ASS - Assembly & Integration Site",
-                    region="STH - Southern Region",
-                    city="CHE - Chennai",
-                    location="CHE - Ennore Port SEZ Industrial Area",
-                    contact_person="S. Sundaram",
-                    phone="+91 98400 33221",
-                    gst="33AAACR1234F3ZX",
-                    custom_category="Subsea Manifolds Unit",
-                ),
-            ]
-            for u in sample_units:
-                try:
-                    await u.insert()
-                except Exception:
-                    pass
-            units = sample_units
-
         return [u.dict() for u in units]
 
     @staticmethod

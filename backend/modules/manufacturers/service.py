@@ -90,45 +90,6 @@ class ManufacturerService:
             query["unit_type"] = unit_type
         units = await ManufacturerUnit.find(query).to_list()
 
-        # Auto-seed if empty so user always sees existing units details
-        if not units and not region and not unit_type:
-            mfr = await Manufacturer.find_one(Manufacturer.manufacturer_id == mfr_id, Manufacturer.site_id == site_id)
-            m_name = mfr.name if mfr else "Vendor Plant Works"
-            sample_units = [
-                ManufacturerUnit(
-                    manufacturer_unit_id=f"{mfr_id}-U01",
-                    manufacturer_id=mfr_id,
-                    site_id=site_id,
-                    name=f"{m_name} - Works 1 (Heavy Forging & Casting Shop)",
-                    unit_type="FOR - Forging & Casting Shop",
-                    region="WST - Western Region",
-                    city="PUN - Pune",
-                    location="PUN - Chakan MIDC Phase II Industrial Area",
-                    contact_person="Vendor QC Lead",
-                    phone="+91 98220 11223",
-                    custom_category="10,000T Forging Press Line",
-                ),
-                ManufacturerUnit(
-                    manufacturer_unit_id=f"{mfr_id}-U02",
-                    manufacturer_id=mfr_id,
-                    site_id=site_id,
-                    name=f"{m_name} - Works 2 (High Pressure Boiler & Vessel Shop)",
-                    unit_type="BOI - Boiler & Pressure Vessel Shop",
-                    region="STH - Southern Region",
-                    city="TRI - Trichy",
-                    location="TRI - Heavy Industrial Complex Area",
-                    contact_person="Plant Manager",
-                    phone="+91 94433 88776",
-                    custom_category="ASME Nuclear Stamp Bay",
-                ),
-            ]
-            for u in sample_units:
-                try:
-                    await u.insert()
-                except Exception:
-                    pass
-            units = sample_units
-
         return [u.dict() for u in units]
 
     @staticmethod

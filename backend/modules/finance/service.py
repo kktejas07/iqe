@@ -42,53 +42,6 @@ class FinanceService:
         total = await AccountReceivable.find(query).count()
         items = await AccountReceivable.find(query).sort(-AccountReceivable.created_at).skip((page - 1) * per_page).limit(per_page).to_list()
 
-        # Auto-seed sample AR entries if empty
-        if not items and not search and not alpha and not status:
-            now = datetime.now()
-            sample_ar = [
-                AccountReceivable(
-                    ar_id="AR-2026-001",
-                    site_id=site_id,
-                    client_id="C-001",
-                    client_name="Reliance Industries Ltd",
-                    invoice_number="INV/IQE/2026/001",
-                    po_number="PO/RIL/2026/094",
-                    entry_date=now - timedelta(days=10),
-                    due_date=now + timedelta(days=20),
-                    payment_terms_days=30,
-                    amount=94400.0,
-                    paid_amount=94400.0,
-                    balance_amount=0.0,
-                    status="settled",
-                    settlement_date=now - timedelta(days=2),
-                    payment_mode="NEFT",
-                    transaction_ref="TXN981726410",
-                ),
-                AccountReceivable(
-                    ar_id="AR-2026-002",
-                    site_id=site_id,
-                    client_id="C-002",
-                    client_name="L&T Heavy Engineering",
-                    invoice_number="INV/IQE/2026/002",
-                    po_number="PO/LNT/2026/441",
-                    entry_date=now - timedelta(days=35),
-                    due_date=now - timedelta(days=5),
-                    payment_terms_days=30,
-                    amount=177000.0,
-                    paid_amount=0.0,
-                    balance_amount=177000.0,
-                    status="overdue",
-                    overdue_alert=True,
-                ),
-            ]
-            for a in sample_ar:
-                try:
-                    await a.insert()
-                except Exception:
-                    pass
-            items = sample_ar
-            total = len(sample_ar)
-
         # Update overdue state
         now = datetime.now()
         for item in items:
@@ -174,53 +127,6 @@ class FinanceService:
 
         total = await AccountPayable.find(query).count()
         items = await AccountPayable.find(query).sort(-AccountPayable.created_at).skip((page - 1) * per_page).limit(per_page).to_list()
-
-        # Auto-seed sample AP entries if empty
-        if not items and not search and not alpha and not status:
-            now = datetime.now()
-            sample_ap = [
-                AccountPayable(
-                    ap_id="AP-2026-001",
-                    site_id=site_id,
-                    vendor_id="M-001",
-                    vendor_name="BHEL Trichy Boilers",
-                    vendor_type="manufacturer",
-                    po_number="PO/RIL/2026/094",
-                    entry_date=now - timedelta(days=12),
-                    due_date=now + timedelta(days=18),
-                    payment_terms_days=30,
-                    amount=45000.0,
-                    paid_amount=45000.0,
-                    balance_amount=0.0,
-                    status="settled",
-                    disbursement_date=now - timedelta(days=4),
-                    payment_mode="NEFT",
-                    transaction_ref="TXNAP-192837",
-                ),
-                AccountPayable(
-                    ap_id="AP-2026-002",
-                    site_id=site_id,
-                    vendor_id="INS-002",
-                    vendor_name="S. Sundaram (Subsea Inspector Fee)",
-                    vendor_type="inspector",
-                    po_number="PO/ONGC/2026/812",
-                    entry_date=now - timedelta(days=32),
-                    due_date=now - timedelta(days=2),
-                    payment_terms_days=30,
-                    amount=28500.0,
-                    paid_amount=0.0,
-                    balance_amount=28500.0,
-                    status="overdue",
-                    overdue_alert=True,
-                ),
-            ]
-            for p in sample_ap:
-                try:
-                    await p.insert()
-                except Exception:
-                    pass
-            items = sample_ap
-            total = len(sample_ap)
 
         # Update overdue state
         now = datetime.now()
